@@ -1,13 +1,36 @@
 ---
-title: "Finding bigfoot"
-subtitle: "An introduction to Julia for niche modeling"
+title: "Neither a crustacean nor a lobster"
+subtitle: "An introduction to Julia for ecological niche modeling"
 author: "Timothée Poisot"
 institute: "Université de Montréal"
+title-slide-attributes: 
+  data-background-image: https://cdn.pixabay.com/photo/2020/05/11/07/30/mushroom-5156926_1280.jpg
+  data-background-opacity: "0.5"
 format:
     revealjs:
-        theme: serif
+        logo: assets/geobon.png
+        theme: simple
+        footer: "CC BY 4.0 - Timothée Poisot"
 ---
 
-## Quarto
+## Overview
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+-   Build a *simple* classifier to predict the distribution of a species
+-   Show how to
+
+## Neither a crustacean nor a lobster?
+
+-   *Hypomyces lactifluorum*, the lobster mushroom, is neither of these things!
+-   *This presentation*, about ENM and ML, is about neither of these things!
+
+## Meet the cast
+
+| Package                      | Purpose                |
+|------------------------------|------------------------|
+| `Distributions`              |                        |
+| `CairoMakie`                 | Visualisation          |
+| `GeoMakie`                   | Axes for spatial data  |
+| `SpeciesDistributionToolkit` | GBIF, raster data, ... |
+| `DataFrames`                 | Data frame operations  |
+| `StatsBase`                  | Sampling               |
+| `JLD`                        | Saving objects to disk |
