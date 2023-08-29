@@ -1,0 +1,62 @@
+---
+title: "Download the data"
+---
+
+```{julia}
+include(joinpath("code", "pkg.jl"))
+```
+
+get the data from CHELSA and clip
+
+```{julia}
+provider = RasterData(WorldClim2, BioClim)
+opts = (resolution=10.0, )
+boundingbox = (left=-100.0, bottom=25.0, top=60.0, right=-50.0)
+temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
+```
+
+```{julia}
+fig = Figure()
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, temperature, colormap=Reverse(:dense))
+Colorbar(fig[1,2], hm)
+current_figure()
+```
+
+get some GBIF data
+
+```{julia}
+Hlac = taxon("Hypomyces lactifluorum")
+query = [
+    "occurrenceStatus" => "PRESENT",
+    "hasCoordinate" => true,
+    "decimalLatitude" => (boundingbox.bottom, boundingbox.top),
+    "decimalLongitude" => (boundingbox.left, boundingbox.right),
+    "limit" => 300,
+]
+observations = occurrences(Hlac, query...)
+```
+
+get the plot all nice
+
+```{julia}
+scatter!(ax, observations; color=:black)
+current_figure()
+```
+
+we add a phylopic image because we *can*
+
+```{julia}
+phylopic_uuid = Phylopic.imagesof(Hlac; items = 1)
+silhouette = phylopic_uuid |>
+    Phylopic.thumbnail |>
+    Downloads.download |>
+    Images.load
+
+@info Phylopic.attribution(phylopic_uuid)
+
+silhouette_size = Vec2f(reverse(size(silhouette) ./ 2))
+
+scatter!(ax, [-58], [35.0]; marker = silhouette, markersize = silhouette_size)
+current_figure()
+```
