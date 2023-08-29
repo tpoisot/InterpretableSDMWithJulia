@@ -16,10 +16,10 @@ temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
 ```{julia}
-fig = Figure()
+fig = Figure(; resolution=(900, 600))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, temperature, colormap=Reverse(:dense))
-Colorbar(fig[1,2], hm)
+Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
 
@@ -59,4 +59,50 @@ silhouette_size = Vec2f(reverse(size(silhouette) ./ 2))
 
 scatter!(ax, [-58], [35.0]; marker = silhouette, markersize = silhouette_size)
 current_figure()
+```
+
+we make a buffer for pseudo-absences
+
+```{julia}
+presence_layer = mask(temperature, observations, Bool)
+background = pseudoabsencemask(WithinRadius, presence_layer; distance = 280.0)
+buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 70.0)
+possible_background = background-buffer
+```
+
+we get the pseudo-absences now
+
+```{julia}
+absence_layer = SpeciesDistributionToolkit.sample(possible_background, floor(Int, 0.5sum(presence_layer)))
+```
+
+we remove the info we do not need from the layers
+
+```{julia}
+replace!(absence_layer, false => nothing)
+replace!(presence_layer, false => nothing)
+```
+
+now we need to get the full series of layers for the suite of bioclim variables
+
+```{julia}
+bioclim_clipped = [SimpleSDMPredictor(provider; layer = l, boundingbox...) for l in layers(provider)]
+SpeciesDistributionToolkit._write_geotiff("artifacts/layers.tiff", bioclim_clipped)
+```
+
+now we bring everything into a single matrix
+
+```{julia}
+Xpresence = hcat([bioclim_var[keys(presence_layer)] for bioclim_var in bioclim_clipped]...)
+ypresence = fill(true, length(presence_layer))
+Xabsence = hcat([bioclim_var[keys(absence_layer)] for bioclim_var in bioclim_clipped]...)
+yabsence = fill(false, length(absence_layer))
+X = vcat(Xpresence, Xabsence)
+y = vcat(ypresence, yabsence)
+```
+
+and we save as a JLD file
+
+```{julia}
+JLD.@save "artifacts/data.jld" X y
 ```

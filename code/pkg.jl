@@ -2,6 +2,9 @@ using DataFrames
 import CSV
 using PrettyTables
 
+import Random
+Random.seed!(12345)
+
 import JLD
 
 using Statistics
