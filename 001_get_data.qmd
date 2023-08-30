@@ -2,31 +2,39 @@
 title: "Download the data"
 ---
 
+The purpose of this notebook is to download occurrences from GBIF, as well as the predictors from WorldClim2. Everything is then saved to either a stacked geotiff (layers for visualisation) or to a `JLD` serialized object (raw data for future steps in the pipeline).
+
+## Loading the required package
+
 ```{julia}
 include(joinpath("code", "pkg.jl"))
 ```
 
-get the data from CHELSA and clip
+## Bioclimatic data
+
+get the data from worldclim2 and clip
 
 ```{julia}
 provider = RasterData(WorldClim2, BioClim)
 opts = (resolution=10.0, )
-boundingbox = (left=-100.0, bottom=25.0, top=60.0, right=-50.0)
+boundingbox = (left=4.0, bottom=55.0, top=72.0, right=35.0)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
 ```{julia}
-fig = Figure(; resolution=(900, 600))
+fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, temperature, colormap=Reverse(:dense))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
 
+## Getting occurrence data
+
 get some GBIF data
 
 ```{julia}
-Hlac = taxon("Hypomyces lactifluorum")
+Hlac = taxon("Rangifer tarandus tarandus"; strict=false)
 query = [
     "occurrenceStatus" => "PRESENT",
     "hasCoordinate" => true,
@@ -35,6 +43,14 @@ query = [
     "limit" => 300,
 ]
 observations = occurrences(Hlac, query...)
+```
+
+get a few more pages of observations
+
+```{julia}
+for _ in 1:3
+    occurrences!(observations)
+end
 ```
 
 get the plot all nice
@@ -47,6 +63,7 @@ current_figure()
 we add a phylopic image because we *can*
 
 ```{julia}
+#=
 phylopic_uuid = Phylopic.imagesof(Hlac; items = 1)
 silhouette = phylopic_uuid |>
     Phylopic.thumbnail |>
@@ -59,21 +76,29 @@ silhouette_size = Vec2f(reverse(size(silhouette) ./ 2))
 
 scatter!(ax, [-58], [35.0]; marker = silhouette, markersize = silhouette_size)
 current_figure()
+=#
 ```
 
-we make a buffer for pseudo-absences
+## Selection of background points
+
+we perform some spatial thinning, by making sure that there is only one observation per grid cell
 
 ```{julia}
 presence_layer = mask(temperature, observations, Bool)
-background = pseudoabsencemask(WithinRadius, presence_layer; distance = 280.0)
-buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 70.0)
+```
+
+we make a buffer for pseudo-absences -- we will sample in circles around known presences, but keep a 100km buffer with no background points
+
+```{julia}
+background = pseudoabsencemask(WithinRadius, presence_layer; distance = 500.0)
+buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 50.0)
 possible_background = background-buffer
 ```
 
-we get the pseudo-absences now
+we get the pseudo-absences now, by sampling an equal number of background points
 
 ```{julia}
-absence_layer = SpeciesDistributionToolkit.sample(possible_background, floor(Int, 0.5sum(presence_layer)))
+absence_layer = SpeciesDistributionToolkit.sample(possible_background, sum(presence_layer))
 ```
 
 we remove the info we do not need from the layers
@@ -82,6 +107,8 @@ we remove the info we do not need from the layers
 replace!(absence_layer, false => nothing)
 replace!(presence_layer, false => nothing)
 ```
+
+## Saving data to disk
 
 now we need to get the full series of layers for the suite of bioclim variables
 
