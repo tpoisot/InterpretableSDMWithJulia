@@ -69,15 +69,39 @@ initial tuning
 
 ```{julia}
 thr = LinRange(0.0, 1.0, 50)
-k = 12
+k = 10
 C = zeros(ConfusionMatrix, (k, length(thr)))
 ty, tX = y[idx], X[idx,:]
 folds = kfold(ty, tX; k=k, permute=true)
 for (j,fold) in enumerate(folds)
-    foldmodel = naivebayes(ty[fold[1]], tX[fold[1],:])
-    foldvalid = vec(mapslices(foldmodel, tX[fold[2],:]; dims=2))
+    trn, vld = fold
+    foldmodel = naivebayes(ty[trn], tX[trn,:])
+    foldvalid = vec(mapslices(foldmodel, tX[vld,:]; dims=2))
     for (i,t) in enumerate(thr)
-        C[j,i] = ConfusionMatrix(foldvalid, ty[fold[2]], t)
+        C[j,i] = ConfusionMatrix(foldvalid, ty[vld], t)
     end
 end
+```
+
+```{julia}
+fig = Figure(; resolution=(900, 400))
+
+gl = fig[1,1] = GridLayout()
+
+ax_mcc = Axis(gl[1,1])
+
+scores = mcc.(C)
+σ = vec(std(scores; dims=1))
+μ = vec(mean(scores; dims=1))
+
+band!(ax_mcc, thr, μ-.5σ, μ+.5σ, color=:lightgrey)
+scatterlines!(ax_mcc, thr, μ, color=:black)
+
+xlims!(ax_mcc, low=0.0, high=1.0)
+ylims!(ax_mcc, low=0.0)
+
+_, m = findmax(μ)
+vlines!(ax_mcc, thr[m])
+
+current_figure()
 ```

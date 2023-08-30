@@ -17,7 +17,7 @@ get the data from worldclim2 and clip
 ```{julia}
 provider = RasterData(WorldClim2, BioClim)
 opts = (resolution=10.0, )
-boundingbox = (left=4.0, bottom=55.0, top=72.0, right=35.0)
+boundingbox = (left=4.0, bottom=55.0, top=72.0, right=29.0)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -48,7 +48,7 @@ observations = occurrences(Hlac, query...)
 get a few more pages of observations
 
 ```{julia}
-for _ in 1:3
+for _ in 1:8
     occurrences!(observations)
 end
 ```
@@ -90,7 +90,7 @@ presence_layer = mask(temperature, observations, Bool)
 we make a buffer for pseudo-absences -- we will sample in circles around known presences, but keep a 100km buffer with no background points
 
 ```{julia}
-background = pseudoabsencemask(WithinRadius, presence_layer; distance = 500.0)
+background = pseudoabsencemask(WithinRadius, presence_layer; distance = 200.0)
 buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 50.0)
 possible_background = background-buffer
 ```
