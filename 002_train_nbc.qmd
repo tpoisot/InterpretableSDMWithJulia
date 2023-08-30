@@ -7,6 +7,7 @@ include(joinpath("code", "pkg.jl"))
 include(joinpath("code", "nbc.jl"))
 include(joinpath("code", "splitters.jl"))
 include(joinpath("code", "confusion.jl"))
+include(joinpath("code", "variableselection.jl"))
 ```
 
 we train a nbc on a pair of variables (1, 12)
@@ -20,6 +21,9 @@ next up we split the data in two
 
 ```{julia}
 idx, tidx = holdout(y, X; permute=true)
+ty, tX = y[idx], X[idx,:]
+k = 10
+folds = kfold(ty, tX; k=k, permute=true)
 ```
 
 initial model
@@ -33,28 +37,7 @@ ConfusionMatrix(prediction, y[tidx]) |> mcc
 variable selection
 
 ```{julia}
-available_variables = collect(axes(X, 2))
-best_mcc = -Inf
-while ~isempty(available_variables)
-    scores = zeros(length(available_variables))
-    for (i,v) in enumerate(available_variables)
-        variable_pool = deleteat!(copy(available_variables),i)
-        for fold in folds
-            trn, vld = fold
-            foldmodel = naivebayes(ty[trn], tX[trn,variable_pool])
-            foldvalid = vec(mapslices(foldmodel, tX[vld,variable_pool]; dims=2))
-            scores[i] += mcc(ConfusionMatrix(foldvalid, ty[vld]))
-        end
-    end
-    scores ./= k
-    best, i = findmax(scores)
-    if best > best_mcc
-        best_mcc = best
-        deleteat!(available_variables, i)
-    else
-        break
-    end
-end
+available_variables = backward(ty, tX, folds, naivebayes, mcc)
 ```
 
 newmodel
@@ -62,11 +45,10 @@ newmodel
 initial tuning
 
 ```{julia}
-thr = LinRange(0.0, 1.0, 50)
-k = 10
-C = zeros(ConfusionMatrix, (k, length(thr)))
 ty, tX = y[idx], X[idx,available_variables]
-folds = kfold(ty, tX; k=k, permute=true)
+
+thr = LinRange(0.0, 1.0, 150)
+C = zeros(ConfusionMatrix, (k, length(thr)))
 for (j,fold) in enumerate(folds)
     trn, vld = fold
     foldmodel = naivebayes(ty[trn], tX[trn,:])
@@ -89,7 +71,7 @@ scores = mcc.(C)
 μ = vec(mean(scores; dims=1))
 
 band!(ax_mcc, thr, μ-.5σ, μ+.5σ, color=:lightgrey)
-scatterlines!(ax_mcc, thr, μ, color=:black)
+lines!(ax_mcc, thr, μ, color=:slategrey, linestyle=:dash)
 
 xlims!(ax_mcc, low=0.0, high=1.0)
 ylims!(ax_mcc, low=0.0)
@@ -121,7 +103,7 @@ map the prediction
 ```{julia}
 fig = Figure(; resolution=(900, 400))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:roma), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=Reverse(:Spectral), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```

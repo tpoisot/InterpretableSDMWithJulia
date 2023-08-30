@@ -16,8 +16,8 @@ get the data from worldclim2 and clip
 
 ```{julia}
 provider = RasterData(WorldClim2, BioClim)
-opts = (resolution=10.0, )
-boundingbox = (bottom=40.0, right=-60.0, left=-80.0, top=55.0)
+opts = (resolution=2.5, )
+boundingbox = (bottom=42.0, right=-70.0, left=-82.5, top=47.5)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -34,7 +34,7 @@ current_figure()
 get some GBIF data
 
 ```{julia}
-Hlac = taxon("Peromyscus maniculatus"; strict=false)
+Hlac = taxon("Polyommatus icarus"; strict=false)
 query = [
     "occurrenceStatus" => "PRESENT",
     "hasCoordinate" => true,
@@ -113,7 +113,7 @@ replace!(presence_layer, false => nothing)
 now we need to get the full series of layers for the suite of bioclim variables
 
 ```{julia}
-bioclim_clipped = [SimpleSDMPredictor(provider; layer = l, boundingbox...) for l in layers(provider)]
+bioclim_clipped = [SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...) for l in layers(provider)]
 SpeciesDistributionToolkit._write_geotiff("artifacts/layers.tiff", bioclim_clipped)
 ```
 
