@@ -19,7 +19,7 @@ y, X = data["y"], data["X"][:,:]
 next up we split the data in two
 
 ```{julia}
-idx, tidx = holdout(y, X)
+idx, tidx = holdout(y, X; permute=true)
 ```
 
 initial model
@@ -27,43 +27,37 @@ initial model
 ```{julia}
 model1 = naivebayes(y[idx], X[idx,:])
 prediction = vec(mapslices(model1, X[tidx,:]; dims=2))
-ConfusionMatrix(prediction, y[tidx]) |> trueskill
+ConfusionMatrix(prediction, y[tidx]) |> mcc
 ```
 
-we make a map
+variable selection
 
 ```{julia}
-predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in 1:19]
-prediction = similar(first(predictors))
-Threads.@threads for k in keys(prediction)
-    prediction[k] = model1([p[k] for p in predictors])
+available_variables = collect(axes(X, 2))
+best_mcc = -Inf
+while ~isempty(available_variables)
+    scores = zeros(length(available_variables))
+    for (i,v) in enumerate(available_variables)
+        variable_pool = deleteat!(copy(available_variables),i)
+        for fold in folds
+            trn, vld = fold
+            foldmodel = naivebayes(ty[trn], tX[trn,variable_pool])
+            foldvalid = vec(mapslices(foldmodel, tX[vld,variable_pool]; dims=2))
+            scores[i] += mcc(ConfusionMatrix(foldvalid, ty[vld]))
+        end
+    end
+    scores ./= k
+    best, i = findmax(scores)
+    if best > best_mcc
+        best_mcc = best
+        deleteat!(available_variables, i)
+    else
+        break
+    end
 end
 ```
 
-map the prediction
-
-```{julia}
-fig = Figure(; resolution=(900, 400))
-ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:Spectral), colorrange=(0., 1.))
-Colorbar(fig[1,2], hm; tellheight=false)
-current_figure()
-```
-
-uncertainty
-
-```{julia}
-function entropy(f)
-    p = [f, 1-f]
-    return -sum(p .* log2.(p))
-end
-
-fig = Figure(; resolution=(900, 400))
-ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:tokyo), colorrange=(0., 1.))
-Colorbar(fig[1,2], hm; tellheight=false)
-current_figure()
-```
+newmodel
 
 initial tuning
 
@@ -71,7 +65,7 @@ initial tuning
 thr = LinRange(0.0, 1.0, 50)
 k = 10
 C = zeros(ConfusionMatrix, (k, length(thr)))
-ty, tX = y[idx], X[idx,:]
+ty, tX = y[idx], X[idx,available_variables]
 folds = kfold(ty, tX; k=k, permute=true)
 for (j,fold) in enumerate(folds)
     trn, vld = fold
@@ -103,5 +97,46 @@ ylims!(ax_mcc, low=0.0)
 _, m = findmax(μ)
 vlines!(ax_mcc, thr[m])
 
+current_figure()
+```
+
+retrain
+
+```{julia}
+model2 = naivebayes(ty, tX)
+```
+
+we make a map
+
+```{julia}
+predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in axes(X, 2)]
+prediction = similar(first(predictors))
+Threads.@threads for k in keys(prediction)
+    prediction[k] = model2([p[k] for p in predictors[available_variables]])
+end
+```
+
+map the prediction
+
+```{julia}
+fig = Figure(; resolution=(900, 400))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, prediction, colormap=Reverse(:roma), colorrange=(0., 1.))
+Colorbar(fig[1,2], hm; tellheight=false)
+current_figure()
+```
+
+uncertainty
+
+```{julia}
+function entropy(f)
+    p = [f, 1-f]
+    return -sum(p .* log2.(p))
+end
+
+fig = Figure(; resolution=(900, 400))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:tokyo), colorrange=(0., 1.))
+Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
