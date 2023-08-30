@@ -95,6 +95,9 @@ predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", 
 prediction = similar(first(predictors))
 Threads.@threads for k in keys(prediction)
     prediction[k] = model2([p[k] for p in predictors[available_variables]])
+    if isnan(prediction[k])
+        prediction[k] = 0.0
+    end
 end
 ```
 
