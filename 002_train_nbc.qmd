@@ -13,7 +13,7 @@ we train a nbc on a pair of variables (1, 12)
 
 ```{julia}
 data = JLD.load("artifacts/data.jld")
-y, X = data["y"], data["X"][:,[1,12]]
+y, X = data["y"], data["X"][:,:]
 ```
 
 next up we split the data in two
@@ -33,7 +33,7 @@ ConfusionMatrix(prediction, y[tidx]) |> trueskill
 we make a map
 
 ```{julia}
-predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in [1,12]]
+predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in 1:19]
 prediction = similar(first(predictors))
 Threads.@threads for k in keys(prediction)
     prediction[k] = model1([p[k] for p in predictors])
@@ -45,7 +45,7 @@ map the prediction
 ```{julia}
 fig = Figure(; resolution=(900, 400))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:YlGnBu), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=Reverse(:Spectral), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```

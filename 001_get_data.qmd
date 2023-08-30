@@ -17,7 +17,7 @@ get the data from worldclim2 and clip
 ```{julia}
 provider = RasterData(WorldClim2, BioClim)
 opts = (resolution=10.0, )
-boundingbox = (left=4.0, bottom=55.0, top=72.0, right=29.0)
+boundingbox = (bottom=40.0, right=-60.0, left=-80.0, top=55.0)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -34,7 +34,7 @@ current_figure()
 get some GBIF data
 
 ```{julia}
-Hlac = taxon("Rangifer tarandus tarandus"; strict=false)
+Hlac = taxon("Peromyscus maniculatus"; strict=false)
 query = [
     "occurrenceStatus" => "PRESENT",
     "hasCoordinate" => true,
