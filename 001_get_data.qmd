@@ -21,10 +21,17 @@ boundingbox = (bottom=41.0, right=-69.0, left=-84.00, top=48.0)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
+water mask
+
+```{julia}
+water = SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; boundingbox...)
+land = replace(coarsen(water, mean, (5, 5)).<100, false => nothing)
+```
+
 ```{julia}
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, temperature, colormap=Reverse(:dense))
+hm = heatmap!(ax, mask(land, temperature), colormap=Reverse(:dense))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -34,7 +41,7 @@ current_figure()
 get some GBIF data
 
 ```{julia}
-Hlac = taxon("Polyommatus icarus"; strict=false)
+Hlac = taxon("Procyon lotor"; strict=false)
 query = [
     "occurrenceStatus" => "PRESENT",
     "hasCoordinate" => true,
@@ -48,7 +55,7 @@ observations = occurrences(Hlac, query...)
 get a few more pages of observations
 
 ```{julia}
-for _ in 1:8
+for _ in 1:20
     occurrences!(observations)
 end
 ```
@@ -84,7 +91,7 @@ current_figure()
 we perform some spatial thinning, by making sure that there is only one observation per grid cell
 
 ```{julia}
-presence_layer = mask(temperature, observations, Bool)
+presence_layer = mask(land, mask(temperature, observations, Bool))
 ```
 
 we make a buffer for pseudo-absences -- we will sample in circles around known presences, but keep a 100km buffer with no background points

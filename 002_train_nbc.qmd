@@ -8,6 +8,7 @@ include(joinpath("code", "nbc.jl"))
 include(joinpath("code", "splitters.jl"))
 include(joinpath("code", "confusion.jl"))
 include(joinpath("code", "variableselection.jl"))
+include(joinpath("code", "shapley.jl"))
 ```
 
 we train a nbc on a pair of variables (1, 12)
@@ -37,7 +38,7 @@ ConfusionMatrix(prediction, y[tidx]) |> mcc
 variable selection
 
 ```{julia}
-available_variables = backward(ty, tX, folds, naivebayes, mcc)
+available_variables = forwardselection(ty, tX, folds, naivebayes, mcc)
 ```
 
 newmodel
@@ -47,7 +48,7 @@ initial tuning
 ```{julia}
 ty, tX = y[idx], X[idx,available_variables]
 
-thr = LinRange(0.0, 1.0, 150)
+thr = LinRange(0.0, 1.0, 250)
 C = zeros(ConfusionMatrix, (k, length(thr)))
 for (j,fold) in enumerate(folds)
     trn, vld = fold
@@ -58,6 +59,8 @@ for (j,fold) in enumerate(folds)
     end
 end
 ```
+
+performance curve
 
 ```{julia}
 fig = Figure(; resolution=(900, 400))
@@ -106,7 +109,7 @@ map the prediction
 ```{julia}
 fig = Figure(; resolution=(900, 400))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:Spectral), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=Reverse(:seaborn_icefire_gradient), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -124,4 +127,45 @@ ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:tokyo), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
+```
+
+shapley values
+
+```{julia}
+shapval = [similar(first(predictors)) for i in 1:4]
+Threads.@threads for k in keys(shapley1)
+    x = [p[k] for p in predictors[available_variables]]
+    for i in axes(shapval, 1)
+        shapval[i][k] = shapleyvalues(model2, tX, x, i; M=50)
+    end
+end
+```
+
+map
+
+```{julia}
+fig = Figure(; resolution=(900, 400))
+
+gl = fig[1,1] = GridLayout()
+
+coords = CartesianIndices((1:2, 1:2))
+
+for i in 1:length(coords)
+    ax = Axis(gl[coords[i].I...])
+    heatmap!(ax, shapval[i], colorrange=(-0.4,0.4), colormap=:diverging_gwv_55_95_c39_n256, aspect=DataAspect())
+    hidexdecorations!(ax)
+    hideydecorations!(ax)
+end
+
+rowgap!(gl, 0.0)
+colgap!(gl, 0.0)
+
+Colorbar(fig[1,2], colorrange=(-0.4, 0.5), colormap=:diverging_gwv_55_95_c39_n256; tellheight=false)
+current_figure()
+```
+
+mosaic of most important variable in the top 4
+
+```{julia}
+heatmap(mosaic(argmax, map(abs, shapval)), colormap=:Set2_4)
 ```
