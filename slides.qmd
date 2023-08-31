@@ -15,13 +15,15 @@ format:
 
 ## Overview
 
--   Build a *simple* classifier to predict the distribution of a species
--   Show how to
+- Build a *simple* classifier to predict the distribution of a species
+- Use this as an opportunity to talk about interpretable ML
+- Discuss which biases are appropriate in a predictive model
 
-## Neither a crustacean nor a lobster?
+## Raccoons!
 
--   *Hypomyces lactifluorum*, the lobster mushroom, is neither of these things!
--   *This presentation*, about ENM and ML, is about neither of these things!
+- Important
+- Valid
+- Gross
 
 ## Meet the cast
 
