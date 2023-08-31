@@ -16,6 +16,7 @@ we train a nbc on a pair of variables (1, 12)
 ```{julia}
 data = JLD.load("artifacts/data.jld")
 y, X = data["y"], data["X"][:,:]
+list_of_variables = data["variables"]
 ```
 
 next up we split the data in two
@@ -145,7 +146,7 @@ current_figure()
 shapley values
 
 ```{julia}
-shapval = [similar(first(predictors)) for i in 1:4]
+shapval = [similar(first(predictors)) for i in eachindex(available_variables)]
 Threads.@threads for k in keys(shapval[1])
     x = [p[k] for p in predictors[available_variables]]
     for i in axes(shapval, 1)
@@ -171,7 +172,7 @@ for i in 1:3
     hidexdecorations!(ax_mp)
     hideydecorations!(ax_mp)
 
-    ax_pr = Axis(gl[i,2])
+    ax_pr = Axis(gl[i,2], title=list_of_variables[available_variables[i]][1])
     ylims!(ax_pr, scl)
     hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200)
 end

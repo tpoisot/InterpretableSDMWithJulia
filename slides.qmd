@@ -21,18 +21,42 @@ format:
 
 ## Raccoons!
 
-- Important
-- Valid
-- Gross
+- High volume of data
+- Species of concern for zoonotic diseases
+- Where can we find them in/around Québec?
 
-## Meet the cast
+## Data overview
 
-| Package                      | Purpose                |
-|------------------------------|------------------------|
-| `Distributions`              |                        |
-| `CairoMakie`                 | Visualisation          |
-| `GeoMakie`                   | Axes for spatial data  |
-| `SpeciesDistributionToolkit` | GBIF, raster data, ... |
-| `DataFrames`                 | Data frame operations  |
-| `StatsBase`                  | Sampling               |
-| `JLD`                        | Saving objects to disk |
+## Geospatial data preparation
+
+## Species occurrence filtering
+
+## Spatial thinning
+
+## Background points
+
+## The model
+
+## How predictions are made
+
+## Baseline performance
+
+## Variable selection
+
+## Model tuning
+
+## Tuned model performance
+
+## Estimated performance
+
+## Acceptable bias
+
+## Updated model in space
+
+## Acceptable bias - revisited
+
+## How predictions are made - revisited
+
+## Mapping the explanatory variables
+
+## Take-home

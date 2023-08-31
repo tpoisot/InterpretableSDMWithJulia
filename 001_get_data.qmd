@@ -133,10 +133,18 @@ X = vcat(Xpresence, Xabsence)
 y = vcat(ypresence, yabsence)
 ```
 
+keep track of what the layers are 
+
+```{julia}
+bclay = layers(RasterData(WorldClim2, BioClim))
+bcdes = layerdescriptions(RasterData(WorldClim2, BioClim))
+```
+
 and we save as a JLD file
 
 ```{julia}
-presences = keys(presence_layer)
-absences = keys(absence_layer)
-JLD.@save "artifacts/data.jld" X y presences absences
+presences = Tuple.(keys(presence_layer))
+absences = Tuple.(keys(absence_layer))
+variables = [(bc, bcdes[bc]) for bc in bclay]
+JLD.@save "artifacts/data.jld" X y presences absences variables
 ```
