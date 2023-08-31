@@ -17,7 +17,7 @@ get the data from worldclim2 and clip
 ```{julia}
 provider = RasterData(WorldClim2, BioClim)
 opts = (resolution=2.5, )
-boundingbox = (bottom=41.0, right=-69.0, left=-84.00, top=48.0)
+boundingbox = (bottom=41.0, right=-59.5, left=-80.00, top=52.0)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -25,13 +25,13 @@ water mask
 
 ```{julia}
 water = SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; boundingbox...)
-land = replace(coarsen(water, mean, (5, 5)).<100, false => nothing)
+land = replace(coarsen(water, minimum, (5, 5)).<100, false => nothing)
 ```
 
 ```{julia}
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, mask(land, temperature), colormap=Reverse(:dense))
+hm = heatmap!(ax, mask(land, temperature), colormap=:thermal)
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -41,7 +41,7 @@ current_figure()
 get some GBIF data
 
 ```{julia}
-Hlac = taxon("Procyon lotor"; strict=false)
+critter = taxon("Procyon lotor"; strict=false)
 query = [
     "occurrenceStatus" => "PRESENT",
     "hasCoordinate" => true,
@@ -49,7 +49,7 @@ query = [
     "decimalLongitude" => (boundingbox.left, boundingbox.right),
     "limit" => 300,
 ]
-observations = occurrences(Hlac, query...)
+observations = occurrences(critter, query...)
 ```
 
 get a few more pages of observations
@@ -63,15 +63,14 @@ end
 get the plot all nice
 
 ```{julia}
-scatter!(ax, observations; color=:black)
+scatter!(ax, observations; color=:black, marker=:cross, markersize=5)
 current_figure()
 ```
 
 we add a phylopic image because we *can*
 
 ```{julia}
-#=
-phylopic_uuid = Phylopic.imagesof(Hlac; items = 1)
+phylopic_uuid = Phylopic.imagesof(critter; items = 1)
 silhouette = phylopic_uuid |>
     Phylopic.thumbnail |>
     Downloads.download |>
@@ -79,11 +78,10 @@ silhouette = phylopic_uuid |>
 
 @info Phylopic.attribution(phylopic_uuid)
 
-silhouette_size = Vec2f(reverse(size(silhouette) ./ 2))
+silhouette_size = Vec2f(reverse(size(silhouette) ./ 3))
 
-scatter!(ax, [-58], [35.0]; marker = silhouette, markersize = silhouette_size)
+scatter!(ax, [-87], [47.9]; marker = silhouette, markersize = silhouette_size, color=:white)
 current_figure()
-=#
 ```
 
 ## Selection of background points
@@ -105,7 +103,7 @@ possible_background = background-buffer
 we get the pseudo-absences now, by sampling an equal number of background points
 
 ```{julia}
-absence_layer = SpeciesDistributionToolkit.sample(possible_background, sum(presence_layer))
+absence_layer = SpeciesDistributionToolkit.sample(possible_background, round(Int, 0.4*sum(presence_layer)))
 ```
 
 we remove the info we do not need from the layers
@@ -138,5 +136,7 @@ y = vcat(ypresence, yabsence)
 and we save as a JLD file
 
 ```{julia}
-JLD.@save "artifacts/data.jld" X y
+presences = keys(presence_layer)
+absences = keys(absence_layer)
+JLD.@save "artifacts/data.jld" X y presences absences
 ```

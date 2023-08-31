@@ -91,6 +91,19 @@ retrain
 model2 = naivebayes(ty, tX)
 ```
 
+performance on the testing data
+
+```{julia}
+yhat = vec(mapslices(model2, X[tidx,available_variables]; dims=2))
+C = ConfusionMatrix(yhat, y[tidx], thr[m])
+@info mcc(C)
+@info accuracy(C)
+@info fpr(C)
+@info fnr(C)
+@info tpr(C)
+@info tnr(C)
+```
+
 we make a map
 
 ```{julia}
@@ -109,7 +122,7 @@ map the prediction
 ```{julia}
 fig = Figure(; resolution=(900, 400))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=:diverging_rainbow_bgymr_45_85_c67_n256, colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=:roma, colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -137,6 +150,9 @@ Threads.@threads for k in keys(shapval[1])
     x = [p[k] for p in predictors[available_variables]]
     for i in axes(shapval, 1)
         shapval[i][k] = shapleyvalues(model2, tX, x, i; M=50)
+        if isnan(shapval[i][k])
+            shapval[i][k] = 0.0
+        end
     end
 end
 ```
@@ -144,23 +160,24 @@ end
 map
 
 ```{julia}
-fig = Figure(; resolution=(900, 400))
+fig = Figure(; resolution=(900, 600))
 
 gl = fig[1,1] = GridLayout()
 
-coords = CartesianIndices((1:2, 1:2))
+for i in 1:3
+    ax_mp = Axis(gl[i,1])
+    scl = maximum(abs.(extrema(shapval[i]))).*(-1,1)
+    heatmap!(ax_mp, shapval[i], colorrange=scl, colormap=:cork, aspect=DataAspect())
+    hidexdecorations!(ax_mp)
+    hideydecorations!(ax_mp)
 
-for i in 1:length(coords)
-    ax = Axis(gl[coords[i].I...])
-    heatmap!(ax, shapval[i], colorrange=(-0.4,0.4), colormap=:diverging_gwv_55_95_c39_n256, aspect=DataAspect())
-    hidexdecorations!(ax)
-    hideydecorations!(ax)
+    ax_pr = Axis(gl[i,2])
+    ylims!(ax_pr, scl)
+    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200)
 end
 
-rowgap!(gl, 0.0)
-colgap!(gl, 0.0)
+#rowgap!(gl, 10.0)
 
-Colorbar(fig[1,2], colorrange=(-0.4, 0.5), colormap=:diverging_gwv_55_95_c39_n256; tellheight=false)
 current_figure()
 ```
 
