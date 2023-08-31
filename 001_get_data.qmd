@@ -120,7 +120,7 @@ replace!(presence_layer, false => nothing)
 now we need to get the full series of layers for the suite of bioclim variables
 
 ```{julia}
-bioclim_clipped = [SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...) for l in layers(provider)]
+bioclim_clipped = [mask(land, SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...)) for l in layers(provider)]
 SpeciesDistributionToolkit._write_geotiff("artifacts/layers.tiff", bioclim_clipped)
 ```
 

@@ -4,7 +4,7 @@ subtitle: "An introduction to Julia for ecological niche modeling"
 author: "Timothée Poisot"
 institute: "Université de Montréal"
 title-slide-attributes: 
-  data-background-image: https://cdn.pixabay.com/photo/2020/05/11/07/30/mushroom-5156926_1280.jpg
+  data-background-image: https://cdn.pixabay.com/photo/2018/07/14/17/07/raccoon-3537985_1280.jpg
   data-background-opacity: "0.5"
 format:
     revealjs:

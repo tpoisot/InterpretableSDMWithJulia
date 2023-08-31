@@ -109,7 +109,7 @@ map the prediction
 ```{julia}
 fig = Figure(; resolution=(900, 400))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:seaborn_icefire_gradient), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=:diverging_rainbow_bgymr_45_85_c67_n256, colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -133,7 +133,7 @@ shapley values
 
 ```{julia}
 shapval = [similar(first(predictors)) for i in 1:4]
-Threads.@threads for k in keys(shapley1)
+Threads.@threads for k in keys(shapval[1])
     x = [p[k] for p in predictors[available_variables]]
     for i in axes(shapval, 1)
         shapval[i][k] = shapleyvalues(model2, tX, x, i; M=50)
