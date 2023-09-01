@@ -15,15 +15,29 @@ format:
 
 ## Overview
 
-- Build a *simple* classifier to predict the distribution of a species
-- Use this as an opportunity to talk about interpretable ML
-- Discuss which biases are appropriate in a predictive model
+-   Build a *simple* classifier to predict the distribution of a species
+
+-   Use this as an opportunity to talk about interpretable ML
+
+-   Discuss which biases are appropriate in a predictive model
+
+    ::: notes
+    Emphasize: importance of talking about the model more than getting the model right
+
+    Iterative process
+    :::
 
 ## Raccoons!
 
-- High volume of data
-- Species of concern for zoonotic diseases
-- Where can we find them in/around Québec?
+-   High volume of data
+
+-   Species of concern for zoonotic diseases
+
+-   Where can we find them in/around Québec?
+
+    ```{julia, echo=false}
+    2+2
+    ```
 
 ## Data overview
 
