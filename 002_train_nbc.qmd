@@ -202,10 +202,11 @@ test
 
 ```{julia}
 fig = Figure()
-ax2 = GeoAxis(fig[1, 2], dest = "+proj=wintri",
-    coastlines = true, title = "wintri")
 
-surface!(ax2, shapval[1]; shading = false, colormap = (:plasma, 0.45))
+ax2 = GeoAxis(fig[1, 1], dest = "+proj=natearth2", coastlines = false, lonlims=extrema(longitudes(shapval[1])), latlims=extrema(latitudes(shapval[1])))
+
+surface!(ax2, shapval[2]; shading = false, colormap = :curl)
+tightlimits!(ax2)
 
 current_figure()
 ```
