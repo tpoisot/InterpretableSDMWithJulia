@@ -24,7 +24,7 @@ next up we split the data in two
 ```{julia}
 idx, tidx = holdout(y, X; permute=true)
 ty, tX = y[idx], X[idx,:]
-k = 10
+k = 12
 folds = kfold(ty, tX; k=k, permute=true)
 ```
 
@@ -49,7 +49,7 @@ initial tuning
 ```{julia}
 ty, tX = y[idx], X[idx,available_variables]
 
-thr = LinRange(0.0, 1.0, 250)
+thr = LinRange(0.0, 1.0, 350)
 C = zeros(ConfusionMatrix, (k, length(thr)))
 for (j,fold) in enumerate(folds)
     trn, vld = fold
@@ -64,24 +64,34 @@ end
 performance curve
 
 ```{julia}
-fig = Figure(; resolution=(900, 400))
+fig = Figure(; resolution=(900, 450))
 
-gl = fig[1,1] = GridLayout()
-
-ax_mcc = Axis(gl[1,1])
+ax_mcc = Axis(fig[1,1])
 
 scores = mcc.(C)
 σ = vec(std(scores; dims=1))
 μ = vec(mean(scores; dims=1))
 
-band!(ax_mcc, thr, μ-.5σ, μ+.5σ, color=:lightgrey)
-lines!(ax_mcc, thr, μ, color=:slategrey, linestyle=:dash)
+band!(ax_mcc, thr, μ-σ, μ+σ, color=:lightgrey)
+
+lines!(ax_mcc, thr, μ, color=:black, linewidth=3)
 
 xlims!(ax_mcc, low=0.0, high=1.0)
-ylims!(ax_mcc, low=0.0)
+ylims!(ax_mcc, low=0.0, high=1.0)
 
 _, m = findmax(μ)
 vlines!(ax_mcc, thr[m])
+
+
+ax_roc = Axis(fig[1,2])
+
+for i in axes(C, 1)
+    lines!(ax_roc, fpr.(C[i,:]), tpr.(C[i,:]), color=:lightgrey)
+end
+
+xlims!(ax_roc, low=0.0, high=1.0)
+ylims!(ax_roc, low=0.0, high=1.0)
+
 
 current_figure()
 ```
@@ -123,7 +133,7 @@ map the prediction
 ```{julia}
 fig = Figure(; resolution=(900, 400))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=:roma, colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=Reverse(:curl), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -161,7 +171,7 @@ end
 map
 
 ```{julia}
-fig = Figure(; resolution=(900, 600))
+fig = Figure(; resolution=(900, 800))
 
 gl = fig[1,1] = GridLayout()
 
@@ -186,4 +196,16 @@ mosaic of most important variable in the top 4
 
 ```{julia}
 heatmap(mosaic(argmax, map(abs, shapval)), colormap=:Set2_4)
+```
+
+test
+
+```{julia}
+fig = Figure()
+ax2 = GeoAxis(fig[1, 2], dest = "+proj=wintri",
+    coastlines = true, title = "wintri")
+
+surface!(ax2, shapval[1]; shading = false, colormap = (:plasma, 0.45))
+
+current_figure()
 ```
