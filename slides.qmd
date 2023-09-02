@@ -1,15 +1,19 @@
 ---
-title: "Neither a crustacean nor a lobster"
-subtitle: "An introduction to Julia for ecological niche modeling"
-author: "Timothée Poisot"
+title: "Interpretable Machine Learning"
+subtitle: "Answers that make sense, right out of the (black) box?"
+author:
+    name: "Timothée Poisot"
+    email: timothee.poisot@umontreal.ca
 institute: "Université de Montréal"
 title-slide-attributes: 
   data-background-image: https://cdn.pixabay.com/photo/2018/07/14/17/07/raccoon-3537985_1280.jpg
-  data-background-opacity: "0.5"
+  data-background-opacity: "0.25"
 format:
     revealjs:
+        slide-number: true
         logo: assets/geobon.png
-        theme: simple
+        theme: default
+        highlight-style: a11y
         footer: "CC BY 4.0 - Timothée Poisot"
 ---
 
@@ -27,6 +31,20 @@ format:
     Iterative process
     :::
 
+------------------------------------------------------------------------
+
+::: r-fit-text
+We care about the
+
+**process**
+
+more than about the
+
+**product**
+:::
+
+------------------------------------------------------------------------
+
 ## Raccoons!
 
 -   High volume of data
@@ -35,11 +53,36 @@ format:
 
 -   Where can we find them in/around Québec?
 
-    ```{julia, echo=false}
-    2+2
-    ```
+## Do try this at home!
 
-## Data overview
+```{julia}
+#| echo: true
+#| output: false
+include(joinpath("code", "pkg.jl")); # Dependencies
+include(joinpath("code", "nbc.jl")); # Naive Bayes Classifier
+include(joinpath("code", "splitters.jl")); # Cross-validation
+include(joinpath("code", "confusion.jl")); # Confusion matrix utilities
+include(joinpath("code", "variableselection.jl")); # Variable selection
+include(joinpath("code", "shapley.jl")); # Shapley values
+```
+
+::: notes
+**hand made**, this is not recommended (use MLJ instead), but useful to get to see how the language can be used
+:::
+
+## To train a model, we need...
+
+A response variable
+
+:   presence or absence of a species at a location identified by its latitude and longitude
+
+A series of predictors
+
+:   bioclimatic varialbes
+
+::: notes
+Note that the process of making assumptions has *already* started here (we pick a set of variables we think are important)
+:::
 
 ## Geospatial data preparation
 
@@ -53,11 +96,124 @@ format:
 
 ## How predictions are made
 
+## Getting started
+
+The raw data come pre-packaged with these slides:
+
+```{julia}
+#| echo: true
+#| output: false
+data = JLD.load("artifacts/data.jld")
+y, X = data["y"], data["X"][:,:]
+list_of_variables = data["variables"]
+```
+
+Cross-validation strategy
+
+```{julia}
+#| echo: true
+#| output: false
+idx, tidx = holdout(y, X; permute=true)
+ty, tX = y[idx], X[idx,:]
+k = 12
+folds = kfold(ty, tX; k=k, permute=true)
+```
+
+## A note on cross-validation
+
 ## Baseline performance
 
-## Variable selection
+```{julia}
+#| echo: true
+#| output: false
+model1 = naivebayes(y[idx], X[idx,:])
+prediction = vec(mapslices(model1, X[tidx,:]; dims=2))
+C0 = ConfusionMatrix(prediction, y[tidx])
+```
 
-## Model tuning
+| Measure                           | Value                              |
+|-----------------------------------|------------------------------------|
+| False positive rate               | `{julia} round(fpr(C0); digits=2)` |
+| False negative rate               | `{julia} round(fnr(C0); digits=2)` |
+| True positive rate                | `{julia} round(tpr(C0); digits=2)` |
+| True negative rate                | `{julia} round(tnr(C0); digits=2)` |
+| Matthew's correlation coefficient | `{julia} round(mcc(C0); digits=2)` |
+
+## Variable selection results
+
+```{julia}
+#| echo: true
+#| output: false
+available_variables = forwardselection(ty, tX, folds, naivebayes, mcc)
+```
+
+1.  `{julia} list_of_variables[available_variables[1]][2]`
+
+2.  `{julia} list_of_variables[available_variables[2]][2]`
+
+3.  `{julia} list_of_variables[available_variables[3]][2]`
+
+4.  `{julia} list_of_variables[available_variables[4]][2]`
+
+## How do we make the model better?
+
+Proba cutoff assumed to be 0.5
+
+a common approach is to threshold
+
+## Thresholding the model
+
+```{julia}
+#| echo: true
+#| output: false
+ty, tX = y[idx], X[idx,available_variables]
+thr = LinRange(0.0, 1.0, 350)
+C = zeros(ConfusionMatrix, (k, length(thr)))
+for (j,fold) in enumerate(folds)
+    trn, vld = fold
+    foldmodel = naivebayes(ty[trn], tX[trn,:])
+    foldvalid = vec(mapslices(foldmodel, tX[vld,:]; dims=2))
+    for (i,t) in enumerate(thr)
+        C[j,i] = ConfusionMatrix(foldvalid, ty[vld], t)
+    end
+end
+```
+
+## But how do we pick the threshold?
+
+```{julia}
+#| echo: false
+fig = Figure(; resolution=(900, 450))
+
+ax_mcc = Axis(fig[1,1])
+
+scores = mcc.(C)
+σ = vec(std(scores; dims=1))
+μ = vec(mean(scores; dims=1))
+
+band!(ax_mcc, thr, μ-σ, μ+σ, color=:lightgrey)
+
+lines!(ax_mcc, thr, μ, color=:black, linewidth=3)
+
+xlims!(ax_mcc, low=0.0, high=1.0)
+ylims!(ax_mcc, low=0.0, high=1.0)
+
+_, m = findmax(μ)
+vlines!(ax_mcc, thr[m])
+
+
+ax_roc = Axis(fig[1,2])
+
+for i in axes(C, 1)
+    lines!(ax_roc, fpr.(C[i,:]), tpr.(C[i,:]), color=:lightgrey)
+end
+
+xlims!(ax_roc, low=0.0, high=1.0)
+ylims!(ax_roc, low=0.0, high=1.0)
+
+
+current_figure()
+```
 
 ## Tuned model performance
 
