@@ -31,7 +31,7 @@ land = replace(coarsen(water, minimum, (5, 5)).<100, false => nothing)
 ```{julia}
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, mask(land, temperature), colormap=:thermal)
+hm = heatmap!(ax, mask(land, temperature), colormap=:dense)
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -55,7 +55,7 @@ observations = occurrences(critter, query...)
 get a few more pages of observations
 
 ```{julia}
-for _ in 1:20
+for _ in 1:30
     occurrences!(observations)
 end
 ```
@@ -78,9 +78,9 @@ silhouette = phylopic_uuid |>
 
 @info Phylopic.attribution(phylopic_uuid)
 
-silhouette_size = Vec2f(reverse(size(silhouette) ./ 3))
+silhouette_size = Vec2f(reverse(size(silhouette) ./ 1.5))
 
-scatter!(ax, [-87], [47.9]; marker = silhouette, markersize = silhouette_size, color=:white)
+scatter!(ax, [-76], [48.9]; marker = silhouette, markersize = silhouette_size, color=:white)
 current_figure()
 ```
 
