@@ -97,7 +97,7 @@ we make a buffer for pseudo-absences -- we will sample in circles around known p
 ```{julia}
 background = pseudoabsencemask(WithinRadius, presence_layer; distance = 200.0)
 buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 20.0)
-possible_background = background-buffer
+possible_background = .!(background .| (.! buffer))
 ```
 
 we get the pseudo-absences now, by sampling an equal number of background points
