@@ -10,7 +10,12 @@ import JLD
 using Statistics
 
 using CairoMakie
-CairoMakie.activate!(; px_per_unit = 2)
+set_theme!()
+update_theme!(
+    backgroundcolor=:transparent, 
+    Figure = (; backgroundcolor=:transparent),
+    CairoMakie = (; px_per_unit = 2),
+)
 
 using SpeciesDistributionToolkit
 

@@ -52,7 +52,7 @@ and only a little about the
 
 ## Do try this at home!
 
-> Download the full project at `https://github.com/tpoisot/GEOBON2023-Julia-Workshop`
+💻 + 📔 + 🗺️ at `https://github.com/tpoisot/GEOBON2023-Julia-Workshop`
 
 ```{julia}
 #| label: Include the packages we need
@@ -153,7 +153,7 @@ observations = occurrences(critter, query...)
 #| echo: false
 #| eval: true
 #| output: false
-for _ in 1:50
+for _ in 1:30
     occurrences!(observations)
 end
 ```
@@ -357,7 +357,7 @@ end
 
 ## Measures on the confusion matrix
 
-|                                   | Initial model                             |
+|                                   | Initial                             |
 |-----------------------------------|-------------------------------------------|
 | FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` |
 | FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` |
@@ -407,7 +407,7 @@ end
 
 ## Measures on the confusion matrix
 
-|                                   | Initial model                             | Var. sel.                             |
+|                                   | Initial                             | Var. sel.                             |
 |-----------------------------------|-------------------------------------------|-------------------------------------------|
 | FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` |
 | FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` |
@@ -447,7 +447,7 @@ end
 #| echo: false
 fig = Figure(; resolution=(900, 450))
 
-ax_mcc = Axis(fig[1,1], xlab="Threshold", ylab="MCC")
+ax_mcc = Axis(fig[1,1], xlabel="Threshold", ylabel="MCC")
 
 scores = mcc.(C)
 σ = vec(std(scores; dims=1))
@@ -463,7 +463,7 @@ ylims!(ax_mcc, low=0.0, high=1.0)
 _, m = findmax(μ)
 vlines!(ax_mcc, thr[m], color=:red)
 
-ax_roc = Axis(fig[1,2], xlab="False Positive Rate", ylab="True Positive Rate")
+ax_roc = Axis(fig[1,2], xlabel="False Positive Rate", ylabel="True Positive Rate")
 
 for i in axes(C, 1)
     lines!(ax_roc, fpr.(C[i,:]), tpr.(C[i,:]), color=:lightgrey)
@@ -473,12 +473,6 @@ xlims!(ax_roc, low=0.0, high=1.0)
 ylims!(ax_roc, low=0.0, high=1.0)
 
 current_figure()
-```
-
-## Optimal threshold
-
-```{julia}
-τ = thr[m]
 ```
 
 ## Tuned model with selected variables
@@ -497,7 +491,7 @@ end
 
 ## Measures on the confusion matrix
 
-|                                   | Initial model                             | Var. sel.                             | Tuned                            |
+|                                   | Initial                             | Var. sel.                             | Tuned                            |
 |-----------------------------------|-------------------------------------------|-------------------------------------------|-------------------------------------------|
 | FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` | `{julia} round(mean(fpr.(C2)); digits=2)` |
 | FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` | `{julia} round(mean(fnr.(C2)); digits=2)` |
@@ -556,7 +550,7 @@ end
 #| output: true
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:linear_gow_60_85_c27_n256), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -573,7 +567,7 @@ end
 
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:linear_gow_60_85_c27_n256), colorrange=(0., 1.))
+hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -626,7 +620,7 @@ for v in sortperm(varimp, rev=true)
 end
 ```
 
-There is a difference between **contributing to model performance** and **contributing to model explanability**
+There is a difference between **contributing to model performance** and **contributing to model explainability**
 
 ## Mapping the top three variables
 
