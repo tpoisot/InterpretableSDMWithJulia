@@ -29,11 +29,7 @@ land = replace(coarsen(water, minimum, (5, 5)).<100, false => nothing)
 ```
 
 ```{julia}
-fig = Figure(; resolution=(900, 500))
-ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, mask(land, temperature), colormap=:dense)
-Colorbar(fig[1,2], hm; tellheight=false)
-current_figure()
+
 ```
 
 ## Getting occurrence data

@@ -11,8 +11,10 @@ format:
     revealjs:
         slide-number: true
         logo: assets/geobon.png
-        theme: default
-        highlight-style: a11y
+        theme: simple
+        highlight-style: atom-one
+        code-line-numbers: false
+        code-copy: false
         footer: "CC BY 4.0 - Timothée Poisot"
         output-file: "index"
         output-format: "html"
