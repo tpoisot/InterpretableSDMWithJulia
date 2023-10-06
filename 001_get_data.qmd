@@ -1,5 +1,5 @@
 ---
-title: "Download the data"
+title: "Suppl. Mat. -- data download"
 ---
 
 The purpose of this notebook is to download occurrences from GBIF, as well as the predictors from WorldClim2. Everything is then saved to either a stacked geotiff (layers for visualisation) or to a `JLD` serialized object (raw data for future steps in the pipeline).
