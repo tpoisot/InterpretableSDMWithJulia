@@ -42,6 +42,8 @@ and only a little about the
 
 ## Raccoons!
 
+- Relatable (bag under eyes, love naps, out of shape, will fight over garbage)
+
 -   High volume of data
 
 -   Species of concern for zoonotic diseases
@@ -50,7 +52,10 @@ and only a little about the
 
 ## Do try this at home!
 
+💻 + 📔 + 🗺️ at `https://github.com/tpoisot/GEOBON2023-Julia-Workshop`
+
 ```{julia}
+#| label: Include the packages we need
 #| echo: true
 #| output: false
 include(joinpath("code", "pkg.jl")); # Dependencies
@@ -75,6 +80,10 @@ A series of predictors $\mathbf{x}$
 
 :   bioclimatic variables
 
+A series of predictions $\hat y$
+
+: which we will compare to the values of $y$
+
 ::: notes
 Note that the process of making assumptions has *already* started here (we pick a set of variables we think are important)
 :::
@@ -84,8 +93,10 @@ Note that the process of making assumptions has *already* started here (we pick 
 We collect data from WorldClim2 @fick2017, using `SpeciesDistributionToolkit`
 
 ```{julia}
-#| eval: false
+#| label: Download the BioClim data from WorldClim2
+#| eval: true
 #| echo: true
+#| output: false
 provider = RasterData(WorldClim2, BioClim)
 opts = (resolution=2.5, )
 boundingbox = (bottom=41.0, right=-59.5, left=-80.00, top=52.0)
@@ -95,10 +106,15 @@ temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 Then we use landcover data @tuanmu2014 to remove the great lakes:
 
 ```{julia}
-#| eval: false
+#| label: Download and rescale the water data from EarthEnv
+#| eval: true
 #| echo: true
+#| output: false
 water = SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; boundingbox...)
-land = replace(coarsen(water, minimum, (5, 5)).<100, false => nothing)
+land = replace(
+    coarsen(water, minimum, (5, 5)).<100,
+    false => nothing
+)
 ```
 
 ## Species occurrence filtering
@@ -108,16 +124,20 @@ We use the [GBIF] API through the `GBIF` package for *Julia* @dansereau2021 to g
   [GBIF]: http://gbif.org
 
 ```{julia}
-#| eval: false
+#| label: Get the species from GBIF
+#| eval: true
 #| echo: true
+#| output: false
 critter = taxon("Procyon lotor"; strict=false)
 ```
 
 We only consider occurrences within the bounding box!
 
 ```{julia}
-#| eval: false
+#| label: Get the initial round of occurrences
+#| eval: true
 #| echo: true
+#| output: false
 query = [
     "occurrenceStatus" => "PRESENT",
     "hasCoordinate" => true,
@@ -128,65 +148,184 @@ query = [
 observations = occurrences(critter, query...)
 ```
 
+```{julia}
+#| label: Get extra data
+#| echo: false
+#| eval: true
+#| output: false
+for _ in 1:30
+    occurrences!(observations)
+end
+```
+
+## Where are we so far?
+
+```{julia}
+#| echo: false
+fig = Figure(; resolution=(900, 500))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, mask(land, temperature), colormap=:dense)
+Colorbar(fig[1,2], hm; tellheight=false)
+scatter!(ax, observations; color=:black, marker=:cross, markersize=5)
+current_figure()
+```
+
+## WAIT!
+
+It's not serious ecology unless we use Phylopic:
+
+```{julia}
+#| label: Phylopic image
+#| echo: true
+#| output: false
+phylopic_uuid = Phylopic.imagesof(critter; items = 1)
+silhouette = phylopic_uuid |>
+    Phylopic.thumbnail |>
+    Downloads.download |>
+    Images.load
+```
+
+*Always* use the `Phylopic.attribution` function: `{julia} Phylopic.attribution(phylopic_uuid)`
+
+## Where are we so far?
+
+```{julia}
+#| echo: false
+silhouette_size = Vec2f(reverse(size(silhouette) ./ 1.5))
+
+scatter!(ax, [-76], [48.9]; marker = silhouette, markersize = silhouette_size, color=:white)
+current_figure()
+```
+
 ## Spatial thinning
 
 We limit the occurrences to one per grid cell, assigned to the center of the grid cell
 
 ```{julia}
+#| label: Make the layer for presences
 #| echo: true
-#| eval: false
+#| eval: true
+#| output: false
 presence_layer = mask(land, mask(temperature, observations, Bool))
 ```
 
-## Background points
+Note that this syntax mixes layers (`temperature`, `land`) and occurrences (`observations`) types.
+
+## Background points generation
 
 We generate background points in a 200km radius around each point @barbet-massin2012 -- but we keep a 20km buffer with no background points:
 
 ```{julia}
-#| eval: false
+#| label: Make the pseudo-absence buffer
+#| eval: true
 #| echo: true
+#| output: false
 background = pseudoabsencemask(WithinRadius, presence_layer; distance = 200.0)
 buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 20.0)
-possible_background = background-buffer
+possible_background = .!(background .| (.! buffer))
 ```
 
 And then we sample 4 background points out of every 10 occurrences:
 
 ```{julia}
+#| label: Make the absence layer
 #| echo: true
-#| eval: false
+#| eval: true
+#| output: false
 absence_layer = SpeciesDistributionToolkit.sample(
     possible_background, 
     round(Int, 0.4*sum(presence_layer))
 )
 ```
 
-## Overview of the data
+## Background points cleaning
 
-**TODO** figure
-
-## The model
-
-## How predictions are made
-
-## Getting started
-
-The raw data come pre-packaged with these slides:
+We can remove all of the information that is neither a presence nor a pseudo-absence
 
 ```{julia}
-#| echo: true
+#| label: Pseudo-absence/presence remove
 #| output: false
-data = JLD.load("artifacts/data.jld")
-y, X = data["y"], data["X"][:,:]
-list_of_variables = data["variables"]
+#| echo: true
+replace!(absence_layer, false => nothing)
+replace!(presence_layer, false => nothing)
 ```
 
-Cross-validation strategy
+## Data overview
 
 ```{julia}
+heatmap!(possible_background; colormap = cgrad([:transparent, :white]; alpha = 0.3))
+scatter!(ax, [-76], [48.9]; marker = silhouette, markersize = silhouette_size, color=:white)
+current_figure()
+```
+
+```{julia}
+#| label: Save the stack of layers
+#| echo: false
+#| output: false
+#| eval: true
+bioclim_clipped = [mask(land, SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...)) for l in layers(provider)]
+SpeciesDistributionToolkit._write_geotiff("artifacts/layers.tiff", bioclim_clipped)
+```
+
+## Preparing the responses and variables
+
+```{julia}
+#| label: Assemble y and X
+#| echo: true
+#| output: false
+Xpresence = hcat([bioclim_var[keys(presence_layer)] for bioclim_var in bioclim_clipped]...)
+ypresence = fill(true, length(presence_layer))
+Xabsence = hcat([bioclim_var[keys(absence_layer)] for bioclim_var in bioclim_clipped]...)
+yabsence = fill(false, length(absence_layer))
+X = vcat(Xpresence, Xabsence)
+y = vcat(ypresence, yabsence)
+```
+
+## Serializing the data to a file
+
+```{julia}
+#| label: Save the data
+#| output: false
+#| echo: true
+bclay = layers(RasterData(WorldClim2, BioClim))
+bcdes = layerdescriptions(RasterData(WorldClim2, BioClim))
+presences = Tuple.(keys(presence_layer))
+absences = Tuple.(keys(absence_layer))
+variables = [(bc, bcdes[bc]) for bc in bclay]
+JLD.@save "artifacts/data.jld" X y presences absences variables
+```
+
+## The model - Naive Bayes Classifier
+
+Prediction:
+
+$$
+P(+|x) = \frac{P(+)}{P(x)}P(x|+)
+$$ 
+
+Decision rule:
+
+$$
+\hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)
+$$ 
+
+## Cross-validation
+
+We keep an *unseen* testing set -- this will be used at the very end
+
+```{julia}
+#| label: Testing set
 #| echo: true
 #| output: false
 idx, tidx = holdout(y, X; permute=true)
+```
+
+For *validation*, we will run k-folds ($k=12$)
+
+```{julia}
+#| label: k-folds
+#| echo: true
+#| output: false
 ty, tX = y[idx], X[idx,:]
 k = 12
 folds = kfold(ty, tX; k=k, permute=true)
@@ -194,11 +333,11 @@ folds = kfold(ty, tX; k=k, permute=true)
 
 ## A note on cross-validation
 
-all models share the same folds
+- All models share the same folds (we can compare the validation performance across experiments)
 
-testing set only for future evaluation
+- Testing set is *only* for future evaluation (we will use it once and report the expected performance)
 
-comparison: average validation performance
+- Comparison of model performance: average over validation folds
 
 ## Baseline performance
 
@@ -207,22 +346,26 @@ We need to get a sense of how hard the problem is:
 ```{julia}
 #| echo: true
 #| output: false
-model1 = naivebayes(ty, tX)
-prediction = vec(mapslices(model1, X[tidx,:]; dims=2))
-C0 = ConfusionMatrix(prediction, y[tidx])
+C0 = zeros(ConfusionMatrix, length(folds))
+for (i,f) in enumerate(folds)
+    trn, val = f
+    foldmodel = naivebayes(ty[trn], tX[trn,:])
+    foldpred = vec(mapslices(foldmodel, tX[val,:]; dims=2))
+    C0[i] = ConfusionMatrix(foldpred, ty[val])
+end
 ```
 
-The usual measures on the confusion matrix:
+## Measures on the confusion matrix
 
-| Measure                           | Value                              |
-|-----------------------------------|------------------------------------|
-| False positive rate               | `{julia} round(fpr(C0); digits=2)` |
-| False negative rate               | `{julia} round(fnr(C0); digits=2)` |
-| True positive rate                | `{julia} round(tpr(C0); digits=2)` |
-| True negative rate                | `{julia} round(tnr(C0); digits=2)` |
-| Matthew's correlation coefficient | `{julia} round(mcc(C0); digits=2)` |
+|                                   | Initial                             |
+|-----------------------------------|-------------------------------------------|
+| FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` |
+| FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` |
+| TPR           | `{julia} round(mean(tpr.(C0)); digits=2)` |
+| TNR           | `{julia} round(mean(tnr.(C0)); digits=2)` |
+| MCC | `{julia} round(mean(mcc.(C0)); digits=2)` |
 
-## Variable selection results
+## Variable selection
 
 We add variables one at a time, until the Matthew's Correlation Coefficient stops increasing:
 
@@ -232,19 +375,45 @@ We add variables one at a time, until the Matthew's Correlation Coefficient stop
 available_variables = forwardselection(ty, tX, folds, naivebayes, mcc)
 ```
 
-The `{julia} length(available_variables)` variables returned by this step are:
+This method identifies `{julia} length(available_variables)` variables, some of which are:
 
-1.  `{julia} list_of_variables[available_variables[1]][2]`
+1.  `{julia} variables[available_variables[1]][2]`
 
-2.  `{julia} list_of_variables[available_variables[2]][2]`
+2.  `{julia} variables[available_variables[2]][2]`
 
-3.  `{julia} list_of_variables[available_variables[3]][2]`
-
-4.  `{julia} list_of_variables[available_variables[4]][2]`
-
-5.  `{julia} list_of_variables[available_variables[5]][2]`
+3.  `{julia} variables[available_variables[3]][2]`
 
 ## Discuss - can we force variable selection?
+
+- constrained variable selection
+
+- VIF + variable selection
+
+- PCA?
+
+## Model with variable selection
+
+```{julia}
+#| echo: true
+#| output: false
+C1 = zeros(ConfusionMatrix, length(folds))
+for (i,f) in enumerate(folds)
+    trn, val = f
+    foldmodel = naivebayes(ty[trn], tX[trn,available_variables])
+    foldpred = vec(mapslices(foldmodel, tX[val,available_variables]; dims=2))
+    C1[i] = ConfusionMatrix(foldpred, ty[val])
+end
+```
+
+## Measures on the confusion matrix
+
+|                                   | Initial                             | Var. sel.                             |
+|-----------------------------------|-------------------------------------------|-------------------------------------------|
+| FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` |
+| FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` |
+| TPR           | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` |
+| TNR           | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` |
+| MCC | `{julia} round(mean(mcc.(C0)); digits=2)` | `{julia} round(mean(mcc.(C1)); digits=2)` |
 
 ## How do we make the model better?
 
@@ -278,7 +447,7 @@ end
 #| echo: false
 fig = Figure(; resolution=(900, 450))
 
-ax_mcc = Axis(fig[1,1])
+ax_mcc = Axis(fig[1,1], xlabel="Threshold", ylabel="MCC")
 
 scores = mcc.(C)
 σ = vec(std(scores; dims=1))
@@ -292,10 +461,9 @@ xlims!(ax_mcc, low=0.0, high=1.0)
 ylims!(ax_mcc, low=0.0, high=1.0)
 
 _, m = findmax(μ)
-vlines!(ax_mcc, thr[m])
+vlines!(ax_mcc, thr[m], color=:red)
 
-
-ax_roc = Axis(fig[1,2])
+ax_roc = Axis(fig[1,2], xlabel="False Positive Rate", ylabel="True Positive Rate")
 
 for i in axes(C, 1)
     lines!(ax_roc, fpr.(C[i,:]), tpr.(C[i,:]), color=:lightgrey)
@@ -304,9 +472,32 @@ end
 xlims!(ax_roc, low=0.0, high=1.0)
 ylims!(ax_roc, low=0.0, high=1.0)
 
-
 current_figure()
 ```
+
+## Tuned model with selected variables
+
+```{julia}
+#| echo: true
+#| output: false
+C2 = zeros(ConfusionMatrix, length(folds))
+for (i,f) in enumerate(folds)
+    trn, val = f
+    foldmodel = naivebayes(ty[trn], tX[trn,:])
+    foldpred = vec(mapslices(foldmodel, tX[val,:]; dims=2))
+    C2[i] = ConfusionMatrix(foldpred, ty[val], thr[m])
+end
+```
+
+## Measures on the confusion matrix
+
+|                                   | Initial                             | Var. sel.                             | Tuned                            |
+|-----------------------------------|-------------------------------------------|-------------------------------------------|-------------------------------------------|
+| FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` | `{julia} round(mean(fpr.(C2)); digits=2)` |
+| FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` | `{julia} round(mean(fnr.(C2)); digits=2)` |
+| TPR           | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` | `{julia} round(mean(tpr.(C2)); digits=2)` |
+| TNR           | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` | `{julia} round(mean(tnr.(C2)); digits=2)` |
+| MCC | `{julia} round(mean(mcc.(C0)); digits=2)` | `{julia} round(mean(mcc.(C1)); digits=2)` | `{julia} round(mean(mcc.(C2)); digits=2)` |
 
 ## Tuned model performance
 
@@ -315,26 +506,27 @@ We can retrain over *all* the training data
 ```{julia}
 #| echo: true
 #| output: false
-model2 = naivebayes(ty, tX)
-prediction2 = vec(mapslices(model2, X[tidx,available_variables]; dims=2))
-C1 = ConfusionMatrix(prediction2, y[tidx])
+finalmodel = naivebayes(ty, tX)
+prediction = vec(mapslices(finalmodel, X[tidx,available_variables]; dims=2))
+Cf = ConfusionMatrix(prediction, y[tidx], thr[m])
 ```
-
-Note that we are re-using the testing data here, which is a pretty big no-no in practice, but we care about documenting the performance *had we stopped at the previous step*.
-
-## Discuss - is this better?
-
-| Measure                           | Initial model                      | **Tuned model**                    |
-|----------------------------|------------------------|--------------------|
-| False positive rate               | `{julia} round(fpr(C0); digits=2)` | `{julia} round(fpr(C1); digits=2)` |
-| False negative rate               | `{julia} round(fnr(C0); digits=2)` | `{julia} round(fnr(C1); digits=2)` |
-| True positive rate                | `{julia} round(tpr(C0); digits=2)` | `{julia} round(tpr(C1); digits=2)` |
-| True negative rate                | `{julia} round(tnr(C0); digits=2)` | `{julia} round(tnr(C1); digits=2)` |
-| Matthew's correlation coefficient | `{julia} round(mcc(C0); digits=2)` | `{julia} round(mcc(C1); digits=2)` |
 
 ## Estimated performance
 
+
+|                                   | Final model                             |
+|-----------------------------------|-------------------------------------------|
+| FPR              | `{julia} round(fpr(Cf); digits=2)` |
+| FNR             | `{julia} round(fnr(Cf); digits=2)` |
+| TPR           | `{julia} round(tpr(Cf); digits=2)` |
+| TNR           | `{julia} round(tnr(Cf); digits=2)` |
+| MCC | `{julia} round(mcc(Cf); digits=2)` |
+
 ## Acceptable bias
+
+- false positives: we expect that our knowledge of the distribution is incomplete!
+
+- false negatives: we used a heuristic for background points!
 
 ## Prediction for each pixel
 
@@ -344,26 +536,24 @@ Note that we are re-using the testing data here, which is a pretty big no-no in 
 predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in axes(X, 2)]
 prediction = similar(first(predictors))
 Threads.@threads for k in keys(prediction)
-    prediction[k] = model2([p[k] for p in predictors[available_variables]])
+    prediction[k] = finalmodel([p[k] for p in predictors[available_variables]])
     if isnan(prediction[k])
         prediction[k] = 0.0
     end
 end
 ```
 
-## Tuned model - visualized
+## Tuned model - predictions
 
 ```{julia}
 #| echo: false
 #| output: true
-fig = Figure(; resolution=(900, 400))
+fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:curl), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
-
-## Acceptable bias - revisited
 
 ## Tuned model - uncertainty
 
@@ -375,14 +565,32 @@ function entropy(f)
     return -sum(p .* log2.(p))
 end
 
-fig = Figure(; resolution=(900, 400))
+fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:tokyo), colorrange=(0., 1.))
+hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
 
-## How predictions are made - revisited
+## Tuned model - range
+
+```{julia}
+#| echo: false
+#| output: true
+fig = Figure(; resolution=(900, 500))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(prediction .>= thr[m]; colormap = cgrad([:lightgrey, :black]; alpha = 0.3))
+scatter!(ax, observations; color=:black, marker=:cross, markersize=5)
+scatter!(ax, [-76], [48.9]; marker = silhouette, markersize = silhouette_size, color=:white)
+Colorbar(fig[1,2], hm; tellheight=false)
+current_figure()
+```
+
+## Predicting the predictions?
+
+Shapley values (Monte-Carlo approximation): if we mix the variables across two observations, how important is the $i$-th variable?
+
+Expresses "importance" as an additive factor on top of the *average* prediction (here: average prob. of occurrence)
 
 ```{julia}
 #| echo: true
@@ -391,7 +599,7 @@ shapval = [similar(first(predictors)) for i in eachindex(available_variables)]
 Threads.@threads for k in keys(shapval[1])
     x = [p[k] for p in predictors[available_variables]]
     for i in axes(shapval, 1)
-        shapval[i][k] = shapleyvalues(model2, tX, x, i; M=50)
+        shapval[i][k] = shapleyvalues(finalmodel, tX, x, i; M=50)
         if isnan(shapval[i][k])
             shapval[i][k] = 0.0
         end
@@ -399,7 +607,22 @@ Threads.@threads for k in keys(shapval[1])
 end
 ```
 
-## Mapping the explanatory variables
+## Sort the available variables by importance
+
+```{julia}
+#| echo: true
+varimp = sum.(map(abs, shapval))
+varimp ./= sum(varimp)
+for v in sortperm(varimp, rev=true)
+    vname = variables[available_variables[v]][2]
+    vctr = round(Int, varimp[v]*100)
+    println("$(vname) - $(vctr)%")
+end
+```
+
+There is a difference between **contributing to model performance** and **contributing to model explainability**
+
+## Mapping the top three variables
 
 ```{julia}
 #| echo: false
@@ -408,23 +631,42 @@ fig = Figure(; resolution=(900, 800))
 
 gl = fig[1,1] = GridLayout()
 
-for i in 1:3
-    ax_mp = Axis(gl[i,1])
+fpos = 1
+for i in sortperm(varimp; rev=true)[1:3]
+    ax_mp = Axis(gl[fpos,1])
     scl = maximum(abs.(extrema(shapval[i]))).*(-1,1)
-    heatmap!(ax_mp, shapval[i], colorrange=scl, colormap=:cork, aspect=DataAspect())
+    heatmap!(ax_mp, shapval[i], colorrange=scl, colormap=Reverse(:diverging_bwr_20_95_c54_n256), aspect=DataAspect())
     hidexdecorations!(ax_mp)
     hideydecorations!(ax_mp)
 
-    ax_pr = Axis(gl[i,2], title=list_of_variables[available_variables[i]][2])
+    ax_pr = Axis(gl[fpos,2], title=variables[available_variables[i]][2])
     ylims!(ax_pr, scl)
-    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200)
+    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200, colormap=:linear_bgyw_15_100_c67_n256)
+    fpos += 1
 end
-
-#rowgap!(gl, 10.0)
 
 current_figure()
 ```
 
+## Mapping the most determinant predictor
+
+```{julia}
+cmap = Symbol("Set2_$(length(available_variables))")
+fig = Figure(; resolution=(900, 500))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, mosaic(argmax, map(abs, shapval)), colormap=cmap)
+Colorbar(fig[1,2], hm; tellheight=false)
+current_figure()
+```
+
 ## Take-home
+
+- building a model is *incremental*
+
+- each step adds arbitrary decisions we can control for, justify, or live with
+
+- we can provide explanations for every single prediction
+
+- free online textbook (in development) at `https://tpoisot.github.io/DataSciForBiodivSci/`
 
 ## References
