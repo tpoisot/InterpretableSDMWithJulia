@@ -8,7 +8,7 @@ toc: false
 number-sections: false
 
 execute: 
-  freeze: true
+  freeze: auto
 
 format:
     revealjs:
@@ -17,6 +17,5 @@ format:
         theme: assets/theme.scss
         code-line-numbers: false
         code-copy: false
-        footer: "CC BY 4.0 - Timothée Poisot"
         output-file: "index"
         output-format: "html"

@@ -20,6 +20,10 @@ csl: https://www.zotero.org/styles/ecology-letters
 
 -   Discuss which biases are appropriate in a predictive model
 
+::: footer
+CC BY 4.0 - Timothée Poisot
+:::
+
 ------------------------------------------------------------------------
 
 ::: r-fit-text
@@ -36,13 +40,15 @@ and only a little about the
 
 ## Raccoons!
 
--   Relatable (bag under eyes, love naps, out of shape, will fight over garbage)
+-   Relatable (bag under eyes, love naps, out of shape)
 
 -   High volume of data
 
 -   Species of concern for zoonotic diseases
 
 -   Where can we find them in/around Québec?
+
+See also @higino2021 for more quality 🦝 content
 
 ## Do try this at home!
 
@@ -76,7 +82,7 @@ A series of predictions $\hat y$
 
 ## Bioclimatic data
 
-We collect data from WorldClim2 @fick2017, using `SpeciesDistributionToolkit`
+We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
 
 ```{julia}
 #| label: Download the BioClim data from WorldClim2
@@ -347,6 +353,7 @@ For *validation*, we will run k-folds
 #| output: false
 ty, tX = y[idx], X[idx,:]
 folds = kfold(ty, tX; k=15, permute=true)
+k = length(folds)
 ```
 
 ::: footer
@@ -357,15 +364,15 @@ See @valavi2018 for more on cross-validation
 
 All models share the same folds
 
-: we can compare the validation performance across experiments to select the best model
+:   we can compare the validation performance across experiments to select the best model
 
 Model performance can be compared
 
-: we average the relevant summary statistics over each validation set
+:   we average the relevant summary statistics over each validation set
 
 Testing set is *only* for future evaluation
 
-: we can only use it once and report the expected performance *of the best model*
+:   we can only use it once and report the expected performance *of the best model*
 
 ## Baseline performance
 
@@ -658,7 +665,7 @@ current_figure()
 ```
 
 ::: footer
-Probability > `{julia} round(thr[m]; digits=3)`
+Probability \> `{julia} round(thr[m]; digits=3)`
 :::
 
 ## Predicting the predictions?
