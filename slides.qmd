@@ -735,8 +735,7 @@ current_figure()
 ## Most determinant predictor
 
 ```{julia}
-cmap = Makie.wong_colors()[1:length(available_variables)]
-pal = cgrad(cmap, length(available_variables), categorical=true)
+pal = cgrad(:Spectral, length(available_variables), categorical=true)
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)])), colormap=pal)

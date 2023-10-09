@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.4.386">
 
   <meta name="author" content="Timothée Poisot">
-  <title>Building an interpretable SDM from sratch</title>
+  <title>Building an interpretable SDM from scratch</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -413,8 +413,8 @@
     <div class="slides">
 
 <section id="title-slide" data-background-image="https://cdn.pixabay.com/photo/2018/07/10/22/09/raccoon-3529806_960_720.jpg" data-background-opacity="0.15" class="quarto-title-block center">
-  <h1 class="title">Building an interpretable SDM from sratch</h1>
-  <p class="subtitle">With Julia 1.9</p>
+  <h1 class="title">Building an interpretable SDM from scratch</h1>
+  <p class="subtitle">using Julia 1.9</p>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
@@ -438,6 +438,9 @@ Timothée Poisot
 <li><p>Use this as an opportunity to talk about interpretable ML</p></li>
 <li><p>Discuss which biases are appropriate in a predictive model</p></li>
 </ul>
+<div class="footer">
+<p>CC BY 4.0 - Timothée Poisot</p>
+</div>
 </section>
 <section class="slide level2">
 
@@ -456,7 +459,9 @@ Timothée Poisot
 <li><p>Species of concern for zoonotic diseases</p></li>
 <li><p>Where can we find them in/around Québec?</p></li>
 </ul>
+<div class="footer">
 <p>See also <span class="citation" data-cites="higino2021">Higino <em>et al.</em> (<a href="#/references" role="doc-biblioref" onclick="">2021</a>)</span> for more quality 🦝 content</p>
+</div>
 </section>
 <section id="do-try-this-at-home" class="slide level2">
 <h2>Do try this at home!</h2>
@@ -608,8 +613,8 @@ Timothée Poisot
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="fu">vcat</span>(ypresence, yabsence)</span></code></pre></div>
 </div>
 </section>
-<section id="the-model---naive-bayes-classifier" class="slide level2">
-<h2>The model - Naive Bayes Classifier</h2>
+<section id="the-model-naive-bayes-classifier" class="slide level2">
+<h2>The model – Naive Bayes Classifier</h2>
 <p>Prediction:</p>
 <p><span class="math display">\[
 P(+|x) = \frac{P(+)}{P(x)}P(x|+)
@@ -622,7 +627,7 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <p>With <span class="math inline">\(n\)</span> instances and <span class="math inline">\(f\)</span> features, NBC trains <em>and</em> predicts in <span class="math inline">\(\mathcal{O}(n\times f)\)</span></p>
 </div>
 </section>
-<section id="the-model-naive-bayes-classifier" class="slide level2">
+<section id="the-model-naive-bayes-classifier-1" class="slide level2">
 <h2>The model – Naive Bayes Classifier</h2>
 <p>Assumption of Gaussian distributions:</p>
 <p><span class="math display">\[
@@ -665,7 +670,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <section id="baseline-performance" class="slide level2">
 <h2>Baseline performance</h2>
 <p>We need to get a sense of how difficult the classification problem is:</p>
-<div id="e5da6d12" class="cell" data-execution_count="20">
+<div id="7545d4eb" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>C0 <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, <span class="fu">length</span>(folds))</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i,f) <span class="kw">in</span> <span class="fu">enumerate</span>(folds)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    trn, val <span class="op">=</span> f</span>
@@ -715,10 +720,10 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <section id="variable-selection" class="slide level2">
 <h2>Variable selection</h2>
 <p>We add variables one at a time, until the Matthew’s Correlation Coefficient stops increasing – we keep annual temperature, isothermality, mean diurnal range, and annual precipitation</p>
-<div id="b03ee5d3" class="cell" data-execution_count="21">
+<div id="cedf0299" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>available_variables <span class="op">=</span> <span class="fu">constrainedselection</span>(ty, tX, folds, naivebayes, mcc, [<span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">12</span>])</span></code></pre></div>
 </div>
-<p>This method identifies 7 variables, some of which are:</p>
+<p>This method identifies 8 variables, some of which are:</p>
 <ol type="1">
 <li><p>Annual Mean Temperature</p></li>
 <li><p>Mean Diurnal Range (Mean of monthly (max temp - min temp))</p></li>
@@ -735,7 +740,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="model-with-variable-selection" class="slide level2">
 <h2>Model with variable selection</h2>
-<div id="f4b10618" class="cell" data-execution_count="22">
+<div id="8cf371ec" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>C1 <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, <span class="fu">length</span>(folds))</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i,f) <span class="kw">in</span> <span class="fu">enumerate</span>(folds)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    trn, val <span class="op">=</span> f</span>
@@ -784,7 +789,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <tr class="odd">
 <td>MCC</td>
 <td>0.78</td>
-<td>0.8</td>
+<td>0.81</td>
 </tr>
 </tbody>
 </table>
@@ -797,7 +802,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="thresholding-the-model" class="slide level2">
 <h2>Thresholding the model</h2>
-<div id="7ce552e7" class="cell" data-execution_count="23">
+<div id="2e807b81" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ty, tX <span class="op">=</span> y[idx], X[idx,available_variables]</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>thr <span class="op">=</span> <span class="fu">LinRange</span>(<span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="fl">350</span>)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>C <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, (k, <span class="fu">length</span>(thr)))</span>
@@ -817,7 +822,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <img data-src="slides_files/figure-revealjs/cell-25-output-1.svg" id="fig-539a35d47e664c97a50115a146a7f1bd-4" class="r-stretch quarto-figure-center"></section>
 <section id="tuned-model-with-selected-variables" class="slide level2">
 <h2>Tuned model with selected variables</h2>
-<div id="0580db00" class="cell" data-execution_count="25">
+<div id="18931752" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>C2 <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, <span class="fu">length</span>(folds))</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i,f) <span class="kw">in</span> <span class="fu">enumerate</span>(folds)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    trn, val <span class="op">=</span> f</span>
@@ -849,7 +854,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <td>FPR</td>
 <td>0.16</td>
 <td>0.15</td>
-<td>0.19</td>
+<td>0.18</td>
 </tr>
 <tr class="even">
 <td>FNR</td>
@@ -867,12 +872,12 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <td>TNR</td>
 <td>0.84</td>
 <td>0.85</td>
-<td>0.81</td>
+<td>0.82</td>
 </tr>
 <tr class="odd">
 <td>MCC</td>
 <td>0.78</td>
-<td>0.8</td>
+<td>0.81</td>
 <td>0.82</td>
 </tr>
 </tbody>
@@ -881,7 +886,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <section id="tuned-model-performance" class="slide level2">
 <h2>Tuned model performance</h2>
 <p>We can retrain over <em>all</em> the training data</p>
-<div id="a61083f9" class="cell" data-execution_count="26">
+<div id="1dcb73f9" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>finalmodel <span class="op">=</span> <span class="fu">naivebayes</span>(ty, tX)</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">vec</span>(<span class="fu">mapslices</span>(finalmodel, X[tidx,available_variables]; dims<span class="op">=</span><span class="fl">2</span>))</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>Cf <span class="op">=</span> <span class="fu">ConfusionMatrix</span>(prediction, y[tidx], thr[m])</span></code></pre></div>
@@ -899,23 +904,23 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <tbody>
 <tr class="odd">
 <td>FPR</td>
-<td>0.18</td>
+<td>0.21</td>
 </tr>
 <tr class="even">
 <td>FNR</td>
-<td>0.02</td>
+<td>0.03</td>
 </tr>
 <tr class="odd">
 <td>TPR</td>
-<td>0.98</td>
+<td>0.97</td>
 </tr>
 <tr class="even">
 <td>TNR</td>
-<td>0.82</td>
+<td>0.79</td>
 </tr>
 <tr class="odd">
 <td>MCC</td>
-<td>0.83</td>
+<td>0.8</td>
 </tr>
 </tbody>
 </table>
@@ -929,7 +934,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="prediction-for-each-pixel" class="slide level2">
 <h2>Prediction for each pixel</h2>
-<div id="9f18a9d9" class="cell" data-execution_count="28">
+<div id="56a2d274" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">similar</span>(<span class="fu">first</span>(predictors))</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(prediction)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    prediction[k] <span class="op">=</span> <span class="fu">finalmodel</span>([p[k] for p <span class="kw">in</span> predictors[available_variables]])</span>
@@ -961,14 +966,14 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <h2>Tuned model - range</h2>
 
 <img data-src="slides_files/figure-revealjs/cell-33-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-8" class="r-stretch quarto-figure-center"><div class="footer">
-<p>Probability &gt; 0.146</p>
+<p>Probability &gt; 0.209</p>
 </div>
 </section>
 <section id="predicting-the-predictions" class="slide level2">
 <h2>Predicting the predictions?</h2>
 <p>Shapley values (Monte-Carlo approximation): if we mix the variables across two observations, how important is the <span class="math inline">\(i\)</span>-th variable?</p>
 <p>Expresses “importance” as an additive factor on top of the <em>average</em> prediction (here: average prob. of occurrence)</p>
-<div id="22257ce8" class="cell" data-execution_count="33">
+<div id="a0c32999" class="cell" data-execution_count="33">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>shapval <span class="op">=</span> [<span class="fu">similar</span>(<span class="fu">first</span>(predictors)) for i <span class="kw">in</span> <span class="fu">eachindex</span>(available_variables)]</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(shapval[<span class="fl">1</span>])</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> [p[k] for p <span class="kw">in</span> predictors[available_variables]]</span>
@@ -983,7 +988,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="importance-of-variables" class="slide level2">
 <h2>Importance of variables</h2>
-<div id="3ba43481" class="cell" data-execution_count="34">
+<div id="d0f15efa" class="cell" data-execution_count="34">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>varimp <span class="op">=</span> <span class="fu">sum</span>.(<span class="fu">map</span>(abs, shapval))</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>varimp <span class="op">./=</span> <span class="fu">sum</span>(varimp)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> v <span class="kw">in</span> <span class="fu">sortperm</span>(varimp, rev<span class="op">=</span><span class="cn">true</span>)</span>
@@ -992,12 +997,13 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">println</span>(<span class="st">"</span><span class="sc">$</span>(vname)<span class="st"> - </span><span class="sc">$</span>(vctr)<span class="st">%"</span>)</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Annual Mean Temperature - 44%
-Mean Temperature of Warmest Quarter - 42%
-Isothermality (BIO2/BIO7) (×100) - 4%
+<pre><code>Annual Mean Temperature - 43%
+Mean Temperature of Warmest Quarter - 41%
 Mean Diurnal Range (Mean of monthly (max temp - min temp)) - 4%
-Precipitation of Driest Month - 4%
-Precipitation of Coldest Quarter - 3%
+Isothermality (BIO2/BIO7) (×100) - 4%
+Precipitation of Driest Month - 3%
+Mean Temperature of Wettest Quarter - 3%
+Precipitation of Coldest Quarter - 2%
 Annual Precipitation - 0%</code></pre>
 </div>
 </div>
@@ -1024,7 +1030,7 @@ Annual Precipitation - 0%</code></pre>
 <h2>References</h2>
 
 <img src="assets/poisotlab.png" class="slide-logo r-stretch"><div class="footer footer-default">
-<p>CC BY 4.0 - Timothée Poisot</p>
+
 </div>
 <div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-barbet-massin2012" class="csl-entry" role="listitem">
