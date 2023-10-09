@@ -7,7 +7,7 @@ author:
 institute: "Université de Montréal"
 title-slide-attributes: 
   data-background-image: https://cdn.pixabay.com/photo/2018/07/10/22/09/raccoon-3529806_960_720.jpg
-  data-background-opacity: "0.25"
+  data-background-opacity: "0.15"
 bibliography: references.bib
 csl: https://www.zotero.org/styles/ecology-letters
 ---
@@ -86,7 +86,7 @@ We collect data from WorldClim2 @fick2017, using `SpeciesDistributionToolkit`
 provider = RasterData(CHELSA1, BioClim)
 opts = (;)
 boundingbox = (bottom=41.0, right=-58.501, left=-80.00, top=51.999)
-simplifier = (x) -> coarsen(x, mean, (5, 5)) # Bring the data to 2.5 arc-min resolution
+simplifier = (x) -> coarsen(x, mean, (2, 2))
 temperature = simplifier(SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...))
 ```
 
@@ -275,7 +275,6 @@ bioclim_clipped = [
         water,
         simplifier(SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...))
     ) for l in layers(provider)]
-SpeciesDistributionToolkit._write_geotiff("artifacts/layers.tiff", bioclim_clipped)
 ```
 
 ## Preparing the responses and variables
@@ -292,18 +291,15 @@ X = vcat(Xpresence, Xabsence)
 y = vcat(ypresence, yabsence)
 ```
 
-## Serializing the data to a file
-
 ```{julia}
-#| label: Save the data
 #| output: false
-#| echo: true
+#| echo: false
+#| eval: true
 bclay = layers(RasterData(WorldClim2, BioClim))
 bcdes = layerdescriptions(RasterData(WorldClim2, BioClim))
 presences = Tuple.(keys(presence_layer))
 absences = Tuple.(keys(absence_layer))
 variables = [(bc, bcdes[bc]) for bc in bclay]
-JLD.@save "artifacts/data.jld" X y presences absences variables
 ```
 
 ## The model - Naive Bayes Classifier
@@ -320,9 +316,21 @@ $$
 \hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)
 $$
 
+::: footer
+With $n$ instances and $f$ features, NBC trains *and* predicts in $\mathcal{O}(n\times f)$
+:::
+
+## The model -- Naive Bayes Classifier
+
+Assumption of Gaussian distributions:
+
+$$
+P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
+$$
+
 ## Cross-validation
 
-We keep an *unseen* testing set -- this will be used at the very end
+We keep an **unseen** *testing* set -- this will be used at the very end to report expected model performance
 
 ```{julia}
 #| label: Testing set
@@ -331,15 +339,14 @@ We keep an *unseen* testing set -- this will be used at the very end
 idx, tidx = holdout(y, X; permute=true)
 ```
 
-For *validation*, we will run k-folds ($k=12$)
+For *validation*, we will run k-folds
 
 ```{julia}
 #| label: k-folds
 #| echo: true
 #| output: false
 ty, tX = y[idx], X[idx,:]
-k = 20
-folds = kfold(ty, tX; k=k, permute=true)
+folds = kfold(ty, tX; k=15, permute=true)
 ```
 
 ::: footer
@@ -348,15 +355,21 @@ See @valavi2018 for more on cross-validation
 
 ## A note on cross-validation
 
--   All models share the same folds (we can compare the validation performance across experiments)
+All models share the same folds
 
--   Testing set is *only* for future evaluation (we will use it once and report the expected performance)
+: we can compare the validation performance across experiments to select the best model
 
--   Comparison of model performance: average over validation folds
+Model performance can be compared
+
+: we average the relevant summary statistics over each validation set
+
+Testing set is *only* for future evaluation
+
+: we can only use it once and report the expected performance *of the best model*
 
 ## Baseline performance
 
-We need to get a sense of how hard the problem is:
+We need to get a sense of how difficult the classification problem is:
 
 ```{julia}
 #| echo: true
@@ -370,6 +383,8 @@ for (i,f) in enumerate(folds)
 end
 ```
 
+This uses an un-tuned model with all variables and reports the average over all validation sets
+
 ## Measures on the confusion matrix
 
 |     | Initial                                   |
@@ -379,6 +394,10 @@ end
 | TPR | `{julia} round(mean(tpr.(C0)); digits=2)` |
 | TNR | `{julia} round(mean(tnr.(C0)); digits=2)` |
 | MCC | `{julia} round(mean(mcc.(C0)); digits=2)` |
+
+::: footer
+It's a good idea to check the values for the training sets too...
+:::
 
 ## Variable selection
 
@@ -548,7 +567,7 @@ Cf = ConfusionMatrix(prediction, y[tidx], thr[m])
 #| echo: false
 #| eval: true
 #| output: false
-predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in axes(X, 2)]
+predictors = bioclim_clipped
 function iqr(x)
     return first(diff(quantile(x, [0.25, 0.75])))
 end
@@ -572,7 +591,7 @@ Threads.@threads for k in keys(prediction)
 end
 ```
 
-## Tuned model - predictions
+## Tuned model - prediction
 
 ```{julia}
 #| echo: false
@@ -697,7 +716,7 @@ for i in sortperm(varimp; rev=true)[1:3]
 
     ax_pr = Axis(gl[fpos,2], title=variables[available_variables[i]][2])
     ylims!(ax_pr, scl)
-    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200, colormap=:linear_bgyw_15_100_c67_n256)
+    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200, colormap=:linear_bgy_10_95_c74_n256)
     fpos += 1
 end
 
@@ -707,10 +726,11 @@ current_figure()
 ## Most determinant predictor
 
 ```{julia}
-cmap = Symbol("Set2_$(length(available_variables))")
+cmap = Makie.wong_colors()[1:length(available_variables)]
+pal = cgrad(cmap, length(available_variables), categorical=true)
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, mosaic(argmax, map(abs, shapval)), colormap=cmap)
+hm = heatmap!(ax, mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)])), colormap=pal)
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```

@@ -5,17 +5,15 @@ using PrettyTables
 import Random
 Random.seed!(12345)
 
-import JLD
-
 using Statistics
 
 using CairoMakie
 set_theme!()
 update_theme!(
     backgroundcolor=:transparent,
-    fontsize=30,
     Figure=(; backgroundcolor=:transparent),
     Axis=(
+        backgroundcolor=:white,
         leftspinevisible=false,
         rightspinevisible=false,
         bottomspinevisible=false,
