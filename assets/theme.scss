@@ -1,0 +1,17 @@
+/*-- scss:defaults --*/
+
+// Fonts (use the Noto family)
+$presentation-heading-font: "Noto Sans Display", "Noto Sans", sans-serif;
+$font-family-monospace: "Noto Sans Mono", monospace;
+$font-family-sans-serif: "Noto Sans", sans-serif;
+
+// Headings
+$presentation-heading-text-transform: capitalize;
+$presentation-heading-font-weight: 100;
+$presentation-heading-color: #405060;
+
+/*-- scss:mixins --*/
+@mixin bodyBackground() {
+    @include radial-gradient(rgba(247, 242, 211, 1), rgba(255, 255, 255, 1));
+    @include horizontal-gradient(#ebf0ec, #f9f9fd);
+}

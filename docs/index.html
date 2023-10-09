@@ -7,10 +7,10 @@
 <link href="slides_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="slides_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="slides_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.4.358">
+  <meta name="generator" content="quarto-1.4.386">
 
   <meta name="author" content="Timothée Poisot">
-  <title>Interpretable Machine Learning</title>
+  <title>Building an interpretable SDM from sratch</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -97,6 +97,7 @@
     div.csl-bib-body { }
     div.csl-entry {
       clear: both;
+      margin-bottom: 0em;
     }
     .hanging-indent div.csl-entry {
       margin-left:2em;
@@ -411,9 +412,9 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="https://cdn.pixabay.com/photo/2018/07/14/17/07/raccoon-3537985_1280.jpg" data-background-opacity="0.25" class="quarto-title-block center">
-  <h1 class="title">Interpretable Machine Learning</h1>
-  <p class="subtitle">Answers that make sense, right out of the (black) box?</p>
+<section id="title-slide" data-background-image="https://cdn.pixabay.com/photo/2018/07/10/22/09/raccoon-3529806_960_720.jpg" data-background-opacity="0.25" class="quarto-title-block center">
+  <h1 class="title">Building an interpretable SDM from sratch</h1>
+  <p class="subtitle">With Julia 1.9</p>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
@@ -435,21 +436,7 @@ Timothée Poisot
 <ul>
 <li><p>Build a <em>simple</em> classifier to predict the distribution of a species</p></li>
 <li><p>Use this as an opportunity to talk about interpretable ML</p></li>
-<li><p>Discuss which biases are appropriate in a predictive model</p>
-<aside class="notes">
-<p>Emphasize: importance of talking about the model more than getting the model right</p>
-<p>We will look at SDM as a ML problem, then look at the ML problem as an ecological one</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside></li>
+<li><p>Discuss which biases are appropriate in a predictive model</p></li>
 </ul>
 </section>
 <section class="slide level2">
@@ -472,7 +459,7 @@ Timothée Poisot
 </section>
 <section id="do-try-this-at-home" class="slide level2">
 <h2>Do try this at home!</h2>
-<p>💻 + 📔 + 🗺️ at <code>https://github.com/tpoisot/GEOBON2023-Julia-Workshop</code></p>
+<p>💻 + 📔 + 🗺️ at <code>https://github.com/tpoisot/InterpretableSDMWithJulia/</code></p>
 <div id="include-the-packages-we-need" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="fu">joinpath</span>(<span class="st">"code"</span>, <span class="st">"pkg.jl"</span>)); <span class="co"># Dependencies</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="fu">joinpath</span>(<span class="st">"code"</span>, <span class="st">"nbc.jl"</span>)); <span class="co"># Naive Bayes Classifier</span></span>
@@ -481,19 +468,6 @@ Timothée Poisot
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="fu">joinpath</span>(<span class="st">"code"</span>, <span class="st">"variableselection.jl"</span>)); <span class="co"># Variable selection</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="fu">joinpath</span>(<span class="st">"code"</span>, <span class="st">"shapley.jl"</span>)); <span class="co"># Shapley values</span></span></code></pre></div>
 </div>
-<aside class="notes">
-<p><strong>hand made</strong>, this is not recommended (use MLJ instead), but useful to get to see how the language can be used for various tasks</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
 <section id="to-train-a-model-we-need" class="slide level2">
 <h2>To train a model, we need…</h2>
@@ -511,41 +485,37 @@ Timothée Poisot
 <p>which we will compare to the values of <span class="math inline">\(y\)</span></p>
 </dd>
 </dl>
-<aside class="notes">
-<p>Note that the process of making assumptions has <em>already</em> started here (we pick a set of variables we think are important)</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
 <section id="bioclimatic-data" class="slide level2">
 <h2>Bioclimatic data</h2>
-<p>We collect data from WorldClim2 <span class="citation" data-cites="fick2017">[<a href="#/references" role="doc-biblioref" onclick="">1</a>]</span>, using <code>SpeciesDistributionToolkit</code></p>
+<p>We collect data from WorldClim2 <span class="citation" data-cites="fick2017">Fick &amp; Hijmans (<a href="#/references" role="doc-biblioref" onclick="">2017</a>)</span>, using <code>SpeciesDistributionToolkit</code></p>
 <div id="download-the-bioclim-data-from-worldclim2" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>provider <span class="op">=</span> <span class="fu">RasterData</span>(WorldClim2, BioClim)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>opts <span class="op">=</span> (resolution<span class="op">=</span><span class="fl">2.5</span>, )</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>boundingbox <span class="op">=</span> (bottom<span class="op">=</span><span class="fl">41.0</span>, right<span class="op">=-</span><span class="fl">59.5</span>, left<span class="op">=-</span><span class="fl">80.00</span>, top<span class="op">=</span><span class="fl">52.0</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>temperature <span class="op">=</span> <span class="fu">SimpleSDMPredictor</span>(provider, layer<span class="op">=</span><span class="fl">1</span>; opts<span class="op">...</span>, boundingbox<span class="op">...</span>)</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>provider <span class="op">=</span> <span class="fu">RasterData</span>(CHELSA1, BioClim)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>opts <span class="op">=</span> (;)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>boundingbox <span class="op">=</span> (bottom<span class="op">=</span><span class="fl">41.0</span>, right<span class="op">=-</span><span class="fl">58.501</span>, left<span class="op">=-</span><span class="fl">80.00</span>, top<span class="op">=</span><span class="fl">51.999</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>simplifier <span class="op">=</span> (x) <span class="op">-&gt;</span> <span class="fu">coarsen</span>(x, mean, (<span class="fl">5</span>, <span class="fl">5</span>)) <span class="co"># Bring the data to 2.5 arc-min resolution</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>temperature <span class="op">=</span> <span class="fu">simplifier</span>(<span class="fu">SimpleSDMPredictor</span>(provider, layer<span class="op">=</span><span class="fl">1</span>; opts<span class="op">...</span>, boundingbox<span class="op">...</span>))</span></code></pre></div>
 </div>
-<p>Then we use landcover data <span class="citation" data-cites="tuanmu2014">[<a href="#/references" role="doc-biblioref" onclick="">2</a>]</span> to remove the great lakes:</p>
-<div id="download-and-rescale-the-water-data-from-earthenv" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>water <span class="op">=</span> <span class="fu">SimpleSDMPredictor</span>(<span class="fu">RasterData</span>(EarthEnv, LandCover), layer<span class="op">=</span><span class="fl">12</span>; boundingbox<span class="op">...</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>land <span class="op">=</span> <span class="fu">replace</span>(</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coarsen</span>(water, minimum, (<span class="fl">5</span>, <span class="fl">5</span>))<span class="op">.&lt;</span><span class="fl">100</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cn">false</span> <span class="op">=&gt;</span> <span class="cn">nothing</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="footer">
+<p>BioClim data from <span class="citation" data-cites="karger2020">Karger <em>et al.</em> (<a href="#/references" role="doc-biblioref" onclick="">2020</a>)</span></p>
+</div>
+</section>
+<section id="bioclimatic-data-1" class="slide level2">
+<h2>Bioclimatic data</h2>
+<p>We set the pixels with only open water to <code>nothing</code></p>
+<div id="get-the-open-water-pixels" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>water <span class="op">=</span> <span class="fu">simplifier</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">SimpleSDMPredictor</span>(<span class="fu">RasterData</span>(EarthEnv, LandCover), layer<span class="op">=</span><span class="fl">12</span>; opts<span class="op">...</span>, boundingbox<span class="op">...</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>) <span class="op">.&lt;</span> <span class="fl">100</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>temperature <span class="op">=</span> <span class="fu">mask</span>(water, temperature)</span></code></pre></div>
+</div>
+<div class="footer">
+<p>Land-cover data from <span class="citation" data-cites="tuanmu2014">Tuanmu &amp; Jetz (<a href="#/references" role="doc-biblioref" onclick="">2014</a>)</span></p>
 </div>
 </section>
 <section id="species-occurrence-filtering" class="slide level2">
 <h2>Species occurrence filtering</h2>
-<p>We use the <a href="http://gbif.org">GBIF</a> API through the <code>GBIF</code> package for <em>Julia</em> <span class="citation" data-cites="dansereau2021">[<a href="#/references" role="doc-biblioref" onclick="">3</a>]</span> to get data about <em>Procyon lotor</em></p>
+<p>We use the <a href="http://gbif.org">GBIF</a> API through the <code>GBIF</code> package to get data about <em>Procyon lotor</em></p>
 <div id="get-the-species-from-gbif" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>critter <span class="op">=</span> <span class="fu">taxon</span>(<span class="st">"Procyon lotor"</span>; strict<span class="op">=</span><span class="cn">false</span>)</span></code></pre></div>
 </div>
@@ -560,11 +530,14 @@ Timothée Poisot
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>]</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>observations <span class="op">=</span> <span class="fu">occurrences</span>(critter, query<span class="op">...</span>)</span></code></pre></div>
 </div>
+<div class="footer">
+<p>See <span class="citation" data-cites="dansereau2021">Dansereau &amp; Poisot (<a href="#/references" role="doc-biblioref" onclick="">2021</a>)</span> for more about these packages</p>
+</div>
 </section>
 <section id="where-are-we-so-far" class="slide level2">
 <h2>Where are we so far?</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-8-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-8-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-1" class="r-stretch quarto-figure-center"></section>
 <section id="wait" class="slide level2">
 <h2>WAIT!</h2>
 <p>It’s not serious ecology unless we use Phylopic:</p>
@@ -575,23 +548,25 @@ Timothée Poisot
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Downloads</span>.download <span class="op">|&gt;</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    Images.load</span></code></pre></div>
 </div>
-<p><em>Always</em> use the <code>Phylopic.attribution</code> function: Image of <em>Procyon lotor</em> provided by <a href="https://creativecommons.org/publicdomain/zero/1.0/">Margot Michaud</a></p>
+<p>📢 <em>Always</em> use the <code>Phylopic.attribution</code> function!</p>
+<div class="footer">
+<p>Image of <em>Procyon lotor</em> provided by <a href="https://creativecommons.org/publicdomain/zero/1.0/">Margot Michaud</a></p>
+</div>
 </section>
 <section id="where-are-we-so-far-1" class="slide level2">
 <h2>Where are we so far?</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-10-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-10-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-2" class="r-stretch quarto-figure-center"></section>
 <section id="spatial-thinning" class="slide level2">
 <h2>Spatial thinning</h2>
 <p>We limit the occurrences to one per grid cell, assigned to the center of the grid cell</p>
 <div id="make-the-layer-for-presences" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>presence_layer <span class="op">=</span> <span class="fu">mask</span>(land, <span class="fu">mask</span>(temperature, observations, <span class="dt">Bool</span>))</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>presence_layer <span class="op">=</span> <span class="fu">mask</span>(temperature, observations, <span class="dt">Bool</span>)</span></code></pre></div>
 </div>
-<p>Note that this syntax mixes layers (<code>temperature</code>, <code>land</code>) and occurrences (<code>observations</code>) types.</p>
 </section>
 <section id="background-points-generation" class="slide level2">
 <h2>Background points generation</h2>
-<p>We generate background points in a 200km radius around each point <span class="citation" data-cites="barbet-massin2012">[<a href="#/references" role="doc-biblioref" onclick="">4</a>]</span> – but we keep a 20km buffer with no background points:</p>
+<p>We generate background points in a 200km radius around each point – but we keep a 20km buffer with no background points:</p>
 <div id="make-the-pseudo-absence-buffer" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>background <span class="op">=</span> <span class="fu">pseudoabsencemask</span>(WithinRadius, presence_layer; distance <span class="op">=</span> <span class="fl">200.0</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>buffer <span class="op">=</span> <span class="fu">pseudoabsencemask</span>(WithinRadius, presence_layer; distance <span class="op">=</span> <span class="fl">20.0</span>)</span>
@@ -601,8 +576,12 @@ Timothée Poisot
 <div id="make-the-absence-layer" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>absence_layer <span class="op">=</span> SpeciesDistributionToolkit.<span class="fu">sample</span>(</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    possible_background, </span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dt">Int</span>, <span class="fl">0.4</span><span class="fu">*sum</span>(presence_layer))</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dt">Int</span>, <span class="fl">0.4</span><span class="fu">*sum</span>(presence_layer)),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    replace<span class="op">=</span><span class="cn">false</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div class="footer">
+<p>See <span class="citation" data-cites="barbet-massin2012">Barbet-Massin <em>et al.</em> (<a href="#/references" role="doc-biblioref" onclick="">2012</a>)</span> for more on background points</p>
 </div>
 </section>
 <section id="background-points-cleaning" class="slide level2">
@@ -616,7 +595,7 @@ Timothée Poisot
 <section id="data-overview" class="slide level2">
 <h2>Data overview</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-15-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-15-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-3" class="r-stretch quarto-figure-center"></section>
 <section id="preparing-the-responses-and-variables" class="slide level2">
 <h2>Preparing the responses and variables</h2>
 <div id="assemble-y-and-x" class="cell" data-execution_count="16">
@@ -659,8 +638,11 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <p>For <em>validation</em>, we will run k-folds (<span class="math inline">\(k=12\)</span>)</p>
 <div id="k-folds" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ty, tX <span class="op">=</span> y[idx], X[idx,<span class="op">:</span>]</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">12</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">20</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>folds <span class="op">=</span> <span class="fu">kfold</span>(ty, tX; k<span class="op">=</span>k, permute<span class="op">=</span><span class="cn">true</span>)</span></code></pre></div>
+</div>
+<div class="footer">
+<p>See <span class="citation" data-cites="valavi2018">Valavi <em>et al.</em> (<a href="#/references" role="doc-biblioref" onclick="">2018</a>)</span> for more on cross-validation</p>
 </div>
 </section>
 <section id="a-note-on-cross-validation" class="slide level2">
@@ -674,7 +656,7 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <section id="baseline-performance" class="slide level2">
 <h2>Baseline performance</h2>
 <p>We need to get a sense of how hard the problem is:</p>
-<div id="39b197db" class="cell" data-execution_count="20">
+<div id="00a6115f" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>C0 <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, <span class="fu">length</span>(folds))</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i,f) <span class="kw">in</span> <span class="fu">enumerate</span>(folds)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    trn, val <span class="op">=</span> f</span>
@@ -687,10 +669,6 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <section id="measures-on-the-confusion-matrix" class="slide level2">
 <h2>Measures on the confusion matrix</h2>
 <table>
-<colgroup>
-<col style="width: 44%">
-<col style="width: 55%">
-</colgroup>
 <thead>
 <tr class="header">
 <th></th>
@@ -700,38 +678,38 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <tbody>
 <tr class="odd">
 <td>FPR</td>
-<td>0.2</td>
+<td>0.16</td>
 </tr>
 <tr class="even">
 <td>FNR</td>
-<td>0.09</td>
+<td>0.07</td>
 </tr>
 <tr class="odd">
 <td>TPR</td>
-<td>0.91</td>
+<td>0.93</td>
 </tr>
 <tr class="even">
 <td>TNR</td>
-<td>0.8</td>
+<td>0.84</td>
 </tr>
 <tr class="odd">
 <td>MCC</td>
-<td>0.71</td>
+<td>0.76</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="variable-selection" class="slide level2">
 <h2>Variable selection</h2>
-<p>We add variables one at a time, until the Matthew’s Correlation Coefficient stops increasing:</p>
-<div id="7b6a4e37" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>available_variables <span class="op">=</span> <span class="fu">forwardselection</span>(ty, tX, folds, naivebayes, mcc)</span></code></pre></div>
+<p>We add variables one at a time, until the Matthew’s Correlation Coefficient stops increasing – we keep annual temperature, isothermality, mean diurnal range, and annual precipitation</p>
+<div id="c8598e2b" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>available_variables <span class="op">=</span> <span class="fu">constrainedselection</span>(ty, tX, folds, naivebayes, mcc, [<span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">12</span>])</span></code></pre></div>
 </div>
-<p>This method identifies 6 variables, some of which are:</p>
+<p>This method identifies 8 variables, some of which are:</p>
 <ol type="1">
 <li><p>Annual Mean Temperature</p></li>
 <li><p>Mean Diurnal Range (Mean of monthly (max temp - min temp))</p></li>
-<li><p>Mean Temperature of Warmest Quarter</p></li>
+<li><p>Isothermality (BIO2/BIO7) (×100)</p></li>
 </ol>
 </section>
 <section id="discuss---can-we-force-variable-selection" class="slide level2">
@@ -744,7 +722,7 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 </section>
 <section id="model-with-variable-selection" class="slide level2">
 <h2>Model with variable selection</h2>
-<div id="401ea96b" class="cell" data-execution_count="22">
+<div id="ce86b06e" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>C1 <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, <span class="fu">length</span>(folds))</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i,f) <span class="kw">in</span> <span class="fu">enumerate</span>(folds)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    trn, val <span class="op">=</span> f</span>
@@ -756,7 +734,7 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 </section>
 <section id="measures-on-the-confusion-matrix-1" class="slide level2">
 <h2>Measures on the confusion matrix</h2>
-<table>
+<table style="width:100%;">
 <colgroup>
 <col style="width: 28%">
 <col style="width: 35%">
@@ -772,28 +750,28 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <tbody>
 <tr class="odd">
 <td>FPR</td>
-<td>0.2</td>
-<td>0.19</td>
+<td>0.16</td>
+<td>0.16</td>
 </tr>
 <tr class="even">
 <td>FNR</td>
-<td>0.09</td>
-<td>0.06</td>
+<td>0.07</td>
+<td>0.05</td>
 </tr>
 <tr class="odd">
 <td>TPR</td>
-<td>0.91</td>
-<td>0.94</td>
+<td>0.93</td>
+<td>0.95</td>
 </tr>
 <tr class="even">
 <td>TNR</td>
-<td>0.8</td>
-<td>0.81</td>
+<td>0.84</td>
+<td>0.84</td>
 </tr>
 <tr class="odd">
 <td>MCC</td>
-<td>0.71</td>
 <td>0.76</td>
+<td>0.81</td>
 </tr>
 </tbody>
 </table>
@@ -806,7 +784,7 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 </section>
 <section id="thresholding-the-model" class="slide level2">
 <h2>Thresholding the model</h2>
-<div id="976883ae" class="cell" data-execution_count="23">
+<div id="2d351c48" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ty, tX <span class="op">=</span> y[idx], X[idx,available_variables]</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>thr <span class="op">=</span> <span class="fu">LinRange</span>(<span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="fl">350</span>)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>C <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, (k, <span class="fu">length</span>(thr)))</span>
@@ -823,10 +801,10 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <section id="but-how-do-we-pick-the-threshold" class="slide level2">
 <h2>But how do we pick the threshold?</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-25-output-1.svg" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-25-output-1.svg" id="fig-539a35d47e664c97a50115a146a7f1bd-4" class="r-stretch quarto-figure-center"></section>
 <section id="tuned-model-with-selected-variables" class="slide level2">
 <h2>Tuned model with selected variables</h2>
-<div id="490f12e3" class="cell" data-execution_count="25">
+<div id="c7d210c2" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>C2 <span class="op">=</span> <span class="fu">zeros</span>(ConfusionMatrix, <span class="fu">length</span>(folds))</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i,f) <span class="kw">in</span> <span class="fu">enumerate</span>(folds)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    trn, val <span class="op">=</span> f</span>
@@ -840,10 +818,10 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <h2>Measures on the confusion matrix</h2>
 <table>
 <colgroup>
-<col style="width: 21%">
-<col style="width: 26%">
-<col style="width: 26%">
-<col style="width: 26%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -856,33 +834,33 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <tbody>
 <tr class="odd">
 <td>FPR</td>
-<td>0.2</td>
-<td>0.19</td>
-<td>0.21</td>
+<td>0.16</td>
+<td>0.16</td>
+<td>0.18</td>
 </tr>
 <tr class="even">
 <td>FNR</td>
-<td>0.09</td>
-<td>0.06</td>
-<td>0.04</td>
+<td>0.07</td>
+<td>0.05</td>
+<td>0.03</td>
 </tr>
 <tr class="odd">
 <td>TPR</td>
-<td>0.91</td>
-<td>0.94</td>
-<td>0.96</td>
+<td>0.93</td>
+<td>0.95</td>
+<td>0.97</td>
 </tr>
 <tr class="even">
 <td>TNR</td>
-<td>0.8</td>
-<td>0.81</td>
-<td>0.79</td>
+<td>0.84</td>
+<td>0.84</td>
+<td>0.82</td>
 </tr>
 <tr class="odd">
 <td>MCC</td>
-<td>0.71</td>
 <td>0.76</td>
-<td>0.77</td>
+<td>0.81</td>
+<td>0.82</td>
 </tr>
 </tbody>
 </table>
@@ -890,7 +868,7 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <section id="tuned-model-performance" class="slide level2">
 <h2>Tuned model performance</h2>
 <p>We can retrain over <em>all</em> the training data</p>
-<div id="7b5f7068" class="cell" data-execution_count="26">
+<div id="3de50e04" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>finalmodel <span class="op">=</span> <span class="fu">naivebayes</span>(ty, tX)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">vec</span>(<span class="fu">mapslices</span>(finalmodel, X[tidx,available_variables]; dims<span class="op">=</span><span class="fl">2</span>))</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>Cf <span class="op">=</span> <span class="fu">ConfusionMatrix</span>(prediction, y[tidx], thr[m])</span></code></pre></div>
@@ -899,10 +877,6 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <section id="estimated-performance" class="slide level2">
 <h2>Estimated performance</h2>
 <table>
-<colgroup>
-<col style="width: 44%">
-<col style="width: 55%">
-</colgroup>
 <thead>
 <tr class="header">
 <th></th>
@@ -912,23 +886,23 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <tbody>
 <tr class="odd">
 <td>FPR</td>
-<td>0.19</td>
+<td>0.18</td>
 </tr>
 <tr class="even">
 <td>FNR</td>
-<td>0.04</td>
+<td>0.02</td>
 </tr>
 <tr class="odd">
 <td>TPR</td>
-<td>0.96</td>
+<td>0.98</td>
 </tr>
 <tr class="even">
 <td>TNR</td>
-<td>0.81</td>
+<td>0.82</td>
 </tr>
 <tr class="odd">
 <td>MCC</td>
-<td>0.79</td>
+<td>0.84</td>
 </tr>
 </tbody>
 </table>
@@ -942,34 +916,46 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 </section>
 <section id="prediction-for-each-pixel" class="slide level2">
 <h2>Prediction for each pixel</h2>
-<div id="9cfe9bd2" class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>predictors <span class="op">=</span> [SpeciesDistributionToolkit.<span class="fu">_read_geotiff</span>(<span class="st">"artifacts/layers.tiff"</span>, SimpleSDMResponse; bandnumber<span class="op">=</span>i) for i <span class="kw">in</span> <span class="fu">axes</span>(X, <span class="fl">2</span>)]</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">similar</span>(<span class="fu">first</span>(predictors))</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(prediction)</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    prediction[k] <span class="op">=</span> <span class="fu">finalmodel</span>([p[k] for p <span class="kw">in</span> predictors[available_variables]])</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="fu">isnan</span>(prediction[k])</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>        prediction[k] <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div>
+<div id="a6868a86" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">similar</span>(<span class="fu">first</span>(predictors))</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(prediction)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    prediction[k] <span class="op">=</span> <span class="fu">finalmodel</span>([p[k] for p <span class="kw">in</span> predictors[available_variables]])</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="fu">isnan</span>(prediction[k])</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        prediction[k] <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div>
 </div>
 </section>
 <section id="tuned-model---predictions" class="slide level2">
 <h2>Tuned model - predictions</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-29-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-30-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-5" class="r-stretch quarto-figure-center"></section>
 <section id="tuned-model---uncertainty" class="slide level2">
 <h2>Tuned model - uncertainty</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-30-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-31-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-6" class="r-stretch quarto-figure-center"><div class="footer">
+<p>IQR for the models trained on each fold</p>
+</div>
+</section>
+<section id="tuned-model---entropy" class="slide level2">
+<h2>Tuned model - entropy</h2>
+
+<img data-src="slides_files/figure-revealjs/cell-32-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-7" class="r-stretch quarto-figure-center"><div class="footer">
+<p>Entropy (in bits) of the NBC probability</p>
+</div>
+</section>
 <section id="tuned-model---range" class="slide level2">
 <h2>Tuned model - range</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-31-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-33-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-8" class="r-stretch quarto-figure-center"><div class="footer">
+<p>Probability &gt; 0.172</p>
+</div>
+</section>
 <section id="predicting-the-predictions" class="slide level2">
 <h2>Predicting the predictions?</h2>
 <p>Shapley values (Monte-Carlo approximation): if we mix the variables across two observations, how important is the <span class="math inline">\(i\)</span>-th variable?</p>
 <p>Expresses “importance” as an additive factor on top of the <em>average</em> prediction (here: average prob. of occurrence)</p>
-<div id="9b303f01" class="cell" data-execution_count="31">
+<div id="c11ddea5" class="cell" data-execution_count="33">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>shapval <span class="op">=</span> [<span class="fu">similar</span>(<span class="fu">first</span>(predictors)) for i <span class="kw">in</span> <span class="fu">eachindex</span>(available_variables)]</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(shapval[<span class="fl">1</span>])</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> [p[k] for p <span class="kw">in</span> predictors[available_variables]]</span>
@@ -982,9 +968,9 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div>
 </div>
 </section>
-<section id="sort-the-available-variables-by-importance" class="slide level2">
-<h2>Sort the available variables by importance</h2>
-<div id="51e90649" class="cell" data-execution_count="32">
+<section id="importance-of-variables" class="slide level2">
+<h2>Importance of variables</h2>
+<div id="e6005056" class="cell" data-execution_count="34">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>varimp <span class="op">=</span> <span class="fu">sum</span>.(<span class="fu">map</span>(abs, shapval))</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>varimp <span class="op">./=</span> <span class="fu">sum</span>(varimp)</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> v <span class="kw">in</span> <span class="fu">sortperm</span>(varimp, rev<span class="op">=</span><span class="cn">true</span>)</span>
@@ -993,24 +979,26 @@ P(+|x) = \frac{P(+)}{P(x)}P(x|+)
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">println</span>(<span class="st">"</span><span class="sc">$</span>(vname)<span class="st"> - </span><span class="sc">$</span>(vctr)<span class="st">%"</span>)</span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Annual Mean Temperature - 39%
-Mean Temperature of Warmest Quarter - 38%
-Precipitation Seasonality (Coefficient of Variation) - 16%
-Precipitation of Driest Quarter - 4%
-Mean Diurnal Range (Mean of monthly (max temp - min temp)) - 2%
+<pre><code>Annual Mean Temperature - 35%
+Mean Temperature of Warmest Quarter - 32%
+Precipitation Seasonality (Coefficient of Variation) - 20%
+Precipitation of Driest Quarter - 3%
+Isothermality (BIO2/BIO7) (×100) - 3%
+Mean Diurnal Range (Mean of monthly (max temp - min temp)) - 3%
+Precipitation of Coldest Quarter - 3%
 Annual Precipitation - 1%</code></pre>
 </div>
 </div>
 <p>There is a difference between <strong>contributing to model performance</strong> and <strong>contributing to model explainability</strong></p>
 </section>
-<section id="mapping-the-top-three-variables" class="slide level2">
-<h2>Mapping the top three variables</h2>
+<section id="top-three-variables" class="slide level2">
+<h2>Top three variables</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-34-output-1.png" class="r-stretch"></section>
-<section id="mapping-the-most-determinant-predictor" class="slide level2">
-<h2>Mapping the most determinant predictor</h2>
+<img data-src="slides_files/figure-revealjs/cell-36-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-9" class="r-stretch quarto-figure-center"></section>
+<section id="most-determinant-predictor" class="slide level2">
+<h2>Most determinant predictor</h2>
 
-<img data-src="slides_files/figure-revealjs/cell-35-output-1.png" class="r-stretch"></section>
+<img data-src="slides_files/figure-revealjs/cell-37-output-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-10" class="r-stretch quarto-figure-center"></section>
 <section id="take-home" class="slide level2">
 <h2>Take-home</h2>
 <ul>
@@ -1023,21 +1011,27 @@ Annual Precipitation - 1%</code></pre>
 <section id="references" class="slide level2 smaller scrollable">
 <h2>References</h2>
 
-<img src="assets/geobon.png" class="slide-logo r-stretch"><div class="footer footer-default">
+<img src="assets/poisotlab.png" class="slide-logo r-stretch"><div class="footer footer-default">
 <p>CC BY 4.0 - Timothée Poisot</p>
 </div>
-<div id="refs" class="references csl-bib-body" role="list">
-<div id="ref-fick2017" class="csl-entry" role="listitem">
-<div class="csl-left-margin">1. </div><div class="csl-right-inline">Fick, S.E. and Hijmans, R.J. (2017) <a href="https://doi.org/10.1002/joc.5086">WorldClim 2: new 1<span>-</span>km spatial resolution climate surfaces for global land areas</a>. <em>International Journal of Climatology</em> 37, 4302–4315</div>
-</div>
-<div id="ref-tuanmu2014" class="csl-entry" role="listitem">
-<div class="csl-left-margin">2. </div><div class="csl-right-inline">Tuanmu, M.-N. and Jetz, W. (2014) <a href="https://doi.org/10.1111/geb.12182">A global 1<span>-</span>km consensus land<span>-</span>cover product for biodiversity and ecosystem modelling</a>. <em>Global Ecology and Biogeography</em> 23, 1031–1045</div>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-barbet-massin2012" class="csl-entry" role="listitem">
+Barbet-Massin, M., Jiguet, F., Albert, C.H. &amp; Thuiller, W. (2012). <a href="https://doi.org/10.1111/j.2041-210x.2011.00172.x">Selecting pseudo-absences for species distribution models: how, where and how many?</a> <em>Methods in Ecology and Evolution</em>, 3, 327–338.
 </div>
 <div id="ref-dansereau2021" class="csl-entry" role="listitem">
-<div class="csl-left-margin">3. </div><div class="csl-right-inline">Dansereau, G. and Poisot, T. (2021) <a href="https://doi.org/10.21105/joss.02872">SimpleSDMLayers.jl and GBIF.jl: A framework for species distribution modeling in julia</a>. <em>Journal of Open Source Software</em> 6, 2872</div>
+Dansereau, G. &amp; Poisot, T. (2021). <a href="https://doi.org/10.21105/joss.02872">SimpleSDMLayers.jl and GBIF.jl: A framework for species distribution modeling in julia</a>. <em>Journal of Open Source Software</em>, 6, 2872.
 </div>
-<div id="ref-barbet-massin2012" class="csl-entry" role="listitem">
-<div class="csl-left-margin">4. </div><div class="csl-right-inline">Barbet-Massin, M. <em>et al.</em> (2012) <a href="https://doi.org/10.1111/j.2041-210x.2011.00172.x">Selecting pseudo-absences for species distribution models: how, where and how many?</a> <em>Methods in Ecology and Evolution</em> 3, 327–338</div>
+<div id="ref-fick2017" class="csl-entry" role="listitem">
+Fick, S.E. &amp; Hijmans, R.J. (2017). <a href="https://doi.org/10.1002/joc.5086">WorldClim 2: new 1<span>-</span>km spatial resolution climate surfaces for global land areas</a>. <em>International Journal of Climatology</em>, 37, 4302–4315.
+</div>
+<div id="ref-karger2020" class="csl-entry" role="listitem">
+Karger, D.N., Schmatz, D.R., Dettling, G. &amp; Zimmermann, N.E. (2020). <a href="https://doi.org/10.1038/s41597-020-00587-y">High-resolution monthly precipitation and temperature time series from 2006 to 2100</a>. <em>Scientific Data</em>, 7.
+</div>
+<div id="ref-tuanmu2014" class="csl-entry" role="listitem">
+Tuanmu, M.-N. &amp; Jetz, W. (2014). <a href="https://doi.org/10.1111/geb.12182">A global 1<span>-</span>km consensus land<span>-</span>cover product for biodiversity and ecosystem modelling</a>. <em>Global Ecology and Biogeography</em>, 23, 1031–1045.
+</div>
+<div id="ref-valavi2018" class="csl-entry" role="listitem">
+Valavi, R., Elith, J., Lahoz-Monfort, J.J. &amp; Guillera-Arroita, G. (2018). <a href="https://doi.org/10.1111/2041-210x.13107">blockCV: An r package for generating spatially or environmentally separated folds for <span><em>k</em></span><span>-</span>fold cross<span>-</span>validation of species distribution models</a>. <em>Methods in Ecology and Evolution</em>, 10, 225–232.
 </div>
 </div>
 </section>

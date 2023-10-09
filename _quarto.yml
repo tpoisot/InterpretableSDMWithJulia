@@ -7,11 +7,14 @@ project:
 toc: false
 number-sections: false
 
+execute: 
+  freeze: true
+
 format:
     revealjs:
         slide-number: true
-        logo: assets/geobon.png
-        theme: white
+        logo: assets/poisotlab.png
+        theme: assets/theme.scss
         code-line-numbers: false
         code-copy: false
         footer: "CC BY 4.0 - Timothée Poisot"

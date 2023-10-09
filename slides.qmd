@@ -1,15 +1,15 @@
 ---
-title: "Interpretable Machine Learning"
-subtitle: "Answers that make sense, right out of the (black) box?"
+title: "Building an interpretable SDM from sratch"
+subtitle: "With Julia 1.9"
 author:
     name: "Timothée Poisot"
     email: timothee.poisot@umontreal.ca
 institute: "Université de Montréal"
 title-slide-attributes: 
-  data-background-image: https://cdn.pixabay.com/photo/2018/07/14/17/07/raccoon-3537985_1280.jpg
+  data-background-image: https://cdn.pixabay.com/photo/2018/07/10/22/09/raccoon-3529806_960_720.jpg
   data-background-opacity: "0.25"
 bibliography: references.bib
-csl: https://www.zotero.org/styles/trends-in-ecology-and-evolution
+csl: https://www.zotero.org/styles/ecology-letters
 ---
 
 ## Overview
@@ -19,12 +19,6 @@ csl: https://www.zotero.org/styles/trends-in-ecology-and-evolution
 -   Use this as an opportunity to talk about interpretable ML
 
 -   Discuss which biases are appropriate in a predictive model
-
-    ::: notes
-    Emphasize: importance of talking about the model more than getting the model right
-
-    We will look at SDM as a ML problem, then look at the ML problem as an ecological one
-    :::
 
 ------------------------------------------------------------------------
 
@@ -42,7 +36,7 @@ and only a little about the
 
 ## Raccoons!
 
-- Relatable (bag under eyes, love naps, out of shape, will fight over garbage)
+-   Relatable (bag under eyes, love naps, out of shape, will fight over garbage)
 
 -   High volume of data
 
@@ -52,7 +46,7 @@ and only a little about the
 
 ## Do try this at home!
 
-💻 + 📔 + 🗺️ at `https://github.com/tpoisot/GEOBON2023-Julia-Workshop`
+💻 + 📔 + 🗺️ at `https://github.com/tpoisot/InterpretableSDMWithJulia/`
 
 ```{julia}
 #| label: Include the packages we need
@@ -66,10 +60,6 @@ include(joinpath("code", "variableselection.jl")); # Variable selection
 include(joinpath("code", "shapley.jl")); # Shapley values
 ```
 
-::: notes
-**hand made**, this is not recommended (use MLJ instead), but useful to get to see how the language can be used for various tasks
-:::
-
 ## To train a model, we need...
 
 A response variable $y$
@@ -82,11 +72,7 @@ A series of predictors $\mathbf{x}$
 
 A series of predictions $\hat y$
 
-: which we will compare to the values of $y$
-
-::: notes
-Note that the process of making assumptions has *already* started here (we pick a set of variables we think are important)
-:::
+:   which we will compare to the values of $y$
 
 ## Bioclimatic data
 
@@ -97,29 +83,39 @@ We collect data from WorldClim2 @fick2017, using `SpeciesDistributionToolkit`
 #| eval: true
 #| echo: true
 #| output: false
-provider = RasterData(WorldClim2, BioClim)
-opts = (resolution=2.5, )
-boundingbox = (bottom=41.0, right=-59.5, left=-80.00, top=52.0)
-temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
+provider = RasterData(CHELSA1, BioClim)
+opts = (;)
+boundingbox = (bottom=41.0, right=-58.501, left=-80.00, top=51.999)
+simplifier = (x) -> coarsen(x, mean, (5, 5)) # Bring the data to 2.5 arc-min resolution
+temperature = simplifier(SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...))
 ```
 
-Then we use landcover data @tuanmu2014 to remove the great lakes:
+::: footer
+BioClim data from @karger2020
+:::
+
+## Bioclimatic data
+
+We set the pixels with only open water to `nothing`
 
 ```{julia}
-#| label: Download and rescale the water data from EarthEnv
+#| label: Get the open water pixels
 #| eval: true
-#| echo: true
 #| output: false
-water = SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; boundingbox...)
-land = replace(
-    coarsen(water, minimum, (5, 5)).<100,
-    false => nothing
-)
+#| echo: true
+water = simplifier(
+    SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; opts..., boundingbox...)
+) .< 100
+temperature = mask(water, temperature)
 ```
+
+::: footer
+Land-cover data from @tuanmu2014
+:::
 
 ## Species occurrence filtering
 
-We use the [GBIF] API through the `GBIF` package for *Julia* @dansereau2021 to get data about *Procyon lotor*
+We use the [GBIF] API through the `GBIF` package to get data about *Procyon lotor*
 
   [GBIF]: http://gbif.org
 
@@ -153,10 +149,14 @@ observations = occurrences(critter, query...)
 #| echo: false
 #| eval: true
 #| output: false
-for _ in 1:30
+for _ in 1:50
     occurrences!(observations)
 end
 ```
+
+::: footer
+See @dansereau2021 for more about these packages
+:::
 
 ## Where are we so far?
 
@@ -164,7 +164,7 @@ end
 #| echo: false
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, mask(land, temperature), colormap=:dense)
+hm = heatmap!(ax, temperature, colormap=:dense)
 Colorbar(fig[1,2], hm; tellheight=false)
 scatter!(ax, observations; color=:black, marker=:cross, markersize=5)
 current_figure()
@@ -185,7 +185,11 @@ silhouette = phylopic_uuid |>
     Images.load
 ```
 
-*Always* use the `Phylopic.attribution` function: `{julia} Phylopic.attribution(phylopic_uuid)`
+📢 *Always* use the `Phylopic.attribution` function!
+
+::: footer
+`{julia} Phylopic.attribution(phylopic_uuid)`
+:::
 
 ## Where are we so far?
 
@@ -206,14 +210,12 @@ We limit the occurrences to one per grid cell, assigned to the center of the gri
 #| echo: true
 #| eval: true
 #| output: false
-presence_layer = mask(land, mask(temperature, observations, Bool))
+presence_layer = mask(temperature, observations, Bool)
 ```
-
-Note that this syntax mixes layers (`temperature`, `land`) and occurrences (`observations`) types.
 
 ## Background points generation
 
-We generate background points in a 200km radius around each point @barbet-massin2012 -- but we keep a 20km buffer with no background points:
+We generate background points in a 200km radius around each point -- but we keep a 20km buffer with no background points:
 
 ```{julia}
 #| label: Make the pseudo-absence buffer
@@ -234,9 +236,14 @@ And then we sample 4 background points out of every 10 occurrences:
 #| output: false
 absence_layer = SpeciesDistributionToolkit.sample(
     possible_background, 
-    round(Int, 0.4*sum(presence_layer))
+    round(Int, 0.4*sum(presence_layer)),
+    replace=false
 )
 ```
+
+::: footer
+See @barbet-massin2012 for more on background points
+:::
 
 ## Background points cleaning
 
@@ -263,7 +270,11 @@ current_figure()
 #| echo: false
 #| output: false
 #| eval: true
-bioclim_clipped = [mask(land, SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...)) for l in layers(provider)]
+bioclim_clipped = [
+    mask(
+        water,
+        simplifier(SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...))
+    ) for l in layers(provider)]
 SpeciesDistributionToolkit._write_geotiff("artifacts/layers.tiff", bioclim_clipped)
 ```
 
@@ -301,13 +312,13 @@ Prediction:
 
 $$
 P(+|x) = \frac{P(+)}{P(x)}P(x|+)
-$$ 
+$$
 
 Decision rule:
 
 $$
 \hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)
-$$ 
+$$
 
 ## Cross-validation
 
@@ -327,17 +338,21 @@ For *validation*, we will run k-folds ($k=12$)
 #| echo: true
 #| output: false
 ty, tX = y[idx], X[idx,:]
-k = 12
+k = 20
 folds = kfold(ty, tX; k=k, permute=true)
 ```
 
+::: footer
+See @valavi2018 for more on cross-validation
+:::
+
 ## A note on cross-validation
 
-- All models share the same folds (we can compare the validation performance across experiments)
+-   All models share the same folds (we can compare the validation performance across experiments)
 
-- Testing set is *only* for future evaluation (we will use it once and report the expected performance)
+-   Testing set is *only* for future evaluation (we will use it once and report the expected performance)
 
-- Comparison of model performance: average over validation folds
+-   Comparison of model performance: average over validation folds
 
 ## Baseline performance
 
@@ -357,22 +372,22 @@ end
 
 ## Measures on the confusion matrix
 
-|                                   | Initial                             |
-|-----------------------------------|-------------------------------------------|
-| FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` |
-| FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` |
-| TPR           | `{julia} round(mean(tpr.(C0)); digits=2)` |
-| TNR           | `{julia} round(mean(tnr.(C0)); digits=2)` |
+|     | Initial                                   |
+|-----|-------------------------------------------|
+| FPR | `{julia} round(mean(fpr.(C0)); digits=2)` |
+| FNR | `{julia} round(mean(fnr.(C0)); digits=2)` |
+| TPR | `{julia} round(mean(tpr.(C0)); digits=2)` |
+| TNR | `{julia} round(mean(tnr.(C0)); digits=2)` |
 | MCC | `{julia} round(mean(mcc.(C0)); digits=2)` |
 
 ## Variable selection
 
-We add variables one at a time, until the Matthew's Correlation Coefficient stops increasing:
+We add variables one at a time, until the Matthew's Correlation Coefficient stops increasing -- we keep annual temperature, isothermality, mean diurnal range, and annual precipitation
 
 ```{julia}
 #| echo: true
 #| output: false
-available_variables = forwardselection(ty, tX, folds, naivebayes, mcc)
+available_variables = constrainedselection(ty, tX, folds, naivebayes, mcc, [1, 2, 3, 12])
 ```
 
 This method identifies `{julia} length(available_variables)` variables, some of which are:
@@ -385,11 +400,11 @@ This method identifies `{julia} length(available_variables)` variables, some of 
 
 ## Discuss - can we force variable selection?
 
-- constrained variable selection
+-   constrained variable selection
 
-- VIF + variable selection
+-   VIF + variable selection
 
-- PCA?
+-   PCA?
 
 ## Model with variable selection
 
@@ -407,12 +422,12 @@ end
 
 ## Measures on the confusion matrix
 
-|                                   | Initial                             | Var. sel.                             |
-|-----------------------------------|-------------------------------------------|-------------------------------------------|
-| FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` |
-| FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` |
-| TPR           | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` |
-| TNR           | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` |
+|     | Initial                                   | Var. sel.                                 |
+|---------------------|--------------------------|--------------------------|
+| FPR | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` |
+| FNR | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` |
+| TPR | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` |
+| TNR | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` |
 | MCC | `{julia} round(mean(mcc.(C0)); digits=2)` | `{julia} round(mean(mcc.(C1)); digits=2)` |
 
 ## How do we make the model better?
@@ -491,12 +506,12 @@ end
 
 ## Measures on the confusion matrix
 
-|                                   | Initial                             | Var. sel.                             | Tuned                            |
-|-----------------------------------|-------------------------------------------|-------------------------------------------|-------------------------------------------|
-| FPR              | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` | `{julia} round(mean(fpr.(C2)); digits=2)` |
-| FNR             | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` | `{julia} round(mean(fnr.(C2)); digits=2)` |
-| TPR           | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` | `{julia} round(mean(tpr.(C2)); digits=2)` |
-| TNR           | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` | `{julia} round(mean(tnr.(C2)); digits=2)` |
+|     | Initial                                   | Var. sel.                                 | Tuned                                     |
+|------------------|------------------|------------------|------------------|
+| FPR | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` | `{julia} round(mean(fpr.(C2)); digits=2)` |
+| FNR | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` | `{julia} round(mean(fnr.(C2)); digits=2)` |
+| TPR | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` | `{julia} round(mean(tpr.(C2)); digits=2)` |
+| TNR | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` | `{julia} round(mean(tnr.(C2)); digits=2)` |
 | MCC | `{julia} round(mean(mcc.(C0)); digits=2)` | `{julia} round(mean(mcc.(C1)); digits=2)` | `{julia} round(mean(mcc.(C2)); digits=2)` |
 
 ## Tuned model performance
@@ -513,27 +528,41 @@ Cf = ConfusionMatrix(prediction, y[tidx], thr[m])
 
 ## Estimated performance
 
-
-|                                   | Final model                             |
-|-----------------------------------|-------------------------------------------|
-| FPR              | `{julia} round(fpr(Cf); digits=2)` |
-| FNR             | `{julia} round(fnr(Cf); digits=2)` |
-| TPR           | `{julia} round(tpr(Cf); digits=2)` |
-| TNR           | `{julia} round(tnr(Cf); digits=2)` |
+|     | Final model                        |
+|-----|------------------------------------|
+| FPR | `{julia} round(fpr(Cf); digits=2)` |
+| FNR | `{julia} round(fnr(Cf); digits=2)` |
+| TPR | `{julia} round(tpr(Cf); digits=2)` |
+| TNR | `{julia} round(tnr(Cf); digits=2)` |
 | MCC | `{julia} round(mcc(Cf); digits=2)` |
 
 ## Acceptable bias
 
-- false positives: we expect that our knowledge of the distribution is incomplete!
+-   false positives: we expect that our knowledge of the distribution is incomplete!
 
-- false negatives: we used a heuristic for background points!
+-   false negatives: we used a heuristic for background points!
 
 ## Prediction for each pixel
 
 ```{julia}
-#| echo: true
+#| echo: false
+#| eval: true
 #| output: false
 predictors = [SpeciesDistributionToolkit._read_geotiff("artifacts/layers.tiff", SimpleSDMResponse; bandnumber=i) for i in axes(X, 2)]
+function iqr(x)
+    return first(diff(quantile(x, [0.25, 0.75])))
+end
+foldmodels = [naivebayes(ty[f[1]], tX[f[1],:]) for f in folds]
+variability = similar(first(predictors))
+Threads.@threads for k in keys(variability)
+    bootstraps = [foldmodel([p[k] for p in predictors[available_variables]]) for foldmodel in foldmodels]
+    variability[k] = iqr(bootstraps)
+end
+```
+
+```{julia}
+#| echo: true
+#| output: false
 prediction = similar(first(predictors))
 Threads.@threads for k in keys(prediction)
     prediction[k] = finalmodel([p[k] for p in predictors[available_variables]])
@@ -551,11 +580,29 @@ end
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, prediction, colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
+heatmap!(ax, presence_layer; colormap=[:black,:black])
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
 
 ## Tuned model - uncertainty
+
+```{julia}
+#| echo: false
+#| output: true
+fig = Figure(; resolution=(900, 500))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, variability, colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=extrema(variability))
+heatmap!(ax, presence_layer; colormap=[:black,:black])
+Colorbar(fig[1,2], hm; tellheight=false)
+current_figure()
+```
+
+::: footer
+IQR for the models trained on each fold
+:::
+
+## Tuned model - entropy
 
 ```{julia}
 #| echo: false
@@ -568,9 +615,14 @@ end
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, entropy.(prediction), colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
+heatmap!(ax, presence_layer; colormap=[:black,:black])
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
+
+::: footer
+Entropy (in bits) of the NBC probability
+:::
 
 ## Tuned model - range
 
@@ -580,11 +632,15 @@ current_figure()
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(prediction .>= thr[m]; colormap = cgrad([:lightgrey, :black]; alpha = 0.3))
-scatter!(ax, observations; color=:black, marker=:cross, markersize=5)
+heatmap!(ax, presence_layer; colormap=[:black,:black])
 scatter!(ax, [-76], [48.9]; marker = silhouette, markersize = silhouette_size, color=:white)
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
+
+::: footer
+Probability > `{julia} round(thr[m]; digits=3)`
+:::
 
 ## Predicting the predictions?
 
@@ -607,7 +663,7 @@ Threads.@threads for k in keys(shapval[1])
 end
 ```
 
-## Sort the available variables by importance
+## Importance of variables
 
 ```{julia}
 #| echo: true
@@ -622,7 +678,7 @@ end
 
 There is a difference between **contributing to model performance** and **contributing to model explainability**
 
-## Mapping the top three variables
+## Top three variables
 
 ```{julia}
 #| echo: false
@@ -648,7 +704,7 @@ end
 current_figure()
 ```
 
-## Mapping the most determinant predictor
+## Most determinant predictor
 
 ```{julia}
 cmap = Symbol("Set2_$(length(available_variables))")
@@ -661,12 +717,12 @@ current_figure()
 
 ## Take-home
 
-- building a model is *incremental*
+-   building a model is *incremental*
 
-- each step adds arbitrary decisions we can control for, justify, or live with
+-   each step adds arbitrary decisions we can control for, justify, or live with
 
-- we can provide explanations for every single prediction
+-   we can provide explanations for every single prediction
 
-- free online textbook (in development) at `https://tpoisot.github.io/DataSciForBiodivSci/`
+-   free online textbook (in development) at `https://tpoisot.github.io/DataSciForBiodivSci/`
 
 ## References
