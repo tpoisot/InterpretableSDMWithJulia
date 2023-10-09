@@ -12,9 +12,16 @@ using Statistics
 using CairoMakie
 set_theme!()
 update_theme!(
-    backgroundcolor=:transparent, 
-    Figure = (; backgroundcolor=:transparent),
-    CairoMakie = (; px_per_unit = 2),
+    backgroundcolor=:transparent,
+    fontsize=30,
+    Figure=(; backgroundcolor=:transparent),
+    Axis=(
+        leftspinevisible=false,
+        rightspinevisible=false,
+        bottomspinevisible=false,
+        topspinevisible=false
+    ),
+    CairoMakie=(; px_per_unit=2),
 )
 
 using SpeciesDistributionToolkit
