@@ -1,17 +1,28 @@
 /*-- scss:defaults --*/
 
+// Lab colors
+$lab-green-dark: rgba(17, 79, 84, 1);
+$lab-green-light: rgba(29, 130, 101, 1);
+$lab-blue: rgba(46, 83, 133, 1);
+$grey-medium: rgba(211, 208, 203, 1);
+$grey-light: rgba(231, 229, 223, 1);
+
+// Colors
+$link-color: $lab-green-light;
+$body-bg: $grey-light;
+$code-block-bg: lighten($grey-light, 10%);
+$code-block-border-color: $grey-medium;
+$color-color: $lab-blue;
+$presentation-heading-color: $lab-green-dark;
+
+// Layout
+$presentation-block-margin: 20px;
+
 // Fonts (use the Noto family)
 $presentation-heading-font: "Noto Sans Display", "Noto Sans", sans-serif;
 $font-family-monospace: "Noto Sans Mono", monospace;
 $font-family-sans-serif: "Noto Sans", sans-serif;
 
 // Headings
-$presentation-heading-text-transform: capitalize;
+// $presentation-heading-text-transform: capitalize;
 $presentation-heading-font-weight: 100;
-$presentation-heading-color: #405060;
-
-/*-- scss:mixins --*/
-@mixin bodyBackground() {
-    @include radial-gradient(rgba(247, 242, 211, 1), rgba(255, 255, 255, 1));
-    @include horizontal-gradient(#ebf0ec, #f9f9fd);
-}
