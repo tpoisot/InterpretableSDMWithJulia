@@ -1,6 +1,6 @@
 ---
-title: "Building an interpretable SDM from sratch"
-subtitle: "With Julia 1.9"
+title: "Building an interpretable SDM from scratch"
+subtitle: "using Julia 1.9"
 author:
     name: "Timothée Poisot"
     email: timothee.poisot@umontreal.ca
@@ -48,7 +48,9 @@ and only a little about the
 
 -   Where can we find them in/around Québec?
 
+::: footer
 See also @higino2021 for more quality 🦝 content
+:::
 
 ## Do try this at home!
 
@@ -308,7 +310,7 @@ absences = Tuple.(keys(absence_layer))
 variables = [(bc, bcdes[bc]) for bc in bclay]
 ```
 
-## The model - Naive Bayes Classifier
+## The model -- Naive Bayes Classifier
 
 Prediction:
 
