@@ -711,7 +711,7 @@ There is a difference between **contributing to model performance** and **contri
 ```{julia}
 #| echo: false
 #| output: true
-fig = Figure(; resolution=(900, 900))
+fig = Figure(; resolution=(1500, 900))
 
 totalvar = sum(map(abs, shapval))
 
@@ -726,8 +726,8 @@ for i in sortperm(varimp; rev=true)[1:3]
     hideydecorations!(ax_mp)
 
     ax_pp = Axis(gl[fpos,2]) # Relative contribution
-    scl = maximum(abs.(extrema(shapval[i]))).*(-1,1)
-    heatmap!(ax_pp, abs(shapval[i])/totalvar, colorrange=scl, colormap=Reverse(:linear_gow_65_90_c35_n256), aspect=DataAspect())
+    relcon = abs(shapval[i])/totalvar
+    heatmap!(ax_pp, relcon, colorrange=extrema(relcon), colormap=Reverse(:linear_gow_65_90_c35_n256), aspect=DataAspect())
     hidexdecorations!(ax_pp)
     hideydecorations!(ax_pp)
 
@@ -745,10 +745,11 @@ current_figure()
 ```{julia}
 shapmax = mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)]))
 for k in keys(shapmax)
-if shapmax[k] > 3
-    shapmax[k] = 4
+    if shapmax[k] > 3
+        shapmax[k] = 4
+    end
 end
-pal = cgrad([:indigo, :cyan, :teal, :lighthgrey], length(available_variables), categorical=true)
+pal = cgrad([colorant"#ddaa33", colorant"#bb5566", colorant"#004488", colorant"#000000"], 4, categorical=true)
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, shapmax, colormap=pal)
