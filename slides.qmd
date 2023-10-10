@@ -711,19 +711,27 @@ There is a difference between **contributing to model performance** and **contri
 ```{julia}
 #| echo: false
 #| output: true
-fig = Figure(; resolution=(900, 800))
+fig = Figure(; resolution=(900, 900))
+
+totalvar = sum(map(abs, shapval))
 
 gl = fig[1,1] = GridLayout()
 
 fpos = 1
 for i in sortperm(varimp; rev=true)[1:3]
-    ax_mp = Axis(gl[fpos,1])
+    ax_mp = Axis(gl[fpos,1]) # Absolute contribution
     scl = maximum(abs.(extrema(shapval[i]))).*(-1,1)
     heatmap!(ax_mp, shapval[i], colorrange=scl, colormap=Reverse(:diverging_bwr_20_95_c54_n256), aspect=DataAspect())
     hidexdecorations!(ax_mp)
     hideydecorations!(ax_mp)
 
-    ax_pr = Axis(gl[fpos,2], title=variables[available_variables[i]][2])
+    ax_pp = Axis(gl[fpos,2]) # Relative contribution
+    scl = maximum(abs.(extrema(shapval[i]))).*(-1,1)
+    heatmap!(ax_pp, abs(shapval[i])/totalvar, colorrange=scl, colormap=Reverse(:linear_gow_65_90_c35_n256), aspect=DataAspect())
+    hidexdecorations!(ax_pp)
+    hideydecorations!(ax_pp)
+
+    ax_pr = Axis(gl[fpos,3], title=variables[available_variables[i]][2]) # Partial response
     ylims!(ax_pr, scl)
     hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200, colormap=:linear_bgy_10_95_c74_n256)
     fpos += 1
@@ -735,10 +743,15 @@ current_figure()
 ## Most determinant predictor
 
 ```{julia}
-pal = cgrad(:Spectral, length(available_variables), categorical=true)
+shapmax = mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)]))
+for k in keys(shapmax)
+if shapmax[k] > 3
+    shapmax[k] = 4
+end
+pal = cgrad([:indigo, :cyan, :teal, :lighthgrey], length(available_variables), categorical=true)
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)])), colormap=pal)
+hm = heatmap!(ax, shapmax, colormap=pal)
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
