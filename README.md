@@ -23,11 +23,3 @@ and you would benefit from
 - jupyter
 
 > **Note that** running the code might take a while, because it will get a few thousand occurrences from GBIF, and download the full CHELSA1 variables (only once) -- for this reason, whenever it makes sense, the code is multi-threaded
-
-### Past versions
-
-- [GEOBON] *Global Biodiversity Meeting* - Oct. 2023
-- [BIOS²][bios2] - Oct. 2023
-
-[GEOBON]: https://geobon.org/
-[bios2]: https://bios2.usherbrooke.ca/
