@@ -6,10 +6,11 @@ $lab-green-light: rgba(29, 130, 101, 1);
 $lab-blue: rgba(46, 83, 133, 1);
 $grey-medium: rgba(211, 208, 203, 1);
 $grey-light: rgba(231, 229, 223, 1);
+$grey-bg: rgba(241, 239, 233, 1);
 
 // Colors
 $link-color: $lab-green-light;
-$body-bg: $grey-light;
+$body-bg: $grey-bg;
 $code-block-bg: lighten($grey-light, 10%);
 $code-block-border-color: $grey-medium;
 $color-color: $lab-blue;
