@@ -104,7 +104,7 @@ function auc(x::Array{T}, y::Array{T}) where {T<:Number}
     for i in 2:length(x)
         S += (x[i] - x[i - 1]) * (y[i] + y[i - 1]) * 0.5
     end
-    return .-S
+    return S
 end
 
 function rocauc(C::Vector{ConfusionMatrix})
@@ -113,8 +113,8 @@ function rocauc(C::Vector{ConfusionMatrix})
     return auc(x, y)
 end
 
-function praux(C::Vector{ConfusionMatrix})
+function prauc(C::Vector{ConfusionMatrix})
     x = [0., tpr.(C)..., 1.]
     y = [1., ppv.(C)..., 0.]
-    return aux(x, y)
+    return auc(x, y)
 end
