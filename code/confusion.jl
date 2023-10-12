@@ -59,3 +59,15 @@ function auc(x::Array{T}, y::Array{T}) where {T<:Number}
     end
     return .-S
 end
+
+function rocauc(C::Vector{ConfusionMatrix})
+    x = fpr.(C)
+    y = tpr.(C)
+    return auc(x, y)
+end
+
+function praux(C::Vector{ConfusionMatrix})
+    x = tpr.(C)
+    y = ppv.(C)
+    return aux(x, y)
+end
