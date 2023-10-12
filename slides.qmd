@@ -520,24 +520,19 @@ current_figure()
 ```{julia}
 #| echo: true
 #| output: false
-C2 = zeros(ConfusionMatrix, length(folds))
-for (i,f) in enumerate(folds)
-    trn, val = f
-    foldmodel = naivebayes(ty[trn], tX[trn,:])
-    foldpred = vec(mapslices(foldmodel, tX[val,:]; dims=2))
-    C2[i] = ConfusionMatrix(foldpred, ty[val], thr[m])
-end
+N_v2 = crossvalidate(naivebayes, ty, tX[:,available_variables], folds, thr[m])
 ```
 
 ## Measures on the confusion matrix
 
-|     | Initial                                   | Var. sel.                                 | Tuned                                     |
-|------------------|------------------|------------------|------------------|
-| FPR | `{julia} round(mean(fpr.(C0)); digits=2)` | `{julia} round(mean(fpr.(C1)); digits=2)` | `{julia} round(mean(fpr.(C2)); digits=2)` |
-| FNR | `{julia} round(mean(fnr.(C0)); digits=2)` | `{julia} round(mean(fnr.(C1)); digits=2)` | `{julia} round(mean(fnr.(C2)); digits=2)` |
-| TPR | `{julia} round(mean(tpr.(C0)); digits=2)` | `{julia} round(mean(tpr.(C1)); digits=2)` | `{julia} round(mean(tpr.(C2)); digits=2)` |
-| TNR | `{julia} round(mean(tnr.(C0)); digits=2)` | `{julia} round(mean(tnr.(C1)); digits=2)` | `{julia} round(mean(tnr.(C2)); digits=2)` |
-| MCC | `{julia} round(mean(mcc.(C0)); digits=2)` | `{julia} round(mean(mcc.(C1)); digits=2)` | `{julia} round(mean(mcc.(C2)); digits=2)` |
+|     | BioClim | NBC  | BioClim (v.s.) | NBC (v.s.)  | NBC (v.s. + tuning)  |
+|-----|----|-----------|----|-----------|----|
+| FPR | `{julia} sm(fpr, B_v0)` | `{julia} sm(fpr, N_v0)` | `{julia} sm(fpr, B_v1)` | `{julia} sm(fpr, N_v1)` | `{julia} sm(fpr, N_v2)` |
+| FNR | `{julia} sm(fnr, B_v0)` | `{julia} sm(fnr, N_v0)` | `{julia} sm(fnr, B_v1)` | `{julia} sm(fnr, N_v1)` | `{julia} sm(fnr, N_v2)` |
+| TPR | `{julia} sm(tpr, B_v0)` | `{julia} sm(tpr, N_v0)` | `{julia} sm(tpr, B_v1)` | `{julia} sm(tpr, N_v1)` | `{julia} sm(tpr, N_v2)` |
+| TNR | `{julia} sm(tnr, B_v0)` | `{julia} sm(tnr, N_v0)` | `{julia} sm(tnr, B_v1)` | `{julia} sm(tnr, N_v1)` | `{julia} sm(tnr, N_v2)` |
+| TSS | `{julia} sm(trueskill, B_v0)` | `{julia} sm(trueskill, N_v0)` | `{julia} sm(trueskill, B_v1)` | `{julia} sm(trueskill, N_v1)` | `{julia} sm(trueskill, N_v2)` |
+| MCC | `{julia} sm(mcc, B_v0)` | `{julia} sm(mcc, N_v0)` | `{julia} sm(mcc, B_v1)` | `{julia} sm(mcc, N_v1)` | `{julia} sm(mcc, N_v2)` |
 
 ## Tuned model performance
 
@@ -546,20 +541,21 @@ We can retrain over *all* the training data
 ```{julia}
 #| echo: true
 #| output: false
-finalmodel = naivebayes(ty, tX)
+finalmodel = naivebayes(ty, tX[:,available_variables])
 prediction = vec(mapslices(finalmodel, X[tidx,available_variables]; dims=2))
-Cf = ConfusionMatrix(prediction, y[tidx], thr[m])
+C = ConfusionMatrix(prediction, y[tidx], thr[m])
 ```
 
 ## Estimated performance
 
 |     | Final model                        |
 |-----|------------------------------------|
-| FPR | `{julia} round(fpr(Cf); digits=2)` |
-| FNR | `{julia} round(fnr(Cf); digits=2)` |
-| TPR | `{julia} round(tpr(Cf); digits=2)` |
-| TNR | `{julia} round(tnr(Cf); digits=2)` |
-| MCC | `{julia} round(mcc(Cf); digits=2)` |
+| FPR | `{julia} sm(fpr, C)` |
+| FNR | `{julia} sm(fnr, C)` |
+| TPR | `{julia} sm(tpr, C)` |
+| TNR | `{julia} sm(tnr, C)` |
+| MCC | `{julia} sm(trueskill, C)` |
+| MCC | `{julia} sm(mcc, C)` |
 
 ## Acceptable bias
 
@@ -577,10 +573,10 @@ predictors = bioclim_clipped
 function iqr(x)
     return first(diff(quantile(x, [0.25, 0.75])))
 end
-foldmodels = [naivebayes(ty[f[1]], tX[f[1],:]) for f in folds]
+samplemodels = [naivebayes(ty, tX[b,available_variables]) for b in bootstrap(ty, tX)]
 variability = similar(first(predictors))
 Threads.@threads for k in keys(variability)
-    bootstraps = [foldmodel([p[k] for p in predictors[available_variables]]) for foldmodel in foldmodels]
+    bootstraps = [samplemodel([p[k] for p in predictors[available_variables]]) for samplemodel in samplemodels]
     variability[k] = iqr(bootstraps)
 end
 ```

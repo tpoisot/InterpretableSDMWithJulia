@@ -15,3 +15,9 @@ function sm(f, M::Vector{ConfusionMatrix})
     s = round(std(v); digits=3)
     return "$(m) ± $(s)"
 end
+
+function sm(f, M::ConfusionMatrix)
+    v = f(M)
+    m = round(v; digits=3)
+    return "$(m)"
+end
