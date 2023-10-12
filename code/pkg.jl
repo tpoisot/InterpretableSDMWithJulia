@@ -5,7 +5,9 @@ using PrettyTables
 import Random
 Random.seed!(12345)
 
+using Distributions
 using Statistics
+using StatsBase
 
 using CairoMakie
 set_theme!()
@@ -23,6 +25,3 @@ update_theme!(
 )
 
 using SpeciesDistributionToolkit
-
-import Images
-import Downloads

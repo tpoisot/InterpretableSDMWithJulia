@@ -1,6 +1,3 @@
-using Distributions
-using Statistics
-
 function naivebayes(y::Vector{Bool}, X::Matrix{T}; presence=0.5) where {T <: Number}
     μ = mapslices(mean, X, dims=1)
     σ = mapslices(std, X, dims=1)

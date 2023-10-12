@@ -1,5 +1,3 @@
-import Random
-
 function shapleyvalues(model, X, i::T, j::T; kwargs...) where {T <: Int}
     x = X[i,:]
     return shapleyvalues(model, X, x, j; kwargs...)
