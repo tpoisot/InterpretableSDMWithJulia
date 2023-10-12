@@ -68,6 +68,7 @@ include(joinpath("code", "crossvalidate.jl")); # Cross-validation
 include(joinpath("code", "confusion.jl")); # Confusion matrix utilities
 include(joinpath("code", "variableselection.jl")); # Variable selection
 include(joinpath("code", "shapley.jl")); # Shapley values
+include(joinpath("code", "palettes.jl")); # Color palettes
 ```
 
 ## To train a model, we need...
@@ -600,7 +601,7 @@ end
 #| output: true
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=cgrad(iridescent), colorrange=(0., 1.))
 heatmap!(ax, presence_layer; colormap=[:black,:black])
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
@@ -613,7 +614,7 @@ current_figure()
 #| output: true
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, variability, colormap=Reverse(:linear_gow_65_90_c35_n256), colorrange=extrema(variability))
+hm = heatmap!(ax, variability, colormap=cgrad(iridescent), colorrange=extrema(variability))
 heatmap!(ax, presence_layer; colormap=[:black,:black])
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
