@@ -50,6 +50,14 @@ function ConfusionMatrix(pred::Vector{T}, truth::Vector{Bool}) where {T <: Numbe
 end
 
 """
+    ConfusionMatrix(bv::BitVector, args...)
+
+If for whatever reasons the predictions are given as a `BitVector`, we simply
+convert it before running the confusion matrix constructor.
+"""
+ConfusionMatrix(bv::BitVector, args...) = ConfusionMatrix(convert(Vector{Bool}, bv), args...)
+
+"""
     Base.Matrix(c::ConfusionMatrix)
 
 Returns the matrix representation of a `ConfusionMatrix`.
