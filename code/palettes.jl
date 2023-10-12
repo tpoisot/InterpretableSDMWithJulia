@@ -1,25 +1,5 @@
-iridescent = [
-    colorant"#FEFBE9",
-    colorant"#FCF7D5",
-    colorant"#F5F3C1",
-    colorant"#EAF0B5",
-    colorant"#DDECBF",
-    colorant"#D0E7CA",
-    colorant"#C2E3D2",
-    colorant"#B5DDD8",
-    colorant"#A8D8DC",
-    colorant"#9BD2E1",
-    colorant"#8DCBE4",
-    colorant"#81C4E7",
-    colorant"#7BBCE7",
-    colorant"#7EB2E4",
-    colorant"#88A5DD",
-    colorant"#9398D2",
-    colorant"#9B8AC4",
-    colorant"#9D7DB2",
-    colorant"#9A709E",
-    colorant"#906388",
-    colorant"#805770",
-    colorant"#684957",
-    colorant"#46353A"
-]
+iridescent = [colorant"#FEFBE9", colorant"#FCF7D5", colorant"#F5F3C1", colorant"#EAF0B5", colorant"#DDECBF", colorant"#D0E7CA", colorant"#C2E3D2", colorant"#B5DDD8", colorant"#A8D8DC", colorant"#9BD2E1", colorant"#8DCBE4", colorant"#81C4E7", colorant"#7BBCE7", colorant"#7EB2E4", colorant"#88A5DD", colorant"#9398D2", colorant"#9B8AC4", colorant"#9D7DB2", colorant"#9A709E", colorant"#906388", colorant"#805770", colorant"#684957", colorant"#46353A"]
+incandescent = [colorant"#CEFFFF", colorant"#C6F7D6", colorant"#A2F49B", colorant"#BBE453", colorant"#D5CE04", colorant"#E7B503", colorant"#F19903", colorant"#F6790B", colorant"#F94902", colorant"#E40515", colorant"#A80003"]
+
+nightfall = [colorant"#125A56", colorant"#00767B", colorant"#238F9D", colorant"#42A7C6", colorant"#60BCE9", colorant"#9DCCEF", colorant"#C6DBED", colorant"#DEE6E7", colorant"#ECEADA", colorant"#F0E6B2", colorant"#F9D576", colorant"#FFB954", colorant"#FD9A44", colorant"#F57634", colorant"#E94C1F", colorant"#D11807", colorant"#A01813"]
+sunset = [colorant"#364B9A", colorant"#4A7BB7", colorant"#6EA6CD", colorant"#98CAE1", colorant"#C2E4EF", colorant"#EAECCC", colorant"#FEDA8B", colorant"#FDB366", colorant"#F67E4B", colorant"#DD3D2D", colorant"#A50026"]
