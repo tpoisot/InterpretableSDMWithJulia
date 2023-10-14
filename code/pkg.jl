@@ -2,8 +2,13 @@ using DataFrames
 import CSV
 using PrettyTables
 
+import GLM
+
 import Random
 Random.seed!(12345)
+
+import Downloads
+import Images
 
 using Distributions
 using Statistics
