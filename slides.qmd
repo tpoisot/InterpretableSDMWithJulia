@@ -6,7 +6,7 @@ author:
     email: timothee.poisot@umontreal.ca
 institute: "Université de Montréal"
 title-slide-attributes: 
-  data-background-image: https://cdn.pixabay.com/photo/2018/07/10/22/09/raccoon-3529806_960_720.jpg
+  data-background-image: https://cdn.pixabay.com/photo/2019/08/16/23/02/white-breasted-nuthatch-4411169_960_720.jpg
   data-background-opacity: "0.15"
 bibliography: references.bib
 csl: https://www.zotero.org/styles/ecology-letters
@@ -85,43 +85,6 @@ A series of predictions $\hat y$
 
 :   which we will compare to the values of $y$
 
-## Bioclimatic data
-
-We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
-
-```{julia}
-#| label: Download the BioClim data from WorldClim2
-#| eval: true
-#| echo: true
-#| output: false
-provider = RasterData(CHELSA1, BioClim)
-opts = (;)
-boundingbox = (left=8.412,bottom=41.325,right=9.662,top=43.060)
-temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
-```
-
-::: footer
-BioClim data from @karger2020
-:::
-
-## Bioclimatic data
-
-We set the pixels with only open water to `nothing`
-
-```{julia}
-#| label: Get the open water pixels
-#| eval: true
-#| output: false
-#| echo: true
-water = 
-    SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; opts..., boundingbox...) .< 100
-temperature = mask(water, temperature)
-```
-
-::: footer
-Land-cover data from @tuanmu2014
-:::
-
 ## Species occurrence filtering
 
 We use the [GBIF] API through the `GBIF` package to get data about *Procyon lotor*
@@ -133,38 +96,39 @@ We use the [GBIF] API through the `GBIF` package to get data about *Procyon loto
 #| eval: true
 #| echo: true
 #| output: false
-critter = taxon("Sitta whiteheadi"; strict=false)
-```
-
-We only consider occurrences within the bounding box!
-
-```{julia}
-#| label: Get the initial round of occurrences
-#| eval: true
-#| echo: true
-#| output: false
-query = [
-    "occurrenceStatus" => "PRESENT",
-    "hasCoordinate" => true,
-    "decimalLatitude" => (boundingbox.bottom, boundingbox.top),
-    "decimalLongitude" => (boundingbox.left, boundingbox.right),
-    "limit" => 300,
-]
-observations = occurrences(critter, query...)
-```
-
-```{julia}
-#| label: Get extra data
-#| echo: false
-#| eval: true
-#| output: false
-for _ in 1:12
-    occurrences!(observations)
+if ~isfile("occurrences.csv")
+    Downloads.download("https://gist.githubusercontent.com/tpoisot/e01313c366cc845778e973441e7d4db7/raw/85cf9f4a753c159f54a0fb51bf8ac4c854a8819a/bigfoot.csv", "occurrences.csv")
 end
+sightings = CSV.File("occurrences.csv")
+boundingbox = (
+    left = minimum(sightings.Longitude),
+    right = maximum(sightings.Longitude),
+    bottom = minimum(sightings.Latitude),
+    top = maximum(sightings.Latitude),
+)
 ```
 
 ::: footer
 See @dansereau2021 for more about these packages
+:::
+
+
+## Bioclimatic data
+
+We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
+
+```{julia}
+#| label: Download the BioClim data from WorldClim2
+#| eval: true
+#| echo: true
+#| output: false
+provider = RasterData(WorldClim2, BioClim)
+opts = (; resolution=10.0)
+temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
+```
+
+::: footer
+BioClim data from @karger2020
 :::
 
 ## Where are we so far?
@@ -173,40 +137,9 @@ See @dansereau2021 for more about these packages
 #| echo: false
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, temperature, colormap=cgrad(incandescent))
+hm = heatmap!(ax, temperature, colormap=cgrad(iridescent))
 Colorbar(fig[1,2], hm; tellheight=false)
-scatter!(ax, observations; color=:black, marker=:cross, markersize=5)
-current_figure()
-```
-
-## WAIT!
-
-It's not serious ecology unless we use Phylopic:
-
-```{julia}
-#| label: Phylopic image
-#| echo: true
-#| output: false
-phylopic_uuid = Phylopic.imagesof(critter; items = 1)
-silhouette = phylopic_uuid |>
-    Phylopic.thumbnail |>
-    Downloads.download |>
-    Images.load
-```
-
-📢 *Always* use the `Phylopic.attribution` function!
-
-::: footer
-`{julia} Phylopic.attribution(phylopic_uuid)`
-:::
-
-## Where are we so far?
-
-```{julia}
-#| echo: false
-silhouette_size = Vec2f(reverse(size(silhouette) ./ 3))
-sil_pos = ([8.6], [42.9])
-scatter!(ax, sil_pos...; marker = silhouette, markersize = silhouette_size, color=:white)
+scatter!(ax, sightings.Longitude, sightings.Latitude; color=:black, marker=:cross, markersize=5)
 current_figure()
 ```
 
@@ -219,33 +152,34 @@ We limit the occurrences to one per grid cell, assigned to the center of the gri
 #| echo: true
 #| eval: true
 #| output: false
-presence_layer = mask(temperature, observations, Bool)
+presence_layer = similar(temperature, Bool)
+for i in axes(sightings, 1)
+    presence_layer[sightings.Longitude[i], sightings.Latitude[i]] = true
+end
 ```
 
 ## Background points generation
 
-We generate background points in a 200km radius around each point -- but we keep a 20km buffer with no background points:
+We generate background points proportionally to the distance away from observations, with a 10km buffer around each point with no background point allowed:
 
 ```{julia}
 #| label: Make the pseudo-absence buffer
 #| eval: true
 #| echo: true
 #| output: false
-background = pseudoabsencemask(WithinRadius, presence_layer; distance = 70.0)
-buffer = pseudoabsencemask(WithinRadius, presence_layer; distance = 10.0)
-possible_background = .!(background .| (.! buffer))
+possible_background = pseudoabsencemask(DistanceToEvent, presence_layer)
 ```
 
-And then we sample 4 background points out of every 10 occurrences:
+And then we sample one pseudo-absence for each occurrence:
 
 ```{julia}
 #| label: Make the absence layer
 #| echo: true
 #| eval: true
 #| output: false
-absence_layer = SpeciesDistributionToolkit.sample(
-    possible_background, 
-    round(Int, 0.4*sum(presence_layer)),
+absence_layer = backgroundpoints(
+    (x -> x^1.05).(possible_background), 
+    3sum(presence_layer);
     replace=false
 )
 ```
@@ -279,11 +213,10 @@ current_figure()
 #| echo: false
 #| output: false
 #| eval: true
-bioclim_clipped = [
-    mask(
-        water,
-        SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...)
-    ) for l in layers(provider)]
+predictors = [
+    SimpleSDMPredictor(provider; layer = l, opts..., boundingbox...)
+    for l in layers(provider)
+]
 ```
 
 ## Preparing the responses and variables
@@ -292,9 +225,9 @@ bioclim_clipped = [
 #| label: Assemble y and X
 #| echo: true
 #| output: false
-Xpresence = hcat([bioclim_var[keys(presence_layer)] for bioclim_var in bioclim_clipped]...)
+Xpresence = hcat([bioclim_var[keys(presence_layer)] for bioclim_var in predictors]...)
 ypresence = fill(true, length(presence_layer))
-Xabsence = hcat([bioclim_var[keys(absence_layer)] for bioclim_var in bioclim_clipped]...)
+Xabsence = hcat([bioclim_var[keys(absence_layer)] for bioclim_var in predictors]...)
 yabsence = fill(false, length(absence_layer))
 X = vcat(Xpresence, Xabsence)
 y = vcat(ypresence, yabsence)
@@ -412,7 +345,7 @@ We add variables one at a time, until the Matthew's Correlation Coefficient stop
 ```{julia}
 #| echo: true
 #| output: false
-available_variables = constrainedselection(ty, tX, folds, naivebayes, mcc, [1, 12])
+available_variables = constrainedselection(ty, tX, folds, naivebayes, mcc, [1,12])
 ```
 
 This method identifies `{julia} length(available_variables)` variables, some of which are:
@@ -464,7 +397,7 @@ But $P(\cdot) > \tau$ is a far more general approach, and we can use learning cu
 ```{julia}
 #| echo: true
 #| output: false
-thr = LinRange(0.0, 1.0, 350)
+thr = LinRange(0.0, 1.0, 150)
 T = hcat([crossvalidate(naivebayes, ty, tX[:,available_variables], folds, t) for t in thr]...)
 ```
 
@@ -475,28 +408,27 @@ T = hcat([crossvalidate(naivebayes, ty, tX[:,available_variables], folds, t) for
 fig = Figure(; resolution=(900, 450))
 
 ax_mcc = Axis(fig[1,1], xlabel="Threshold", ylabel="MCC")
-ax_rates = Axis(fig[2,1], xlabel="Threshold", ylabel="Predictive values")
+ax_tss = Axis(fig[2,1], xlabel="Threshold", ylabel="TSS")
 
 scores = mcc.(T)
 σ = vec(std(scores; dims=1))
 μ = vec(mean(scores; dims=1))
-
 band!(ax_mcc, thr, μ-σ, μ+σ, color=(:lightgrey, 0.4))
-
 lines!(ax_mcc, thr, μ, color=:black, linewidth=2)
-
-_pp = vec(mean(ppv.(T); dims=1))
-_np = vec(mean(npv.(T); dims=1))
-lines!(ax_rates, thr, _pp; color=:black)
-lines!(ax_rates, thr, _np; color=:black, linestyle=:dash)
-
-xlims!(ax_mcc, low=0.0, high=1.0)
-ylims!(ax_mcc, low=0.0, high=1.0)
-xlims!(ax_rates, low=0.0, high=1.0)
-ylims!(ax_rates, low=0.0, high=1.0)
 
 mmax, m = findmax(μ)
 scatter!(ax_mcc, thr[m], mmax, color=(:black, 0.5), markersize=20)
+
+scores = trueskill.(T)
+σ = vec(std(scores; dims=1))
+μ = vec(mean(scores; dims=1))
+band!(ax_tss, thr, μ-σ, μ+σ, color=(:lightgrey, 0.4))
+lines!(ax_tss, thr, μ, color=:black, linewidth=2)
+
+xlims!(ax_mcc, low=0.0, high=1.0)
+ylims!(ax_mcc, low=0.0, high=1.0)
+xlims!(ax_tss, low=0.0, high=1.0)
+ylims!(ax_tss, low=0.0, high=1.0)
 
 ax_roc = Axis(fig[1,2], xlabel="False Positive Rate", ylabel="True Positive Rate")
 ax_pr = Axis(fig[2,2], xlabel="False Positive Rate", ylabel="True Positive Rate")
@@ -568,9 +500,12 @@ C = ConfusionMatrix(prediction, y[tidx], thr[m])
 #| echo: false
 #| eval: true
 #| output: false
-predictors = bioclim_clipped
 function iqr(x)
-    return first(diff(quantile(x, [0.25, 0.75])))
+    if all(isnan.(x))
+        return 0.0
+    else
+        return first(diff(quantile(filter(!isnan, x), [0.25, 0.75])))
+    end
 end
 samplemodels = [naivebayes(ty, tX[b,available_variables]) for b in bootstrap(ty, tX)]
 variability = similar(first(predictors), Float64)
@@ -599,7 +534,7 @@ end
 #| output: true
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, prediction, colormap=cgrad(incandescent), colorrange=(0., 1.))
+hm = heatmap!(ax, prediction, colormap=cgrad(iridescent), colorrange=(0., 1.))
 #heatmap!(ax, presence_layer; colormap=[:black,:black])
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
@@ -637,7 +572,7 @@ end
 
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, entropy.(prediction), colormap=cgrad(incandescent), colorrange=(0., 1.))
+hm = heatmap!(ax, entropy.(prediction), colormap=cgrad(iridescent), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -655,7 +590,6 @@ fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(prediction .>= thr[m]; colormap = cgrad([:lightgrey, :black]; alpha = 0.3))
 heatmap!(ax, presence_layer; colormap=[:black,:black])
-#scatter!(ax, [-76], [48.9]; marker = silhouette, markersize = silhouette_size, color=:white)
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```

@@ -2,8 +2,6 @@ using DataFrames
 import CSV
 using PrettyTables
 
-import GLM
-
 import Random
 Random.seed!(12345)
 
