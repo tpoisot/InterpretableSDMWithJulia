@@ -11,13 +11,13 @@ end
 
 function sm(f, M::Vector{ConfusionMatrix})
     v = f.(M)
-    m = round(mean(v); digits=2)
+    m = round(mean(v); digits=4)
     s = round(std(v); digits=1)
-    return "$(m)±$(s)"
+    return "$(m)"
 end
 
 function sm(f, M::ConfusionMatrix)
     v = f(M)
-    m = round(v; digits=2)
+    m = round(v; digits=4)
     return "$(m)"
 end
