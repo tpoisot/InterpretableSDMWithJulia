@@ -2,7 +2,7 @@
 
 [![Static Badge](https://img.shields.io/badge/License-CC--BY-green)][ccby] [![Static Badge](https://img.shields.io/badge/View_on-github_pages-skyblue)][slides]
 
-💻 ➕ 🌦️ ➕ 🦝 ➕ 🧠 🟰 😁
+💻 ➕ 🌦️ ➕ 🧠 🟰 😁
 
 This repository has the code associated to the "Interpretable SDM from scratch" workshop.
 

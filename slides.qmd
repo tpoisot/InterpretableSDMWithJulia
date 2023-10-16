@@ -567,7 +567,7 @@ C = ConfusionMatrix(prediction, y[tidx], τ)
 
 -   false positives: we expect that our knowledge of the distribution is incomplete, and *this is why we train a model*
 
--   false negatives: the detection of the species is imperfect (we will reveal the species soon)
+-   false negatives: wrong observations (positive in the data) may be identified by the model (negative prediction)
 
 ## Prediction for each pixel
 
