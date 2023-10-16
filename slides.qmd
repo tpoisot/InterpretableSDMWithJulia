@@ -118,9 +118,9 @@ BioClim data from @karger2020; see @dansereau2021 for more about the packages
 #| echo: false
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, temperature, colormap=cgrad(iridescent))
+hm = heatmap!(ax, temperature, colormap=[:lightgrey])
 Colorbar(fig[1,2], hm; tellheight=false)
-scatter!(ax, occ; color=:black, marker=:cross, markersize=5)
+scatter!(ax, occ; color=:black, marker=:cross, markersize=3)
 current_figure()
 ```
 
@@ -186,7 +186,7 @@ replace!(presence_layer, false => nothing)
 ## Data overview
 
 ```{julia}
-heatmap!(possible_background; colormap = cgrad([:transparent, :white]; alpha = 0.3))
+scatter!(keys(absence_layer); color = :red, marker=:xcross, markersize=2)
 current_figure()
 ```
 
@@ -223,7 +223,7 @@ bclay = layers(RasterData(WorldClim2, BioClim))
 bcdes = layerdescriptions(RasterData(WorldClim2, BioClim))
 presences = Tuple.(keys(presence_layer))
 absences = Tuple.(keys(absence_layer))
-variables = [(bc, bcdes[bc]) for bc in bclay]
+variables = [(bc, var_trim(bcdes[bc])) for bc in bclay]
 ```
 
 ## The model -- Naive Bayes Classifier
@@ -270,7 +270,7 @@ For *validation*, we will run k-folds
 #| echo: true
 #| output: false
 ty, tX = y[idx], X[idx,:]
-folds = kfold(ty, tX; k=10, permute=true)
+folds = kfold(ty, tX; k=15, permute=true)
 k = length(folds)
 ```
 
@@ -379,7 +379,7 @@ But $P(\cdot) > \tau$ is a far more general approach, and we can use learning cu
 ```{julia}
 #| echo: true
 #| output: false
-thr = LinRange(0.0, 1.0, 150)
+thr = LinRange(0.0, 1.0, 500)
 T = hcat([crossvalidate(naivebayes, ty, tX[:,available_variables], folds, t) for t in thr]...)
 ```
 
@@ -389,35 +389,45 @@ T = hcat([crossvalidate(naivebayes, ty, tX[:,available_variables], folds, t) for
 #| echo: false
 fig = Figure(; resolution=(900, 450))
 
-ax_mcc = Axis(fig[1,1], xlabel="Threshold", ylabel="MCC")
-ax_tss = Axis(fig[2,1], xlabel="Threshold", ylabel="TSS")
+g1 = GridLayout(fig[1:2,1])
+
+xt = 0.0:0.2:1.0
+yt = 0.0:0.25:1.0
+
+ax_mcc = Axis(g1[1,1], ylabel="MCC"; yticks=yt, xticks=xt)
+ax_fpr = Axis(g1[2,1], ylabel="False Pos. Rate"; yaxisposition=:right, yticks=yt, xticks=xt)
+ax_fnr = Axis(g1[3,1], xlabel="Threshold", ylabel="False Neg. Rate", yticks=yt, xticks=xt)
+
+hidexdecorations!(ax_fpr, grid=false)
+hidexdecorations!(ax_mcc, grid=false)
+rowgap!(g1, 6)
 
 scores = mcc.(T)
-σ = vec(std(scores; dims=1))
 μ = vec(mean(scores; dims=1))
-band!(ax_mcc, thr, μ-σ, μ+σ, color=(:lightgrey, 0.4))
-lines!(ax_mcc, thr, μ, color=:black, linewidth=2)
+
+for i in axes(T, 1)
+    lines!(ax_mcc, thr, mcc.(T[i,:]), color=:grey, alpha=0.6)
+    lines!(ax_fpr, thr, fpr.(T[i,:]), color=:grey, alpha=0.6)
+    lines!(ax_fnr, thr, fnr.(T[i,:]), color=:grey, alpha=0.6)
+end
 
 mmax, m = findmax(μ)
-scatter!(ax_mcc, thr[m], mmax, color=(:black, 0.5), markersize=20)
-
-scores = trueskill.(T)
-σ = vec(std(scores; dims=1))
-μ = vec(mean(scores; dims=1))
-band!(ax_tss, thr, μ-σ, μ+σ, color=(:lightgrey, 0.4))
-lines!(ax_tss, thr, μ, color=:black, linewidth=2)
+scatter!(ax_mcc, thr[m], mmax, color=:red, markersize=10)
+rangebars!(ax_mcc, [thr[m]], 0.98*[minimum(scores[:,m])], 1.02*[maximum(scores[:,m])], color=:red, whiskerwidth=10)
 
 xlims!(ax_mcc, low=0.0, high=1.0)
 ylims!(ax_mcc, low=0.0, high=1.0)
-xlims!(ax_tss, low=0.0, high=1.0)
-ylims!(ax_tss, low=0.0, high=1.0)
+xlims!(ax_fpr, low=0.0, high=1.0)
+ylims!(ax_fpr, low=0.0, high=1.0)
+xlims!(ax_fnr, low=0.0, high=1.0)
+ylims!(ax_fnr, low=0.0, high=1.0)
 
-ax_roc = Axis(fig[1,2], xlabel="False Positive Rate", ylabel="True Positive Rate")
-ax_pr = Axis(fig[2,2], xlabel="False Positive Rate", ylabel="True Positive Rate")
+ax_roc = Axis(fig[1,2], xlabel="False Positive Rate", ylabel="True Positive Rate", aspect=1)
+ax_pr = Axis(fig[2,2], xlabel="True Positive Rate", ylabel="Positive Pred. Value", aspect=1)
 
 for i in axes(T, 1)
-    scatter!(ax_roc, fpr.(T[i,:]), tpr.(T[i,:]), color=:grey, markersize=2)
-    scatter!(ax_pr, tpr.(T[i,:]), ppv.(T[i,:]), color=:grey, markersize=2)
+    scatter!(ax_roc, fpr.(T[i,:]), tpr.(T[i,:]), color=:grey, markersize=2, alpha=0.6)
+    scatter!(ax_pr, tpr.(T[i,:]), ppv.(T[i,:]), color=:grey, markersize=2, alpha=0.6)
 end
 
 arrows!(ax_roc, [0.5], [0.5], [-0.2], [0.2], color=:blue, linewidth=4)
