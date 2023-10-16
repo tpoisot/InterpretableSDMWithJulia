@@ -44,15 +44,19 @@ and only a little about the
 
 ... think of SDMs as a ML problem?
 
-:   They are (they really, really are, see @beery2021)
+:   Because they are
 
 ... think of explainable ML for SDM?
 
-:   Uptake of models *requires* transparent predictions
+:   Because model uptake *requires* transparency
 
 ... not tell us which species this is about?
 
 :   Because this is the point (you'll see)
+
+::: footer
+See @beery2021 for more on SDM-as-ML
+:::
 
 ## Do try this at home!
 
@@ -106,7 +110,7 @@ We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
 #| echo: true
 #| output: false
 provider = RasterData(WorldClim2, BioClim)
-opts = (; resolution=5.0)
+opts = (; resolution=2.5)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -662,6 +666,8 @@ Shapley values (Monte-Carlo approximation): if we mix the variables across two o
 
 Expresses "importance" as an additive factor on top of the *average* prediction (here: average prob. of occurrence)
 
+## Calculation of the Shapley values
+
 ```{julia}
 #| echo: true
 #| output: false
@@ -683,6 +689,7 @@ end
 #| echo: true
 varimp = sum.(map(abs, shapval))
 varimp ./= sum(varimp)
+shapmax = mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)]))
 for v in sortperm(varimp, rev=true)
     vname = variables[available_variables[v]][2]
     vctr = round(Int, varimp[v]*100)
@@ -729,16 +736,94 @@ current_figure()
 ## Most determinant predictor
 
 ```{julia}
-shapmax = mosaic(argmax, map(abs, shapval[sortperm(varimp; rev=true)]))
 for k in keys(shapmax)
     if shapmax[k] > 3
         shapmax[k] = 4
     end
 end
-pal = cgrad([colorant"#ddaa33", colorant"#bb5566", colorant"#004488", colorant"#000000"], 4, categorical=true)
+pal = cgrad(light[[2,3,4,1]], 4, categorical=true)
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
 hm = heatmap!(ax, shapmax, colormap=pal)
+Colorbar(fig[1,2], hm; tellheight=false)
+current_figure()
+```
+
+## Future predictions
+
+- relevant variables will remain the same
+
+- relevant $P(+)$ will remain the same
+
+- relevant threshold for presences will remain the same
+
+## Future climate data (ca. 2070)
+
+```{julia}
+future = Projection(SSP370, CanESM5)
+future_predictors = [
+    mask(land,
+        SimpleSDMPredictor(
+            provider, future;
+            layer = l, opts..., boundingbox...,
+            timespan=Year(2061) => Year(2080))
+        )
+    for l in layers(provider)
+]
+```
+
+## Future climate prediction
+
+```{julia}
+#| echo: true
+#| output: false
+future_prediction = similar(temperature, Float64)
+Threads.@threads for k in keys(future_prediction)
+    pred_k = [p[k] for p in future_predictors[available_variables]]
+    if any(isnothing.(pred_k))
+        continue
+    end
+    future_prediction[k] = finalmodel(pred_k)
+end
+```
+
+## Tuned model - future prediction
+
+```{julia}
+#| echo: false
+#| output: true
+fig = Figure(; resolution=(900, 500))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+hm = heatmap!(ax, future_prediction, colormap=cgrad(iridescent), colorrange=(0., 1.))
+Colorbar(fig[1,2], hm; tellheight=false)
+current_figure()
+```
+
+## Loss and gain in distribution
+
+```{julia}
+jointrange = (prediction .>= τ) .| (future_prediction .>= τ)
+rangediff = mask(jointrange, (future_prediction .>= τ) .- (prediction .>= τ))
+gain = mask(rangediff .== 1, cellsize(jointrange))
+nochange = mask(rangediff .== 0, cellsize(jointrange))
+loss = mask(rangediff .== -1, cellsize(jointrange))
+```
+
+| Change | Area (10⁶ km²) |
+|-----|------|
+| Expansion | `{julia} 1e-6*sum(gain)` | 
+| No change | `{julia} 1e-6*sum(nochange)` | 
+| Loss | `{julia} 1e-6*sum(loss)` |
+
+## Tuned model - future range change
+
+```{julia}
+#| echo: false
+#| output: true
+fig = Figure(; resolution=(900, 500))
+ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
+heatmap!(ax, temperature, colormap=[:lightgrey], alpha=0.8)
+hm = heatmap!(ax, rangediff; colormap = cgrad(nightfall, 3, categorical=true))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
