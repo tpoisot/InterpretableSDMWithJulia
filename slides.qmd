@@ -6,7 +6,7 @@ author:
     email: timothee.poisot@umontreal.ca
 institute: "Université de Montréal"
 title-slide-attributes: 
-  data-background-image: https://cdn.pixabay.com/photo/2019/08/16/23/02/white-breasted-nuthatch-4411169_960_720.jpg
+  data-background-image: https://cdn.pixabay.com/photo/2017/03/29/11/29/nepal-2184940_960_720.jpg
   data-background-opacity: "0.15"
 bibliography: references.bib
 csl: https://www.zotero.org/styles/ecology-letters
