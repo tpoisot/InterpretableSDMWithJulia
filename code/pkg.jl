@@ -19,12 +19,13 @@ update_theme!(
     Figure=(; backgroundcolor=:transparent),
     Axis=(
         backgroundcolor=:white,
-        leftspinevisible=false,
-        rightspinevisible=false,
-        bottomspinevisible=false,
-        topspinevisible=false
     ),
     CairoMakie=(; px_per_unit=2),
 )
 
 using SpeciesDistributionToolkit
+
+function var_trim(x)
+    root = first(split(x, "("))
+    return replace(root, "Temperature" => "Temp.", "Precipitation" => "Precip.")
+end
