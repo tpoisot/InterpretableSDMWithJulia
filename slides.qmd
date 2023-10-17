@@ -110,7 +110,7 @@ We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
 #| echo: true
 #| output: false
 provider = RasterData(WorldClim2, BioClim)
-opts = (; resolution=2.5)
+opts = (; resolution=10.0)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -176,7 +176,7 @@ end
 
 ## Background points generation
 
-We generate background points proportionally to the distance away from observations, with a 10km buffer around each point with no background point allowed:
+We generate background points proportionally to the distance away from observations
 
 ```{julia}
 #| label: Make the pseudo-absence buffer
@@ -831,6 +831,8 @@ current_figure()
 ## But wait...
 
 > What do you think the species was?
+
+Human in the loop *v.* Algorithm in the loop
 
 ## Take-home
 

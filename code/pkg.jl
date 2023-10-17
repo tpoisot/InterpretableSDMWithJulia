@@ -15,6 +15,7 @@ using Statistics
 using StatsBase
 
 using CairoMakie
+using GeoMakie
 set_theme!()
 update_theme!(
     backgroundcolor=:transparent,
