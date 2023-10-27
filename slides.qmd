@@ -102,7 +102,7 @@ boundingbox = (
 
 ## Bioclimatic data
 
-We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
+We collect BioClim data from WorldClim v2, using `SpeciesDistributionToolkit`
 
 ```{julia}
 #| label: Download the BioClim data from WorldClim2
@@ -110,7 +110,7 @@ We collect BioClim data from CHELSA v1, using `SpeciesDistributionToolkit`
 #| echo: true
 #| output: false
 provider = RasterData(WorldClim2, BioClim)
-opts = (; resolution=10.0)
+opts = (; resolution=2.5)
 temperature = SimpleSDMPredictor(provider, layer=1; opts..., boundingbox...)
 ```
 
@@ -131,7 +131,7 @@ water =
     SimpleSDMPredictor(RasterData(EarthEnv, LandCover), layer=12; boundingbox...)
 land = similar(temperature, Bool)
 replace!(land, false => true)
-for k in keys(land)
+Threads.@threads for k in keys(land)
     if !isnothing(water[k])
         if water[k] == 100
             land[k] = false
@@ -176,14 +176,16 @@ end
 
 ## Background points generation
 
-We generate background points proportionally to the distance away from observations
+We generate background points proportionally to the distance away from observations, but penalize the cells that are larger due to projection
 
 ```{julia}
 #| label: Make the pseudo-absence buffer
 #| eval: true
 #| echo: true
 #| output: false
-possible_background = pseudoabsencemask(DistanceToEvent, presence_layer)
+possible_background =
+    pseudoabsencemask(DistanceToEvent, presence_layer) *
+    cellsize(temperature)
 ```
 
 And then we sample three pseudo-absence for each occurrence:
@@ -355,7 +357,7 @@ It's a good idea to check the values for the training sets too...
 
 ## Variable selection
 
-We add variables one at a time, until the Matthew's Correlation Coefficient stops increasing -- we keep annual temperature, isothermality, mean diurnal range, and annual precipitation
+We add variables one at a time, until the Matthew's Correlation Coefficient stops increasing:
 
 ```{julia}
 #| echo: true
