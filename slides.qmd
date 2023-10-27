@@ -637,7 +637,7 @@ IQR for 50 bootstrap replicates
 #| output: true
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(ax, uncertainty, colormap=cgrad(iridescent), colorrange=(0., 1.))
+hm = heatmap!(ax, uncertainty, colormap=cgrad(incandescent), colorrange=(0., 1.))
 Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
@@ -653,8 +653,8 @@ Entropy (in bits) of the NBC probability
 #| output: true
 fig = Figure(; resolution=(900, 500))
 ax = Axis(fig[1,1]; xlabel="Longitude", ylabel="Latitude", aspect=DataAspect())
-hm = heatmap!(prediction .>= τ; colormap = cgrad([:lightgrey, :black]; alpha = 0.3))
-Colorbar(fig[1,2], hm; tellheight=false)
+hm = heatmap!(ax, prediction .>= τ; colormap = vibrant[1:2])
+#Colorbar(fig[1,2], hm; tellheight=false)
 current_figure()
 ```
 
@@ -728,7 +728,7 @@ for i in sortperm(varimp; rev=true)[1:3]
 
     ax_pr = Axis(gl[fpos,3], title=variables[available_variables[i]][2]) # Partial response
     ylims!(ax_pr, scl)
-    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200, colormap=cgrad(sunset))
+    hexbin!(ax_pr, predictors[available_variables[i]], shapval[i], bins=200, colormap=cgrad(sunset), weights=values(cellsize(temperature)))
     fpos += 1
 end
 
@@ -762,6 +762,8 @@ current_figure()
 ## Future climate data (ca. 2070)
 
 ```{julia}
+#| echo: true
+#| output: false
 future = Projection(SSP370, CanESM5)
 future_predictors = [
     mask(land,
@@ -804,6 +806,8 @@ current_figure()
 ## Loss and gain in distribution
 
 ```{julia}
+#| echo: false
+#| output: false
 jointrange = (prediction .>= τ) .| (future_prediction .>= τ)
 rangediff = mask(jointrange, (future_prediction .>= τ) .- (prediction .>= τ))
 gain = mask(rangediff .== 1, cellsize(jointrange))
@@ -813,9 +817,9 @@ loss = mask(rangediff .== -1, cellsize(jointrange))
 
 | Change | Area (10⁶ km²) |
 |-----|------|
-| Expansion | `{julia} 1e-6*sum(gain)` | 
-| No change | `{julia} 1e-6*sum(nochange)` | 
-| Loss | `{julia} 1e-6*sum(loss)` |
+| Expansion | `{julia} round(1e-6*sum(gain); digits=3)` | 
+| No change | `{julia} round(1e-6*sum(nochange); digits=3)` | 
+| Loss | `{julia} round(1e-6*sum(loss); digits=3)` |
 
 ## Tuned model - future range change
 

@@ -652,7 +652,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <section id="baseline-performance" class="slide level2">
 <h2>Baseline performance</h2>
 <p>We need to get a sense of how difficult the classification problem is:</p>
-<div id="c62eb7bc" class="cell" data-execution_count="16">
+<div id="8143c9ad" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>N_v0 <span class="op">=</span> <span class="fu">crossvalidate</span>(naivebayes, ty, tX, folds)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>B_v0 <span class="op">=</span> <span class="fu">crossvalidate</span>(bioclim, ty, tX, folds, <span class="fu">eps</span>())</span></code></pre></div>
 </div>
@@ -708,7 +708,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <section id="variable-selection" class="slide level2">
 <h2>Variable selection</h2>
 <p>We add variables one at a time, until the Matthew’s Correlation Coefficient stops increasing:</p>
-<div id="b325c8f3" class="cell" data-execution_count="17">
+<div id="281e1c3f" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>available_variables <span class="op">=</span> <span class="fu">forwardselection</span>(ty, tX, folds, naivebayes, mcc)</span></code></pre></div>
 </div>
 <p>This method identifies 5 variables, some of which are:</p>
@@ -729,7 +729,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="model-with-variable-selection" class="slide level2">
 <h2>Model with variable selection</h2>
-<div id="630bbab5" class="cell" data-execution_count="18">
+<div id="3848650f" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>N_v1 <span class="op">=</span> <span class="fu">crossvalidate</span>(naivebayes, ty, tX[<span class="op">:</span>,available_variables], folds)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>B_v1 <span class="op">=</span> <span class="fu">crossvalidate</span>(bioclim, ty, tX[<span class="op">:</span>,available_variables], folds, <span class="fu">eps</span>())</span></code></pre></div>
 </div>
@@ -807,7 +807,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="thresholding-the-model" class="slide level2">
 <h2>Thresholding the model</h2>
-<div id="b085110d" class="cell" data-execution_count="19">
+<div id="4d9c2b29" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>thr <span class="op">=</span> <span class="fu">LinRange</span>(<span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="fl">500</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> <span class="fu">hcat</span>([<span class="fu">crossvalidate</span>(naivebayes, ty, tX[<span class="op">:</span>,available_variables], folds, t) for t <span class="kw">in</span> thr]<span class="op">...</span>)</span></code></pre></div>
 </div>
@@ -818,7 +818,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <img data-src="slides_files/figure-revealjs/cell-21-output-1.svg" class="r-stretch"></section>
 <section id="tuned-model-with-selected-variables" class="slide level2">
 <h2>Tuned model with selected variables</h2>
-<div id="b49b68ee" class="cell" data-execution_count="21">
+<div id="7e657c2c" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>N_v2 <span class="op">=</span> <span class="fu">crossvalidate</span>(naivebayes, ty, tX[<span class="op">:</span>,available_variables], folds, thr[m])</span></code></pre></div>
 </div>
 </section>
@@ -903,7 +903,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="joint-tuning-of-hyper-parameters" class="slide level2">
 <h2>Joint tuning of hyper-parameters</h2>
-<div id="d9d45149" class="cell" data-execution_count="22">
+<div id="ed3c0ee9" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>thr <span class="op">=</span> <span class="fu">LinRange</span>(<span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="fl">55</span>)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>pplus <span class="op">=</span> <span class="fu">LinRange</span>(<span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="fl">45</span>)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> [<span class="fu">crossvalidate</span>(naivebayes, ty, tX[<span class="op">:</span>,available_variables], folds, t; presence<span class="op">=</span>prior) for t <span class="kw">in</span> thr, prior <span class="kw">in</span> pplus]</span>
@@ -914,7 +914,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="tuned-again-model-with-selected-variables" class="slide level2">
 <h2>Tuned (again) model with selected variables</h2>
-<div id="226cb5af" class="cell" data-execution_count="23">
+<div id="199a8fd1" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>N_v3 <span class="op">=</span> <span class="fu">crossvalidate</span>(naivebayes, ty, tX[<span class="op">:</span>,available_variables], folds, τ; presence<span class="op">=</span>ppres)</span></code></pre></div>
 </div>
 </section>
@@ -994,7 +994,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 <section id="tuned-model-performance" class="slide level2">
 <h2>Tuned model performance</h2>
 <p>We can retrain over <em>all</em> the training data</p>
-<div id="764491e0" class="cell" data-execution_count="24">
+<div id="f16bf692" class="cell" data-execution_count="24">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>finalmodel <span class="op">=</span> <span class="fu">naivebayes</span>(ty, tX[<span class="op">:</span>,available_variables]; presence<span class="op">=</span>ppres)</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">vec</span>(<span class="fu">mapslices</span>(finalmodel, X[tidx,available_variables]; dims<span class="op">=</span><span class="fl">2</span>))</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>C <span class="op">=</span> <span class="fu">ConfusionMatrix</span>(prediction, y[tidx], τ)</span></code></pre></div>
@@ -1046,7 +1046,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="prediction-for-each-pixel" class="slide level2">
 <h2>Prediction for each pixel</h2>
-<div id="c9bf4e76" class="cell" data-execution_count="26">
+<div id="08c11fed" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> <span class="fu">similar</span>(temperature, <span class="dt">Float64</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>variability <span class="op">=</span> <span class="fu">similar</span>(temperature, <span class="dt">Float64</span>)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>uncertainty <span class="op">=</span> <span class="fu">similar</span>(temperature, <span class="dt">Float64</span>)</span>
@@ -1094,7 +1094,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="calculation-of-the-shapley-values" class="slide level2">
 <h2>Calculation of the Shapley values</h2>
-<div id="c4c09606" class="cell" data-execution_count="31">
+<div id="640c5e47" class="cell" data-execution_count="31">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>shapval <span class="op">=</span> [<span class="fu">similar</span>(<span class="fu">first</span>(predictors), <span class="dt">Float64</span>) for i <span class="kw">in</span> <span class="fu">eachindex</span>(available_variables)]</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(shapval[<span class="fl">1</span>])</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> [p[k] for p <span class="kw">in</span> predictors[available_variables]]</span>
@@ -1109,7 +1109,7 @@ P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))
 </section>
 <section id="importance-of-variables" class="slide level2">
 <h2>Importance of variables</h2>
-<div id="e3b64b02" class="cell" data-execution_count="32">
+<div id="ef180adb" class="cell" data-execution_count="32">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>varimp <span class="op">=</span> <span class="fu">sum</span>.(<span class="fu">map</span>(abs, shapval))</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>varimp <span class="op">./=</span> <span class="fu">sum</span>(varimp)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>shapmax <span class="op">=</span> <span class="fu">mosaic</span>(argmax, <span class="fu">map</span>(abs, shapval[<span class="fu">sortperm</span>(varimp; rev<span class="op">=</span><span class="cn">true</span>)]))</span>
@@ -1146,34 +1146,22 @@ Precip. Seasonality  - 11%</code></pre>
 </section>
 <section id="future-climate-data-ca.-2070" class="slide level2">
 <h2>Future climate data (ca. 2070)</h2>
-<div id="b6870c77" class="cell" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="109">
-<pre><code>19-element Vector{SimpleSDMPredictor{Float32}}:
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells
- SDM predictor → 955×2048 grid with 1118001 Float32-valued cells</code></pre>
-</div>
+<div id="df5df26e" class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>future <span class="op">=</span> <span class="fu">Projection</span>(SSP370, CanESM5)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>future_predictors <span class="op">=</span> [</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mask</span>(land,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">SimpleSDMPredictor</span>(</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>            provider, future;</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>            layer <span class="op">=</span> l, opts<span class="op">...</span>, boundingbox<span class="op">...</span>,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>            timespan<span class="op">=</span><span class="fu">Year</span>(<span class="fl">2061</span>) <span class="op">=&gt;</span> <span class="fu">Year</span>(<span class="fl">2080</span>))</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    for l <span class="kw">in</span> <span class="fu">layers</span>(provider)</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
 </div>
 </section>
 <section id="future-climate-prediction" class="slide level2">
 <h2>Future climate prediction</h2>
-<div id="b77d2f1d" class="cell" data-execution_count="36">
+<div id="35751942" class="cell" data-execution_count="36">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>future_prediction <span class="op">=</span> <span class="fu">similar</span>(temperature, <span class="dt">Float64</span>)</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Threads</span>.<span class="pp">@threads</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="fu">keys</span>(future_prediction)</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    pred_k <span class="op">=</span> [p[k] for p <span class="kw">in</span> future_predictors[available_variables]]</span>
@@ -1190,13 +1178,6 @@ Precip. Seasonality  - 11%</code></pre>
 <img data-src="slides_files/figure-revealjs/cell-38-output-1.png" class="r-stretch"></section>
 <section id="loss-and-gain-in-distribution" class="slide level2">
 <h2>Loss and gain in distribution</h2>
-<div id="e7670753" class="cell" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="112">
-<pre><code>SDM response → 955×2048 grid with 5089 Float64-valued cells
-  Latitudes 25.125 ⇢ 64.91666666666666
-  Longitudes    -149.79166666666669 ⇢ -64.45833333333334</code></pre>
-</div>
-</div>
 <table>
 <thead>
 <tr class="header">
@@ -1207,15 +1188,15 @@ Precip. Seasonality  - 11%</code></pre>
 <tbody>
 <tr class="odd">
 <td>Expansion</td>
-<td>1.7319773894853703</td>
+<td>1.732</td>
 </tr>
 <tr class="even">
 <td>No change</td>
-<td>4.659092914580462</td>
+<td>4.659</td>
 </tr>
 <tr class="odd">
 <td>Loss</td>
-<td>0.09337729226718551</td>
+<td>0.093</td>
 </tr>
 </tbody>
 </table>
