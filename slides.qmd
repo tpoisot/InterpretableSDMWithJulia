@@ -1,12 +1,12 @@
 ---
 title: "Building an interpretable SDM from scratch"
-subtitle: "using Julia 1.9"
+subtitle: "using Julia 1.10"
 author:
     name: "Timothée Poisot"
     email: timothee.poisot@umontreal.ca
 institute: "Université de Montréal"
 title-slide-attributes: 
-  data-background-image: https://cdn.pixabay.com/photo/2017/03/29/11/29/nepal-2184940_960_720.jpg
+  data-background-image: https://pixabay.com/get/g2f0a86738c25f15ce538261d34dca30c444226dd37d587cb12afa98a106a3567b80d264d00c1c9e3238021abdf1ce139f1d2fb95122ae2fe17b652f714f31f62_1920.jpg
   data-background-opacity: "0.15"
 bibliography: references.bib
 csl: https://www.zotero.org/styles/ecology-letters
