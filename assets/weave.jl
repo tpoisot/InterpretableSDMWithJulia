@@ -2,4 +2,4 @@ using Weave
 
 @info "Compiling $(first(ARGS))"
 
-Weave.weave(first(ARGS); doctype = "pandoc", cache = :on, fig_ext = ".pdf")
+Weave.weave(first(ARGS); cache = :on, fig_ext = ".pdf")

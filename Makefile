@@ -10,13 +10,11 @@ background.png: makebackground.jl
 
 .PHONY: clean install
 
-jl2md: $(wildcard $(FILE).jl)
+literate: $(wildcard $(FILE).jl)
 	@$(if $(wildcard $(FILE).jl),julia --project assets/literate.jl $<,echo "No jl file found")
 
-jmd2md: $(wildcard $(FILE).Jmd)
+weave: $(wildcard $(FILE).Jmd)
 	@$(if $(wildcard $(FILE).Jmd),julia --project assets/weave.jl $<,echo "No Jmd file found")
-
-$(FILE).md: jmd2md
 
 $(FILE).tex: $(FILE).md
 	pandoc $< -t beamer --slide-level 2 -o $@ --template ./template/pl.tex

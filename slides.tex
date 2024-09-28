@@ -56,6 +56,21 @@
 \newcommand{\ErrorTok}[1]{\textcolor[HTML]{DD2C00}{\textbf{{#1}}}}
 \newcommand{\NormalTok}[1]{\textcolor[HTML]{212121}{{#1}}}
 
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
@@ -103,29 +118,174 @@
 
 \maketitle
 
-\begin{frame}[fragile]{Main goals}
+\begin{frame}{Main goals}
 \phantomsection\label{main-goals}
 \begin{enumerate}
 \tightlist
 \item
-  Easy generation of slides
+  How do we produce a model?
 \item
-  Integration with \texttt{R} and \texttt{Julia}
+  How do we convey that it works?
 \item
-  Looks nice
+  How do we talk about how it makes predictions?
+\item
+  How do we use it to guide actions?
 \end{enumerate}
+\end{frame}
+
+\begin{frame}{The steps}
+\phantomsection\label{the-steps}
+\begin{enumerate}
+\tightlist
+\item
+  Get data about species occurrences
+\item
+  Build a classifier and make it as good as we can
+\item
+  Measure its performance
+\item
+  Explain some predictions
+\item
+  Generate counterfactual explanations
+\item
+  Briefly discuss ensemble models
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{But why\ldots{}}
+\phantomsection\label{but-why}
+\begin{description}
+\tightlist
+\item[\ldots{} think of SDM as a ML problem?]
+Because they are (and would be better if we accepted this)
+\item[\ldots{} the focus on explainability?]
+We cannot ask people to \emph{trust} - we must \emph{convince}
+\end{description}
 \end{frame}
 
 \section{Introduction}\label{introduction}
 
-\begin{frame}[fragile]{Getting data}
+\begin{frame}{Getting data}
 \phantomsection\label{getting-data}
-\begin{Shaded}
-\begin{Highlighting}[]
-\ImportTok{using} \BuiltInTok{SpeciesDistributionToolkit}
-\ImportTok{using} \BuiltInTok{CairoMakie}
-\end{Highlighting}
-\end{Shaded}
+\end{frame}
+
+\begin{frame}{Getting a polygon}
+\phantomsection\label{getting-a-polygon}
+\end{frame}
+
+\begin{frame}{CHELSA2 data}
+\phantomsection\label{chelsa2-data}
+\end{frame}
+
+\begin{frame}{Trimming polygon}
+\phantomsection\label{trimming-polygon}
+\end{frame}
+
+\begin{frame}{Download data from GBIF}
+\phantomsection\label{download-data-from-gbif}
+\end{frame}
+
+\section{Validation}\label{validation}
+
+\begin{frame}[fragile]{Pseudo-absences}
+\phantomsection\label{pseudo-absences}
+\begin{verbatim}
+SDM Layer with 45336 Bool cells
+    Proj string: +proj=longlat +datum=WGS84 +no_defs
+    Grid size: (239, 543)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Visu}
+\phantomsection\label{visu}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_8_1.png}}~
+\end{frame}
+
+\section{Model setup}\label{model-setup}
+
+\begin{frame}[fragile]{Setup}
+\phantomsection\label{setup}
+\begin{verbatim}
+SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
+) ≥ 0.5
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Cross-validation}
+\phantomsection\label{cross-validation}
+\begin{verbatim}
+0.5620979518435002
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{re-training}
+\phantomsection\label{re-training}
+\begin{verbatim}
+SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
+) ≥ 0.281
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Initial pred}
+\phantomsection\label{initial-pred}
+\begin{verbatim}
+SDM Layer with 69967 Float64 cells
+    Proj string: +proj=longlat +datum=WGS84 +no_defs
+    Grid size: (239, 543)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Visu}
+\phantomsection\label{visu-1}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_13_1.png}}~
+\end{frame}
+
+\section{Why?}\label{why}
+
+\begin{frame}{code}
+\phantomsection\label{code}
+\end{frame}
+
+\begin{frame}{Visu}
+\phantomsection\label{visu-2}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
+\end{frame}
+
+\begin{frame}[fragile]{mosaic}
+\phantomsection\label{mosaic}
+\begin{verbatim}
+SDM Layer with 69967 Int64 cells
+    Proj string: +proj=longlat +datum=WGS84 +no_defs
+    Grid size: (239, 543)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{visu}
+\phantomsection\label{visu-3}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
+\end{frame}
+
+\section{About ensemble models}\label{about-ensemble-models}
+
+\begin{frame}[fragile]{Uncertainty}
+\phantomsection\label{uncertainty}
+\begin{verbatim}
+0.6537641876644507
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Add pred}
+\phantomsection\label{add-pred}
+\begin{verbatim}
+SDM Layer with 69967 Float64 cells
+    Proj string: +proj=longlat +datum=WGS84 +no_defs
+    Grid size: (239, 543)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Visu 2}
+\phantomsection\label{visu-2-1}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_20_1.png}}~
 \end{frame}
 
 \begin{frame}[plain]
