@@ -93,17 +93,40 @@
 \end{picture}
 }
 
-\title{$title$}
-\subtitle{$subtitle$}
-\date{$date$}
-\author{$author$}
-\institute{$institute$}
+\title{Interpretable ML for biodiversity}
+\subtitle{An introduction using species distribution models}
+\date{\today}
+\author{Timothée Poisot}
+\institute{Université de Montréal}
 
 \begin{document}
 
 \maketitle
 
-$body$
+\begin{frame}[fragile]{Main goals}
+\phantomsection\label{main-goals}
+\begin{enumerate}
+\tightlist
+\item
+  Easy generation of slides
+\item
+  Integration with \texttt{R} and \texttt{Julia}
+\item
+  Looks nice
+\end{enumerate}
+\end{frame}
+
+\section{Introduction}\label{introduction}
+
+\begin{frame}[fragile]{Getting data}
+\phantomsection\label{getting-data}
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{using} \BuiltInTok{SpeciesDistributionToolkit}
+\ImportTok{using} \BuiltInTok{CairoMakie}
+\end{Highlighting}
+\end{Shaded}
+\end{frame}
 
 \begin{frame}[plain]
   \begin{picture}(0,0)
