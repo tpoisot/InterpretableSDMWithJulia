@@ -1,0 +1,45 @@
+% Beamer mtheme
+%
+% Copyright 2014 Matthias Vogelgesang
+% Licensed under CC-BY-SA 4.0 International.
+%
+% The initial template comes from the HSRM beamer theme by Benjamin Weiss, which
+% you can find at https://github.com/hsrmbeamertheme/hsrmbeamertheme.
+%
+
+\ProvidesPackage{beamerfontthemepl}
+
+\RequirePackage{mathspec}
+\defaultfontfeatures{Mapping=tex-text,Ligatures={TeX,Common},Scale=MatchLowercase}
+
+% NOTE Other families that work well: Noto Sans/Mono, Ubuntu Sans/Mono, Fira Sans/Mono
+
+\setmathfont(Digits,Latin,Greek){Tinos}
+\setmainfont{Tinos}
+\setsansfont{Arimo}
+\setmonofont{Cousine}
+
+\let\varepsilon\epsilon
+\let\varphi\phi
+
+\setbeamerfont{title}{size=\Large, series=\bfseries, family=\sffamily}
+\setbeamerfont{subtitle}{size=\large, series=\mdseries, family=\sffamily}
+\setbeamerfont{author}{size=\small, family=\sffamily}
+\setbeamerfont{institute}{size=\small, family=\sffamily}
+\setbeamerfont{date}{size=\small, family=\sffamily}
+
+\setbeamerfont{section title}{size=\normalsize, series=\mdseries, family=\sffamily}
+
+\setbeamerfont{block title}{size=\normalsize, family=\sffamily}
+\setbeamerfont{block title alerted}{size=\normalsize, family=\sffamily}
+
+\setbeamerfont{frametitle}{size=\normalsize, series=\mdseries, family=\sffamily}
+
+\setbeamerfont{caption}{size=\small}
+\setbeamerfont{caption name}{size=\small, series=\bfseries}
+
+\setbeamerfont{description item}{series=\bfseries, family=\sffamily}
+
+\setbeamerfont{page number in head/foot}{size=\scriptsize}
+
+\linespread{1.3}

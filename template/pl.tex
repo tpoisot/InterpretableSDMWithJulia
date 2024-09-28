@@ -1,0 +1,118 @@
+\documentclass[12pt, compress, aspectratio=1610]{beamer}
+
+\usetheme{pl}
+
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{minted}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},fontsize=\small}
+% Add ',fontsize=\small' for more characters per line
+\usepackage[framemethod=tikz]{mdframed}
+\definecolor{shadecolor}{HTML}{EEEEEE}
+\mdfsetup{
+  backgroundcolor=shadecolor,
+  linecolor=shadecolor,
+  innerleftmargin=5pt,
+  innerrightmargin=5pt,
+  leftmargin=-5pt,
+  rightmargin=-5pt,
+  roundcorner=3pt
+}
+\newenvironment{Shaded}{\begin{mdframed}}{\end{mdframed}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.26,0.66,0.93}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{\underline{{#1}}}}
+\newcommand{\DecValTok}[1]{\textcolor[HTML]{558B2F}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[HTML]{558B2F}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[HTML]{558B2F}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\CommentTok}[1]{\textcolor[HTML]{546E7A}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[HTML]{BCAAA4}{\textit{{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[HTML]{BCAAA4}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[HTML]{26A69A}{\textbf{{#1}}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.26,0.66,0.93}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\BuiltInTok}[1]{\textcolor[HTML]{42A5F5}{{#1}}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{\textbf{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.00,0.40,1.00}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[HTML]{FF6E40}{\textbf{{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[HTML]{FF3D00}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[HTML]{DD2C00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{\textcolor[HTML]{212121}{{#1}}}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\let\OldTexttt\texttt
+\renewcommand{\texttt}[1]{\OldTexttt{\color{codecolor}#1}}
+
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\makeatother
+
+\usepgfplotslibrary{dateplot}
+
+\newcommand{\begincols}{\begin{columns}}
+\newcommand{\stopcols}{\end{columns}}
+\newcommand{\roundpicture}[2]{%
+\tikz\node[circle,
+          text=white,
+          minimum width=4cm,
+          minimum height=4cm,
+          path picture={
+              \node at (path picture bounding box.center){
+                  \includegraphics[width=4cm]{#1}
+              };
+          }]{#2};
+}
+\newcommand{\plain}[1]{%
+\begin{picture}(0,0)
+  \put(-28.5,-175){%
+      \pgfuseimage{titlebackground}
+  }
+  \put(0,-145){%
+      \begin{minipage}[b][4.5cm][t]{0.7\textwidth}
+          \Large
+          #1
+      \end{minipage}
+  }
+\end{picture}
+}
+
+\title{$title$}
+\subtitle{$subtitle$}
+\date{$date$}
+\author{$author$}
+\institute{$institute$}
+
+\begin{document}
+
+\maketitle
+
+$body$
+
+\begin{frame}[plain]
+  \begin{picture}(0,0)
+    \put(-28.5,-175){%
+      \pgfuseimage{titlebackground}
+    }
+  \end{picture}
+\end{frame}
+
+\end{document}
