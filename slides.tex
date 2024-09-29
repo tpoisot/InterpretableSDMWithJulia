@@ -2,6 +2,8 @@
 
 \usetheme{pl}
 
+\usepackage[copies]{contour}
+
 \usepackage{longtable}
 \usepackage{booktabs}
 \usepackage{minted}
@@ -68,7 +70,7 @@
   \fi%
 }
 % Set default figure placement to htbp
-\def\fps@figure{htbp}
+\def\fps@figure{p}
 \makeatother
 
 \providecommand{\tightlist}{%
@@ -157,38 +159,55 @@
 \begin{description}
 \tightlist
 \item[\ldots{} think of SDM as a ML problem?]
-Because they are (and would be better if we accepted this)
+Because they are! We want to learn a predictive algorithm from data
 \item[\ldots{} the focus on explainability?]
-We cannot ask people to \emph{trust} - we must \emph{convince}
+We cannot ask people to \emph{trust} - we must \emph{convince} and
+\emph{explain}
 \end{description}
 \end{frame}
 
-\section{Introduction}\label{introduction}
+\section{Problem statement}\label{problem-statement}
 
-\begin{frame}{Getting data}
-\phantomsection\label{getting-data}
+\begin{frame}{The problem in ecological terms}
+\phantomsection\label{the-problem-in-ecological-terms}
+We have information about a species
 \end{frame}
 
-\begin{frame}{Getting a polygon}
-\phantomsection\label{getting-a-polygon}
+\begin{frame}{The problem in other words}
+\phantomsection\label{the-problem-in-other-words}
+We have a series of observations \(y \in \mathbb{B}\), and predictors
+variables \(\mathbf{X} \in \mathbb{R}\)
+
+We want to find an algorithm \(f(\mathbf{x}) = \hat y\) that results in
+the distance between \(\hat y\) and \(y\) being \emph{small}
 \end{frame}
 
-\begin{frame}{CHELSA2 data}
-\phantomsection\label{chelsa2-data}
+\begin{frame}{Setting up the data for our example}
+\phantomsection\label{setting-up-the-data-for-our-example}
+The predictor data will come from CHELSA2 - we will start with the 19
+BioClim variables
+
+We will use data on observations of \emph{Turdus torquatus} in
+Switzerland, downloaded from the copy of the eBird dataset on GBIF
 \end{frame}
 
-\begin{frame}{Trimming polygon}
-\phantomsection\label{trimming-polygon}
+\begin{frame}{The observation data}
+\phantomsection\label{the-observation-data}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_4_1.png}}~
 \end{frame}
 
-\begin{frame}{Download data from GBIF}
-\phantomsection\label{download-data-from-gbif}
+\begin{frame}{Problem!}
+\phantomsection\label{problem}
+We want \(\hat y \in \mathbb{B}\), and so far we are missing
+\alert{negative values}
 \end{frame}
 
-\section{Validation}\label{validation}
+\begin{frame}[fragile]{Solution!}
+\phantomsection\label{solution}
+pseudo-absences
 
-\begin{frame}[fragile]{Pseudo-absences}
-\phantomsection\label{pseudo-absences}
+what are the assumptions we make
+
 \begin{verbatim}
 SDM Layer with 45336 Bool cells
     Proj string: +proj=longlat +datum=WGS84 +no_defs
@@ -196,12 +215,21 @@ SDM Layer with 45336 Bool cells
 \end{verbatim}
 \end{frame}
 
-\begin{frame}{Visu}
-\phantomsection\label{visu}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_8_1.png}}~
+\begin{frame}{The (inflated) observation data}
+\phantomsection\label{the-inflated-observation-data}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_6_1.png}}~
 \end{frame}
 
-\section{Model setup}\label{model-setup}
+\section{Training the model}\label{training-the-model}
+
+\begin{frame}{The Naive Bayes Classifier}
+\phantomsection\label{the-naive-bayes-classifier}
+\[P(+|x) = \frac{P(+)}{P(x)}P(x|+)\]
+
+\[\hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)\]
+
+\[P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))\]
+\end{frame}
 
 \begin{frame}[fragile]{Setup}
 \phantomsection\label{setup}
@@ -211,81 +239,66 @@ SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
 \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{Cross-validation}
+\begin{frame}{Cross-validation}
 \phantomsection\label{cross-validation}
+Can we train the model
+
+assumes parallel universes with slightly less data
+
+is the model good?
+\end{frame}
+
+\begin{frame}[fragile]{Cross-validation strategy}
+\phantomsection\label{cross-validation-strategy}
+k-fold
+
+validation / training / testing
+
 \begin{verbatim}
-0.5620979518435002
+0.33164125784542653
 \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{re-training}
-\phantomsection\label{re-training}
-\begin{verbatim}
-SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
-) ≥ 0.281
-\end{verbatim}
-\end{frame}
+\begin{frame}[fragile]{What to do if the model is trainable?}
+\phantomsection\label{what-to-do-if-the-model-is-trainable}
+train it!
 
-\begin{frame}[fragile]{Initial pred}
-\phantomsection\label{initial-pred}
+re-use the full dataset
+
 \begin{verbatim}
-SDM Layer with 69967 Float64 cells
+SDM Layer with 69967 Bool cells
     Proj string: +proj=longlat +datum=WGS84 +no_defs
     Grid size: (239, 543)
 \end{verbatim}
 \end{frame}
 
-\begin{frame}{Visu}
-\phantomsection\label{visu-1}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_13_1.png}}~
+\begin{frame}{Initial prediction}
+\phantomsection\label{initial-prediction}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_10_1.png}}~
 \end{frame}
 
-\section{Why?}\label{why}
+\begin{frame}{Can we improve on this model?}
+\phantomsection\label{can-we-improve-on-this-model}
+variable selection
 
-\begin{frame}{code}
-\phantomsection\label{code}
+data transformation
+
+hyper-parameters tuning
+
+will focus on the later (same process for the two above)
 \end{frame}
 
-\begin{frame}{Visu}
-\phantomsection\label{visu-2}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
+\begin{frame}{Moving theshold classification}
+\phantomsection\label{moving-theshold-classification}
+p plus \textgreater{} p minus means threshold is 0.5
+
+is it?
+
+how do we check this
 \end{frame}
 
-\begin{frame}[fragile]{mosaic}
-\phantomsection\label{mosaic}
-\begin{verbatim}
-SDM Layer with 69967 Int64 cells
-    Proj string: +proj=longlat +datum=WGS84 +no_defs
-    Grid size: (239, 543)
-\end{verbatim}
-\end{frame}
-
-\begin{frame}{visu}
-\phantomsection\label{visu-3}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
-\end{frame}
-
-\section{About ensemble models}\label{about-ensemble-models}
-
-\begin{frame}[fragile]{Uncertainty}
-\phantomsection\label{uncertainty}
-\begin{verbatim}
-0.6537641876644507
-\end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Add pred}
-\phantomsection\label{add-pred}
-\begin{verbatim}
-SDM Layer with 69967 Float64 cells
-    Proj string: +proj=longlat +datum=WGS84 +no_defs
-    Grid size: (239, 543)
-\end{verbatim}
-\end{frame}
-
-\begin{frame}{Visu 2}
-\phantomsection\label{visu-2-1}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_20_1.png}}~
+\begin{frame}{Optimizing the threshold}
+\phantomsection\label{optimizing-the-threshold}
 \end{frame}
 
 \begin{frame}[plain]

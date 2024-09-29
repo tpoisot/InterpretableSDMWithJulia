@@ -5,11 +5,11 @@ provider = RasterData(CHELSA2, BioClim)
 layer =
     0.1SDMLayer(
         provider;
-        layer = "BIO3",
-        left = 10.0,
-        right = 18.0,
-        bottom = 49.0,
-        top = 54.0,
+        layer = "BIO1",
+        left = -78.0,
+        right = -70.0,
+        bottom = 42.0,
+        top = 47.0,
     )
 
 bg_pal = :starrynight

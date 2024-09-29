@@ -7,6 +7,7 @@ subtitle: "An introduction using species distribution models"
 ---
 
 
+
 ## Main goals
 
 1. How do we produce a model?
@@ -26,42 +27,53 @@ subtitle: "An introduction using species distribution models"
 ## But why...
 
 ... think of SDM as a ML problem?
-: Because they are (and would be better if we accepted this)
+: Because they are! We want to learn a predictive algorithm from data
 
 ... the focus on explainability?
-: We cannot ask people to *trust* - we must *convince*
+: We cannot ask people to *trust* - we must *convince* and *explain*
 
-# Introduction
+# Problem statement
 
-## Getting data
+## The problem in ecological terms
 
+We have information about a species
 
+## The problem in other words
 
+We have a series of observations $y \in \mathbb{B}$, and predictors variables $\mathbf{X} \in \mathbb{R}$
 
+We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the distance between $\hat y$ and $y$ being *small*
 
-## Getting a polygon
+## Setting up the data for our example
 
-
-
-
-## CHELSA2 data
-
-
-
-
-## Trimming polygon
+The predictor data will come from CHELSA2 - we will start with the 19 BioClim variables
 
 
 
 
-## Download data from GBIF
+
+We will use data on observations of *Turdus torquatus* in Switzerland, downloaded from the copy of the eBird dataset on GBIF
 
 
 
 
-# Validation
 
-## Pseudo-absences
+## The observation data
+
+![](figures/slides_4_1.png)\ 
+
+
+
+
+## Problem!
+
+We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative values}
+
+## Solution!
+
+pseudo-absences
+
+what are the assumptions we make
 
 ~~~~
 SDM Layer with 45336 Bool cells
@@ -73,15 +85,22 @@ SDM Layer with 45336 Bool cells
 
 
 
-## Visu
+## The (inflated) observation data
 
-![](figures/slides_8_1.png)\ 
-
-
+![](figures/slides_6_1.png)\ 
 
 
 
-# Model setup
+
+# Training the model
+
+## The Naive Bayes Classifier
+
+$$P(+|x) = \frac{P(+)}{P(x)}P(x|+)$$
+
+$$\hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)$$
+
+$$P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))$$
 
 ## Setup
 
@@ -96,29 +115,34 @@ SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
 
 ## Cross-validation
 
-~~~~
-0.5620979518435002
-~~~~
+Can we train the model
 
+assumes parallel universes with slightly less data
 
+is the model good?
 
+## Cross-validation strategy
 
+k-fold
 
-## re-training
-
-~~~~
-SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
-) ≥ 0.281
-~~~~
-
-
-
-
-
-## Initial pred
+validation / training / testing
 
 ~~~~
-SDM Layer with 69967 Float64 cells
+0.33164125784542653
+~~~~
+
+
+
+
+
+## What to do if the model is trainable?
+
+train it!
+
+re-use the full dataset
+
+~~~~
+SDM Layer with 69967 Bool cells
 	Proj string: +proj=longlat +datum=WGS84 +no_defs
 	Grid size: (239, 543)
 ~~~~
@@ -127,71 +151,30 @@ SDM Layer with 69967 Float64 cells
 
 
 
-## Visu
+## Initial prediction
 
-![](figures/slides_13_1.png)\ 
-
-
-
-
-# Why?
-
-## code
+![](figures/slides_10_1.png)\ 
 
 
 
 
-## Visu
+## Can we improve on this model?
 
-![](figures/slides_15_1.png)\ 
+variable selection
 
+data transformation
 
+hyper-parameters tuning
 
+will focus on the later (same process for the two above)
 
-## mosaic
+## Moving theshold classification
 
-~~~~
-SDM Layer with 69967 Int64 cells
-	Proj string: +proj=longlat +datum=WGS84 +no_defs
-	Grid size: (239, 543)
-~~~~
+p plus > p minus means threshold is 0.5
 
+is it?
 
+how do we check this
 
-
-
-## visu
-
-![](figures/slides_17_1.png)\ 
-
-
-
-
-# About ensemble models 
-
-## Uncertainty
-
-~~~~
-0.6537641876644507
-~~~~
-
-
-
-
-
-## Add pred
-
-~~~~
-SDM Layer with 69967 Float64 cells
-	Proj string: +proj=longlat +datum=WGS84 +no_defs
-	Grid size: (239, 543)
-~~~~
-
-
-
-
-
-## Visu 2
-
-![](figures/slides_20_1.png)\ 
+## Optimizing the threshold
 

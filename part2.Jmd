@@ -1,0 +1,130 @@
+
+# Why?
+
+## code
+
+```julia
+part_v1 = partialresponse(sdm, layers, first(variables(sdm)); threshold = false);
+shap_v1 = explain(sdm, layers, first(variables(sdm)); threshold = false, samples = 50);
+```
+
+## Visu
+
+```julia
+f = Figure(; size = (600, 600))
+ax = Axis(f[1, 1]; aspect = DataAspect(), title = "Shapley values")
+hm = heatmap!(
+    ax,
+    shap_v1;
+    colormap = :diverging_gwv_55_95_c39_n256,
+    colorrange = (-0.3, 0.3),
+)
+contour!(
+    ax,
+    predict(sdm, layers);
+    color = :black,
+    linewidth = 0.5,
+)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+Colorbar(f[1, 2], hm)
+ax2 = Axis(f[2, 1]; aspect = DataAspect(), title = "Partial response")
+hm = heatmap!(ax2, part_v1; colormap = :linear_gow_65_90_c35_n256, colorrange = (0, 1))
+contour!(
+    ax2,
+    predict(sdm, layers);
+    color = :black,
+    linewidth = 0.5,
+)
+lines!(ax2, CHE.geometry[1]; color = :black)
+Colorbar(f[2, 2], hm)
+hidedecorations!(ax2)
+hidespines!(ax2)
+current_figure()
+```
+
+## mosaic
+
+```julia
+S = explain(sdm, layers; threshold = false, samples = 100);
+mostimp = mosaic(v -> argmax(abs.(v)), S)
+```
+
+## visu
+
+```julia
+f = Figure(; size = (600, 300))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+heatmap!(
+    ax,
+    mostimp;
+    colormap = cgrad(
+        :glasbey_bw_n256,
+        length(variables(sdm));
+        categorical = true,
+    ),
+)
+contour!(
+    ax,
+    predict(sdm, layers);
+    color = :black,
+    linewidth = 0.5,
+)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+# About ensemble models 
+
+## Uncertainty
+
+```julia
+ensemble = Bagging(sdm, 30)
+for model in ensemble.models
+    variables!(model, unique(rand(variables(model), length(variables(model)))))
+end
+train!(ensemble)
+outofbag(ensemble) |> mcc
+```
+
+## Add pred
+
+```julia
+prd = predict(ensemble, layers; consensus = median, threshold = false)
+unc = predict(ensemble, layers; consensus = iqr, threshold = false)
+```
+
+## Visu 2
+
+```julia
+f = Figure(; size = (600, 600))
+ax = Axis(f[1, 1]; aspect = DataAspect(), title = "Prediction")
+hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+Colorbar(f[1, 2], hm)
+contour!(
+    ax,
+    predict(ensemble, layers; consensus = majority);
+    color = :black,
+    linewidth = 0.5,
+)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+ax2 = Axis(f[2, 1]; aspect = DataAspect(), title = "Uncertainty")
+hm =
+    heatmap!(ax2, quantize(unc); colormap = :linear_gow_60_85_c27_n256, colorrange = (0, 1))
+Colorbar(f[2, 2], hm)
+contour!(
+    ax2,
+    predict(ensemble, layers; consensus = majority);
+    color = :black,
+    linewidth = 0.5,
+)
+lines!(ax2, CHE.geometry[1]; color = :black)
+hidedecorations!(ax2)
+hidespines!(ax2)
+current_figure()
+```
