@@ -13,6 +13,9 @@ background.png: makebackground.jl
 literate: $(wildcard $(FILE).jl)
 	@$(if $(wildcard $(FILE).jl),julia --project assets/literate.jl $<,echo "No jl file found")
 
+tangle: $(wildcard $(FILE).Jmd)
+	@$(if $(wildcard $(FILE).Jmd),julia --project assets/tangle.jl $<,echo "No Jmd file found")
+
 weave: $(wildcard $(FILE).Jmd)
 	@$(if $(wildcard $(FILE).Jmd),julia --project assets/weave.jl $<,echo "No Jmd file found")
 

@@ -6,6 +6,7 @@
 
 \usepackage{longtable}
 \usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage{minted}
 \usepackage{listings}
 \usepackage{color}
@@ -97,17 +98,19 @@
           }]{#2};
 }
 \newcommand{\plain}[1]{%
-\begin{picture}(0,0)
-  \put(-28.5,-175){%
-      \pgfuseimage{titlebackground}
-  }
-  \put(0,-145){%
-      \begin{minipage}[b][4.5cm][t]{0.7\textwidth}
-          \Large
-          #1
-      \end{minipage}
-  }
-\end{picture}
+\begin{tikzpicture}[remember picture, overlay]
+    \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+        \pgfuseimage{titlebackground};%
+    };
+
+\node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \tikz {\draw [very nearly opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (12,10);}%
+            };
+            \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=1.5cm] {%
+                \Large
+                #1
+            };
+        \end{tikzpicture}
 }
 
 \title{$title$}
@@ -118,16 +121,6 @@
 
 \begin{document}
 
-\maketitle
-
 $body$
-
-\begin{frame}[plain]
-  \begin{picture}(0,0)
-    \put(-28.5,-175){%
-      \pgfuseimage{titlebackground}
-    }
-  \end{picture}
-\end{frame}
 
 \end{document}

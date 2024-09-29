@@ -60,7 +60,7 @@ We will use data on observations of *Turdus torquatus* in Switzerland, downloade
 
 ## The observation data
 
-![](figures/slides_4_1.png)\ 
+![](figures/slides_4_1.png){height=\textheight}\ 
 
 
 
@@ -75,19 +75,12 @@ pseudo-absences
 
 what are the assumptions we make
 
-~~~~
-SDM Layer with 45336 Bool cells
-	Proj string: +proj=longlat +datum=WGS84 +no_defs
-	Grid size: (239, 543)
-~~~~
-
-
 
 
 
 ## The (inflated) observation data
 
-![](figures/slides_6_1.png)\ 
+![](figures/slides_6_1.png){height=\textheight}\ 
 
 
 
@@ -104,12 +97,6 @@ $$P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))$$
 
 ## Setup
 
-~~~~
-SDeMo.MultivariateTransform{MultivariateStats.PCA} → SDeMo.NaiveBayes → P(x
-) ≥ 0.5
-~~~~
-
-
 
 
 
@@ -121,16 +108,31 @@ assumes parallel universes with slightly less data
 
 is the model good?
 
+## Null classifiers
+
+coin flip
+
+no skill
+
+constant
+
+## Expectations
+
+| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR** | **Accuracy** |
+|-----------------:|-------------:|---------:|---------:|--------:|-------------:|
+| noskill          | -3.10619e-17 | 0.336873 | 0.663127 | 1.0     | 0.553221     |
+| coinflip         | -0.326255    | 0.336873 | 0.336873 | 0.25807 | 0.336873     |
+| constantpositive | 0.0          | 0.336873 | NaN      | NaN     | 0.336873     |
+| constantnegative | 0.0          | NaN      | 0.663127 | NaN     | 0.663127     |
+
+
+
+
 ## Cross-validation strategy
 
 k-fold
 
 validation / training / testing
-
-~~~~
-0.33164125784542653
-~~~~
-
 
 
 
@@ -141,19 +143,12 @@ train it!
 
 re-use the full dataset
 
-~~~~
-SDM Layer with 69967 Bool cells
-	Proj string: +proj=longlat +datum=WGS84 +no_defs
-	Grid size: (239, 543)
-~~~~
-
-
 
 
 
 ## Initial prediction
 
-![](figures/slides_10_1.png)\ 
+![](figures/slides_11_1.png){height=\textheight}\ 
 
 
 
@@ -161,6 +156,9 @@ SDM Layer with 69967 Bool cells
 ## Can we improve on this model?
 
 variable selection
+
+
+
 
 data transformation
 
@@ -176,5 +174,141 @@ is it?
 
 how do we check this
 
-## Optimizing the threshold
 
+
+
+## Learning curve for the threshold
+
+![](figures/slides_14_1.png){height=\textheight}\ 
+
+
+
+
+## Receiver Operating Characteristic
+
+![](figures/slides_15_1.png){height=\textheight}\ 
+
+
+
+
+## Precision-Recall Curve
+
+![](figures/slides_16_1.png){height=\textheight}\ 
+
+
+
+
+## Revisting the model performance
+
+
+
+
+
+## Updated prediction
+
+![](figures/slides_19_1.png){height=\textheight}\ 
+
+
+
+
+## Variable importance
+
+
+
+
+# But why?
+
+## Intro explainable
+
+## An ecology tool: partial response curves
+
+## Example with temperature
+
+![](figures/slides_21_1.png){height=\textheight}\ 
+
+
+
+
+## Example with two variables
+
+![](figures/slides_22_1.png){height=\textheight}\ 
+
+
+
+
+## Spatialized partial response plot
+
+![](figures/slides_23_1.png){height=\textheight}\ 
+
+
+
+
+## Spatialized partial response (binary outcome)
+
+![](figures/slides_24_1.png){height=\textheight}\ 
+
+
+
+
+## Inflated response curves
+
+Averaging the variables is \alert{masking a lot of variability}!
+
+Alternative solution:
+
+1. Generate a grid for all the variables
+2. For all combinations in this grid, use it as the stand-in for the variables to replace
+
+In practice: Monte-Carlo on a reasonable number of samples.
+
+## Example
+
+![](figures/slides_25_1.png){height=\textheight}\ 
+
+
+
+
+## Limitations
+
+- partial responses can only generate model-level information
+- they break the structure of values for all predictors at the scale of a single observation
+- their interpretation is unclear
+
+## Shapley
+
+## Example
+
+
+
+
+## Response curves revisited
+
+![](figures/slides_27_1.png){height=\textheight}\ 
+
+
+
+
+## On a map
+
+![](figures/slides_28_1.png){height=\textheight}\ 
+
+
+
+
+## Variable importance revisited
+
+with shapley
+
+## Most important predictor
+
+mosaic map
+
+# What if?
+
+## Intro to counterfactuals
+
+what they are
+
+# Ensemble models
+
+# Conclusions

@@ -1,19 +1,4 @@
----
-title: Interpretable ML for biodiversity
-subtitle: An introduction using species distribution models
-author: Timothée Poisot
-institute: Université de Montréal
-date: \today
-weave_options:
-    doctype: pandoc
-    echo: false
-    term: false
-    results: hidden
-    cache: true
-    out_height: 100%
----
 
-```julia
 using SpeciesDistributionToolkit
 using CairoMakie
 using Statistics
@@ -35,49 +20,8 @@ update_theme!(;
         :bold_italic => "Inter Medium Italic",
     )
 )
-```
 
-## Main goals
 
-1. How do we produce a model?
-2. How do we convey that it works?
-3. How do we talk about how it makes predictions?
-4. How do we use it to guide actions?
-
-## The steps
-
-1. Get data about species occurrences
-2. Build a classifier and make it as good as we can
-3. Measure its performance
-4. Explain some predictions
-5. Generate counterfactual explanations
-6. Briefly discuss ensemble models
-
-## But why...
-
-... think of SDM as a ML problem?
-: Because they are! We want to learn a predictive algorithm from data
-
-... the focus on explainability?
-: We cannot ask people to *trust* - we must *convince* and *explain*
-
-# Problem statement
-
-## The problem in ecological terms
-
-We have information about a species
-
-## The problem in other words
-
-We have a series of observations $y \in \mathbb{B}$, and predictors variables $\mathbf{X} \in \mathbb{R}$
-
-We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the distance between $\hat y$ and $y$ being *small*
-
-## Setting up the data for our example
-
-The predictor data will come from CHELSA2 - we will start with the 19 BioClim variables
-
-```julia
 CHE = SpeciesDistributionToolkit.gadm("CHE");
 provider = RasterData(CHELSA2, BioClim)
 predictors = [
@@ -92,13 +36,8 @@ predictors = [
 ];
 predictors = [trim(mask!(layer, CHE)) for layer in predictors];
 predictors = map(l -> convert(SDMLayer{Float32}, l), predictors);
-```
 
 
-We will use data on observations of *Turdus torquatus* in Switzerland, downloaded from the copy of the eBird dataset on GBIF
-
-
-```julia
 ouzel = taxon("Turdus torquatus")
 presences = occurrences(
     ouzel,
@@ -110,11 +49,8 @@ presences = occurrences(
 while length(presences) < count(presences)
     occurrences!(presences)
 end
-```
 
-## The observation data
 
-```julia
 f = Figure(; size=(600, 280))
 ax = Axis(f[1,1], aspect=DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
@@ -123,19 +59,8 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-## Problem!
 
-We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative values}
-
-## Solution!
-
-pseudo-absences
-
-what are the assumptions we make
-
-```julia
 presencelayer = zeros(first(predictors), Bool)
 for occ in mask(presences, CHE)
     presencelayer[occ.longitude, occ.latitude] = true
@@ -143,11 +68,8 @@ end
 
 background = pseudoabsencemask(DistanceToEvent, presencelayer)
 bgpoints = backgroundpoints(nodata(background, d -> d < 4), 2sum(presencelayer))
-```
 
-## The (inflated) observation data
 
-```julia
 f = Figure(; size=(600, 280))
 ax = Axis(f[1,1], aspect=DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
@@ -157,43 +79,11 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-# Training the model
 
-## The Naive Bayes Classifier
-
-$$P(+|x) = \frac{P(+)}{P(x)}P(x|+)$$
-
-$$\hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)$$
-
-$$P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))$$
-
-## Setup
-
-```julia
 sdm = SDM(MultivariateTransform{PCA}, NaiveBayes, predictors, presencelayer, bgpoints)
-```
 
-## Cross-validation
 
-Can we train the model
-
-assumes parallel universes with slightly less data
-
-is the model good?
-
-## Null classifiers
-
-coin flip
-
-no skill
-
-constant
-
-## Expectations
-
-```julia; results="raw"
 hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
 tbl = []
 for null in [noskill, coinflip, constantpositive, constantnegative]
@@ -202,49 +92,18 @@ for null in [noskill, coinflip, constantpositive, constantnegative]
 end
 data = permutedims(hcat(tbl...))
 pretty_table(data; backend = Val(:markdown), header = hdr)
-```
 
-## Cross-validation strategy
 
-k-fold
-
-validation / training / testing
-
-```julia
 folds = kfold(sdm);
 cv = crossvalidate(sdm, folds; threshold = false);
-```
+mean(mcc.(cv.validation))
 
-## Cross-validation results
 
-```julia; results="raw"
-hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
-tbl = []
-for null in [noskill, coinflip, constantpositive, constantnegative]
-    m = null(sdm)
-    push!(tbl, [null, mcc(m), ppv(m), npv(m), dor(m), accuracy(m)])
-end
-push!(tbl, ["Validation", mean(mcc.(cv.validation)), mean(ppv.(cv.validation)), mean(npv.(cv.validation)), mean(dor.(cv.validation)), mean(accuracy.(cv.validation))])
-push!(tbl, ["Training", mean(mcc.(cv.training)), mean(ppv.(cv.training)), mean(npv.(cv.training)), mean(dor.(cv.training)), mean(accuracy.(cv.training))])
-data = permutedims(hcat(tbl...))
-pretty_table(data; backend = Val(:markdown), header = hdr)
-```
-
-## What to do if the model is trainable?
-
-train it!
-
-re-use the full dataset
-
-```julia
 train!(sdm; threshold=false)
 prd = predict(sdm, predictors; threshold = false)
 current_range = predict(sdm, predictors)
-```
 
-## Initial prediction
 
-```julia
 f = Figure(; size = (600, 280))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
@@ -255,84 +114,48 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-## Can we improve on this model?
 
-variable selection
-
-```julia
 forwardselection!(sdm, folds, [1])
-```
 
-data transformation
 
-hyper-parameters tuning
-
-will focus on the later (same process for the two above)
-
-## Moving theshold classification
-
-p plus > p minus means threshold is 0.5
-
-is it?
-
-how do we check this
-
-```julia
 THR = LinRange(0.0, 1.0, 200)
 cv = [crossvalidate(sdm, folds; thr=thr) for thr in THR]
 bst = last(findmax([mean(mcc.(c.training)) for c in cv]))
-```
 
-## Learning curve for the threshold
 
-```julia
 f= Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 lines!(ax, THR, [mean(mcc.(c.validation)) for c in cv], color=:black)
 lines!(ax, THR, [mean(mcc.(c.training)) for c in cv], color=:lightgrey, linestyle=:dash)
 scatter!(ax, [THR[bst]], [mean(mcc.(cv[bst].validation))], color=:black)
 current_figure()
-```
 
-## Receiver Operating Characteristic
 
-```julia
 f= Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 lines!(ax, [mean(fpr.(c.validation)) for c in cv], [mean(tpr.(c.validation)) for c in cv], color=:black)
 scatter!(ax, [mean(fpr.(cv[bst].validation))], [mean(tpr.(cv[bst].validation))], color=:black)
 current_figure()
-```
 
-## Precision-Recall Curve
 
-```julia
 f= Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 lines!(ax, [mean(ppv.(c.validation)) for c in cv], [mean(tpr.(c.validation)) for c in cv], color=:black)
 scatter!(ax, [mean(ppv.(cv[bst].validation))], [mean(tpr.(cv[bst].validation))], color=:black)
 current_figure()
-```
 
-## Revisting the model performance
 
-```julia
 cv = crossvalidate(sdm, folds; threshold = true)
 mean(npv.(cv.validation))
 npv(noskill(sdm))
-```
 
-```julia
+
 train!(sdm)
 prd = predict(sdm, predictors; threshold = false)
 current_range = predict(sdm, predictors)
-```
 
-## Updated prediction
 
-```julia
 f = Figure(; size = (600, 280))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
@@ -343,44 +166,26 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-## Variable importance
 
-```julia
 vimp = variableimportance(sdm, folds)
 vimp ./ sum(vimp)
-```
 
-# But why?
 
-## Intro explainable
-
-## An ecology tool: partial response curves
-
-## Example with temperature
-
-```julia
 x, y = partialresponse(sdm, 1; threshold=false)
 f = Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 lines!(ax, x, y)
 current_figure()
-```
 
-## Example with two variables
 
-```julia
 x, y, z = partialresponse(sdm, 1, 10; threshold=false)
 f = Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
 current_figure()
-```
 
-## Spatialized partial response plot
 
-```julia
 partial_temp = partialresponse(sdm, predictors, 1; threshold=false)
 f = Figure(; size = (600, 280))
 ax = Axis(f[1, 1]; aspect = DataAspect())
@@ -392,11 +197,8 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-## Spatialized partial response (binary outcome)
 
-```julia
 partial_temp = partialresponse(sdm, predictors, 1; threshold=true)
 f = Figure(; size = (600, 280))
 ax = Axis(f[1, 1]; aspect = DataAspect())
@@ -408,22 +210,8 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-## Inflated response curves
 
-Averaging the variables is \alert{masking a lot of variability}!
-
-Alternative solution:
-
-1. Generate a grid for all the variables
-2. For all combinations in this grid, use it as the stand-in for the variables to replace
-
-In practice: Monte-Carlo on a reasonable number of samples.
-
-## Example
-
-```julia
 f = Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 for i in 1:300
@@ -431,38 +219,21 @@ for i in 1:300
 end
 lines!(partialresponse(sdm, 1; inflated=false, threshold=false)..., color=:black)
 current_figure()
-```
 
-## Limitations
 
-- partial responses can only generate model-level information
-- they break the structure of values for all predictors at the scale of a single observation
-- their interpretation is unclear
-
-## Shapley
-
-## Example
-
-```julia
 explain(sdm, 1; threshold=false)
-```
 
-## Response curves revisited
 
-```julia
 f = Figure(; size=(280, 280))
 ax = Axis(f[1,1])
 scatter!(ax, features(sdm, 1), explain(sdm, 1; threshold=false), color=:black)
 current_figure()
-```
 
-## On a map
 
-```julia
 shapley_temp = explain(sdm, predictors, 1; threshold=false)
 f = Figure(; size = (600, 280))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.2, 0.2))
+hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.1, 0.1))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
 scatter!(ax, mask(presences, CHE), color=:black, markersize=3)
 Colorbar(f[1, 2], hm)
@@ -470,22 +241,4 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
-```
 
-## Variable importance revisited
-
-with shapley
-
-## Most important predictor
-
-mosaic map
-
-# What if?
-
-## Intro to counterfactuals
-
-what they are
-
-# Ensemble models
-
-# Conclusions

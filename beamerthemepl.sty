@@ -46,6 +46,8 @@
 
 \usetikzlibrary{backgrounds}
 \usetikzlibrary{calc}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.misc}
 \usetikzlibrary{fadings}
 
 \usecolortheme{pl}
@@ -58,27 +60,29 @@
 }
 
 \pgfdeclareimage[height=1.05\paperheight]{titlebackground}{background.png}
+\pgfdeclareimage[height=1.05\paperheight]{slidebackground}{slide-background.png}
 
 \def\maketitle{\ifbeamer@inframe\titlepage\else\frame[plain]{\titlepage}\fi}
 
 \def\titlepage{\usebeamertemplate{title page}}
 \setbeamertemplate{title page}
 {
-\begin{picture}(0,0)
-  \put(-28.5,-175){%
-      \pgfuseimage{titlebackground}
-  }
-  \put(398, 100){\color{black}\tiny\ccby}%
-  \put(0,-145){%
-      \begin{minipage}[b][4.5cm][t]{0.7\textwidth}
-              {\usebeamerfont{title}\contour[8]{white}{\inserttitle}\\[0.2cm]}
-              {\usebeamerfont{subtitle}\insertsubtitle\\[0.9cm]}
-              \vfill
-              {\usebeamerfont{author}\insertauthor \hfil \usebeamerfont{institute}\insertinstitute\par}
-              {\usebeamerfont{date}\insertdate}
-      \end{minipage}
-  }
-\end{picture}
+    \begin{tikzpicture}
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \pgfuseimage{titlebackground};%
+        };
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \tikz {\draw [very nearly opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (12,10);}%
+        };
+        \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=1.5cm] {%
+            %{\usebeamerfont{title}\contour[8]{white}{\inserttitle}\\[0.2cm]}
+            %{\usebeamerfont{subtitle}\insertsubtitle\\[0.9cm]}
+            %\vfill
+            %{\usebeamerfont{author}\insertauthor \hfil \usebeamerfont{institute}\insertinstitute\par}
+            %{\usebeamerfont{date}\insertdate}
+            lol
+        };
+    \end{tikzpicture}
 }
 
 \makeatletter
@@ -173,8 +177,8 @@
 
 % Let's change some options:
 \setvcoptions{
- segment distance=4,
- thickness=0.3ex
+ segment distance=2,
+ thickness=0.5ex
 }
 
 % Insert frame with section title at every section start
@@ -183,21 +187,74 @@
   \begingroup
     \setbeamercolor{background canvas}{parent=palette primary}
     \begin{frame}[plain]
-      \begin{picture}(0,0)
-        \put(-28.5,-175){%
-          \pgfuseimage{titlebackground}
-        }
-        \put(-28.5,-175){\tikz \fill [backgroundcolor] (1,1) rectangle (13,12);}%
-        \put(0,-145){%
-          \begin{minipage}[b][4.5cm][t]{0.5\textwidth}
-            {\small\color{foregroundcolor!50!backgroundcolor}\MakeUppercase{\sffamily§ \thesection}}\\[0.2pt]\color{structurecolor}\Large\mdseries\insertsectionHEAD
-          \end{minipage}
-        }
-      \end{picture}
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \pgfuseimage{titlebackground};%
+            };
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \tikz {\draw [very nearly opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (12,10);}%
+            };
+            \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=1.5cm] {%
+                {\small\color{foregroundcolor!50!backgroundcolor}\MakeUppercase{\sffamily§ \thesection}}\\[0.2pt]\color{structurecolor}\Large\mdseries\insertsectionHEAD
+            };
+        \end{tikzpicture}
     \end{frame}
   \endgroup
 }
 
+% No maketitle!!!
+\AtBeginDocument{
+    \begingroup
+    \begin{frame}[plain]
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \pgfuseimage{titlebackground};%
+            };
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \tikz {\draw [nearly transparent, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (16,10);}%
+            };
+            \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=0.75cm] {%
+                {\usebeamerfont{title}\inserttitle}\\
+                {\usebeamerfont{subtitle}\insertsubtitle}
+            };
+            \node at (current page.south west) [anchor = south west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=0.75cm, yshift=0.75cm] {%
+                {\usebeamerfont{author}\insertauthor \hskip 4em \usebeamerfont{institute}\insertinstitute}\\
+                {\usebeamerfont{date}\insertdate}
+            };
+        \end{tikzpicture}
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north east) [anchor = north east, inner sep = 0.1cm, outer sep = 0.1cm] {\tiny\ccby};%
+        \end{tikzpicture}
+    \end{frame}
+    \endgroup
+}
+
+% Insert frame at the end of the document
+\AtEndDocument
+{
+  \begingroup
+    \setbeamercolor{background canvas}{parent=palette primary}
+    \begin{frame}[plain]
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \pgfuseimage{titlebackground};%
+            };
+        \end{tikzpicture}
+    \end{frame}
+  \endgroup
+}
+
+% Update the default background to show a thin slice of the background
+\setbeamertemplate{background}{
+    \begin{tikzpicture}
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \pgfuseimage{slidebackground};%
+        };
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \tikz {\draw [opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (15.5,10);}%
+        };
+    \end{tikzpicture}
+} 
 
 \setbeamertemplate{caption label separator}{: }
 \setbeamertemplate{caption}[numbered]
