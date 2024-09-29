@@ -60,7 +60,7 @@ We will use data on observations of *Turdus torquatus* in Switzerland, downloade
 
 ## The observation data
 
-![](figures/slides_4_1.png){height=\textheight}\ 
+![](figures/slides_4_1.png){height=100%}\ 
 
 
 
@@ -80,7 +80,7 @@ what are the assumptions we make
 
 ## The (inflated) observation data
 
-![](figures/slides_6_1.png){height=\textheight}\ 
+![](figures/slides_6_1.png){height=100%}\ 
 
 
 
@@ -118,12 +118,12 @@ constant
 
 ## Expectations
 
-| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR** | **Accuracy** |
-|-----------------:|-------------:|---------:|---------:|--------:|-------------:|
-| noskill          | -3.10619e-17 | 0.336873 | 0.663127 | 1.0     | 0.553221     |
-| coinflip         | -0.326255    | 0.336873 | 0.336873 | 0.25807 | 0.336873     |
-| constantpositive | 0.0          | 0.336873 | NaN      | NaN     | 0.336873     |
-| constantnegative | 0.0          | NaN      | 0.663127 | NaN     | 0.663127     |
+| **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
+|-----------------:|----------:|---------:|---------:|---------:|-------------:|
+| noskill          | 0.0       | 0.339825 | 0.660175 | 1.0      | 0.551312     |
+| coinflip         | -0.320351 | 0.339825 | 0.339825 | 0.264967 | 0.339825     |
+| constantpositive | 0.0       | 0.339825 | NaN      | NaN      | 0.339825     |
+| constantnegative | 0.0       | NaN      | 0.660175 | NaN      | 0.660175     |
 
 
 
@@ -133,6 +133,20 @@ constant
 k-fold
 
 validation / training / testing
+
+
+
+
+## Cross-validation results
+
+| **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
+|-----------------:|----------:|---------:|---------:|---------:|-------------:|
+| noskill          | 0.0       | 0.339825 | 0.660175 | 1.0      | 0.551312     |
+| coinflip         | -0.320351 | 0.339825 | 0.339825 | 0.264967 | 0.339825     |
+| constantpositive | 0.0       | 0.339825 | NaN      | NaN      | 0.339825     |
+| constantnegative | 0.0       | NaN      | 0.660175 | NaN      | 0.660175     |
+| Validation       | 0.305111  | 0.594557 | 0.742387 | 4.5723   | 0.706929     |
+| Training         | 0.316304  | 0.60115  | 0.746074 | 4.4334   | 0.710267     |
 
 
 
@@ -148,7 +162,7 @@ re-use the full dataset
 
 ## Initial prediction
 
-![](figures/slides_11_1.png){height=\textheight}\ 
+![](figures/slides_12_1.png){height=100%}\ 
 
 
 
@@ -179,21 +193,21 @@ how do we check this
 
 ## Learning curve for the threshold
 
-![](figures/slides_14_1.png){height=\textheight}\ 
+![](figures/slides_15_1.png){height=100%}\ 
 
 
 
 
 ## Receiver Operating Characteristic
 
-![](figures/slides_15_1.png){height=\textheight}\ 
+![](figures/slides_16_1.png){height=100%}\ 
 
 
 
 
 ## Precision-Recall Curve
 
-![](figures/slides_16_1.png){height=\textheight}\ 
+![](figures/slides_17_1.png){height=100%}\ 
 
 
 
@@ -206,7 +220,7 @@ how do we check this
 
 ## Updated prediction
 
-![](figures/slides_19_1.png){height=\textheight}\ 
+![](figures/slides_20_1.png){height=100%}\ 
 
 
 
@@ -224,28 +238,28 @@ how do we check this
 
 ## Example with temperature
 
-![](figures/slides_21_1.png){height=\textheight}\ 
+![](figures/slides_22_1.png){height=100%}\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_22_1.png){height=\textheight}\ 
+![](figures/slides_23_1.png){height=100%}\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_23_1.png){height=\textheight}\ 
+![](figures/slides_24_1.png){height=100%}\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_24_1.png){height=\textheight}\ 
+![](figures/slides_25_1.png){height=100%}\ 
 
 
 
@@ -263,7 +277,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Example
 
-![](figures/slides_25_1.png){height=\textheight}\ 
+![](figures/slides_26_1.png){height=100%}\ 
 
 
 
@@ -283,14 +297,14 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
-![](figures/slides_27_1.png){height=\textheight}\ 
+![](figures/slides_28_1.png){height=100%}\ 
 
 
 
 
 ## On a map
 
-![](figures/slides_28_1.png){height=\textheight}\ 
+![](figures/slides_29_1.png){height=100%}\ 
 
 
 

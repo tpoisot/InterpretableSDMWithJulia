@@ -2,6 +2,8 @@
 
 \usetheme{pl}
 
+\usepackage[copies]{contour}
+
 \usepackage{longtable}
 \usepackage{booktabs}
 \usepackage{tabularx}
@@ -63,8 +65,7 @@
   \sbox\pandoc@box{#1}%
   \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
   \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
-  %\ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
-  %\ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
   \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
   \else\usebox{\pandoc@box}%
   \fi%
@@ -193,7 +194,7 @@ Switzerland, downloaded from the copy of the eBird dataset on GBIF
 
 \begin{frame}{The observation data}
 \phantomsection\label{the-observation-data}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_4_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_4_1.png}~
 \end{frame}
 
 \begin{frame}{Problem!}
@@ -211,7 +212,7 @@ what are the assumptions we make
 
 \begin{frame}{The (inflated) observation data}
 \phantomsection\label{the-inflated-observation-data}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_6_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_6_1.png}~
 \end{frame}
 
 \section{Training the model}\label{training-the-model}
@@ -250,12 +251,12 @@ constant
 \begin{frame}{Expectations}
 \phantomsection\label{expectations}
 \begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2400}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1867}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1333}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1333}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1200}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1867}}@{}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2466}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1507}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1918}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedleft
 \textbf{Model}
@@ -272,10 +273,10 @@ constant
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
-noskill & -3.10619e-17 & 0.336873 & 0.663127 & 1.0 & 0.553221 \\
-coinflip & -0.326255 & 0.336873 & 0.336873 & 0.25807 & 0.336873 \\
-constantpositive & 0.0 & 0.336873 & NaN & NaN & 0.336873 \\
-constantnegative & 0.0 & NaN & 0.663127 & NaN & 0.663127 \\
+noskill & 0.0 & 0.339825 & 0.660175 & 1.0 & 0.551312 \\
+coinflip & -0.320351 & 0.339825 & 0.339825 & 0.264967 & 0.339825 \\
+constantpositive & 0.0 & 0.339825 & NaN & NaN & 0.339825 \\
+constantnegative & 0.0 & NaN & 0.660175 & NaN & 0.660175 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -287,6 +288,41 @@ k-fold
 validation / training / testing
 \end{frame}
 
+\begin{frame}{Cross-validation results}
+\phantomsection\label{cross-validation-results}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2466}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1507}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1918}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+noskill & 0.0 & 0.339825 & 0.660175 & 1.0 & 0.551312 \\
+coinflip & -0.320351 & 0.339825 & 0.339825 & 0.264967 & 0.339825 \\
+constantpositive & 0.0 & 0.339825 & NaN & NaN & 0.339825 \\
+constantnegative & 0.0 & NaN & 0.660175 & NaN & 0.660175 \\
+Validation & 0.305111 & 0.594557 & 0.742387 & 4.5723 & 0.706929 \\
+Training & 0.316304 & 0.60115 & 0.746074 & 4.4334 & 0.710267 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
 \begin{frame}{What to do if the model is trainable?}
 \phantomsection\label{what-to-do-if-the-model-is-trainable}
 train it!
@@ -296,7 +332,7 @@ re-use the full dataset
 
 \begin{frame}{Initial prediction}
 \phantomsection\label{initial-prediction}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_11_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_12_1.png}~
 \end{frame}
 
 \begin{frame}{Can we improve on this model?}
@@ -321,17 +357,17 @@ how do we check this
 
 \begin{frame}{Learning curve for the threshold}
 \phantomsection\label{learning-curve-for-the-threshold}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_14_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_15_1.png}~
 \end{frame}
 
 \begin{frame}{Receiver Operating Characteristic}
 \phantomsection\label{receiver-operating-characteristic}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_16_1.png}~
 \end{frame}
 
 \begin{frame}{Precision-Recall Curve}
 \phantomsection\label{precision-recall-curve}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_16_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_17_1.png}~
 \end{frame}
 
 \begin{frame}{Revisting the model performance}
@@ -340,7 +376,7 @@ how do we check this
 
 \begin{frame}{Updated prediction}
 \phantomsection\label{updated-prediction}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_19_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_20_1.png}~
 \end{frame}
 
 \begin{frame}{Variable importance}
@@ -359,22 +395,22 @@ how do we check this
 
 \begin{frame}{Example with temperature}
 \phantomsection\label{example-with-temperature}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_21_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_22_1.png}~
 \end{frame}
 
 \begin{frame}{Example with two variables}
 \phantomsection\label{example-with-two-variables}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_23_1.png}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response plot}
 \phantomsection\label{spatialized-partial-response-plot}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_23_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_24_1.png}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response (binary outcome)}
 \phantomsection\label{spatialized-partial-response-binary-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_24_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_25_1.png}~
 \end{frame}
 
 \begin{frame}{Inflated response curves}
@@ -397,7 +433,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Example}
 \phantomsection\label{example}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_26_1.png}~
 \end{frame}
 
 \begin{frame}{Limitations}
@@ -424,12 +460,12 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Response curves revisited}
 \phantomsection\label{response-curves-revisited}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_27_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_28_1.png}~
 \end{frame}
 
 \begin{frame}{On a map}
 \phantomsection\label{on-a-map}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
+\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{figures/slides_29_1.png}~
 \end{frame}
 
 \begin{frame}{Variable importance revisited}
