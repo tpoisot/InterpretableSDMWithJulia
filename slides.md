@@ -167,6 +167,13 @@ re-use the full dataset
 
 
 
+## How is this model wrong?
+
+![](figures/slides_13_1.png)\ 
+
+
+
+
 ## Can we improve on this model?
 
 variable selection
@@ -193,39 +200,68 @@ how do we check this
 
 ## Learning curve for the threshold
 
-![](figures/slides_15_1.png)\ 
+![](figures/slides_16_1.png)\ 
 
 
 
 
 ## Receiver Operating Characteristic
 
-![](figures/slides_16_1.png)\ 
+![](figures/slides_17_1.png)\ 
 
 
 
 
 ## Precision-Recall Curve
 
-![](figures/slides_17_1.png)\ 
+![](figures/slides_18_1.png)\ 
 
 
 
 
-## Revisting the model performance
+## Revisiting the model performance
 
+| **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
+|-----------------:|----------:|---------:|---------:|---------:|-------------:|
+| noskill          | 0.0       | 0.338178 | 0.661822 | 1.0      | 0.552373     |
+| coinflip         | -0.323643 | 0.338178 | 0.338178 | 0.261102 | 0.338178     |
+| constantpositive | 0.0       | 0.338178 | NaN      | NaN      | 0.338178     |
+| constantnegative | 0.0       | NaN      | 0.661822 | NaN      | 0.661822     |
+| Previous         | 0.285042  | 0.573912 | 0.739042 | 3.97394  | 0.698661     |
+| Validation       | 0.65469   | 0.682064 | 0.940772 | 38.1561  | 0.825594     |
+| Training         | 0.658932  | 0.686247 | 0.941019 | 34.9715  | 0.827627     |
 
 
 
 
 ## Updated prediction
 
-![](figures/slides_20_1.png)\ 
+
+![](figures/slides_21_1.png)\ 
 
 
 
+
+## How is this model better?
+
+![](figures/slides_22_1.png)\ 
+
+
+
+
+## Revisiting assumptions
+
+- pseudo-absences
+- not just a statistical exercise
 
 ## Variable importance
+
+| **BIO** | **Import.** |
+|--------:|------------:|
+| 11.0    | 0.342392    |
+| 5.0     | 0.292015    |
+| 10.0    | 0.254812    |
+| 1.0     | 0.110781    |
 
 
 
@@ -238,28 +274,28 @@ how do we check this
 
 ## Example with temperature
 
-![](figures/slides_22_1.png)\ 
+![](figures/slides_24_1.png)\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_23_1.png)\ 
+![](figures/slides_25_1.png)\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_24_1.png)\ 
+![](figures/slides_26_1.png)\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_25_1.png)\ 
+![](figures/slides_27_1.png)\ 
 
 
 
@@ -277,7 +313,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Example
 
-![](figures/slides_26_1.png)\ 
+![](figures/slides_28_1.png)\ 
 
 
 
@@ -297,25 +333,36 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
-![](figures/slides_28_1.png)\ 
+![](figures/slides_30_1.png)\ 
 
 
 
 
 ## On a map
 
-![](figures/slides_29_1.png)\ 
+![](figures/slides_31_1.png)\ 
 
 
 
 
 ## Variable importance revisited
 
-with shapley
+| **BIO** | **Import.** | **Shap. imp.** |
+|--------:|------------:|---------------:|
+| 5.0     | 0.292015    | 0.358287       |
+| 11.0    | 0.342392    | 0.317696       |
+| 1.0     | 0.110781    | 0.163154       |
+| 10.0    | 0.254812    | 0.160862       |
+
+
+
 
 ## Most important predictor
 
-mosaic map
+![](figures/slides_33_1.png)\ 
+
+
+
 
 # What if?
 

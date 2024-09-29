@@ -335,6 +335,11 @@ re-use the full dataset
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_12_1.png}}~
 \end{frame}
 
+\begin{frame}{How is this model wrong?}
+\phantomsection\label{how-is-this-model-wrong}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_13_1.png}}~
+\end{frame}
+
 \begin{frame}{Can we improve on this model?}
 \phantomsection\label{can-we-improve-on-this-model}
 variable selection
@@ -357,30 +362,89 @@ how do we check this
 
 \begin{frame}{Learning curve for the threshold}
 \phantomsection\label{learning-curve-for-the-threshold}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_16_1.png}}~
 \end{frame}
 
 \begin{frame}{Receiver Operating Characteristic}
 \phantomsection\label{receiver-operating-characteristic}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_16_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
 \end{frame}
 
 \begin{frame}{Precision-Recall Curve}
 \phantomsection\label{precision-recall-curve}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_18_1.png}}~
 \end{frame}
 
-\begin{frame}{Revisting the model performance}
-\phantomsection\label{revisting-the-model-performance}
+\begin{frame}{Revisiting the model performance}
+\phantomsection\label{revisiting-the-model-performance}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2466}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1507}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1918}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+noskill & 0.0 & 0.338178 & 0.661822 & 1.0 & 0.552373 \\
+coinflip & -0.323643 & 0.338178 & 0.338178 & 0.261102 & 0.338178 \\
+constantpositive & 0.0 & 0.338178 & NaN & NaN & 0.338178 \\
+constantnegative & 0.0 & NaN & 0.661822 & NaN & 0.661822 \\
+Previous & 0.285042 & 0.573912 & 0.739042 & 3.97394 & 0.698661 \\
+Validation & 0.65469 & 0.682064 & 0.940772 & 38.1561 & 0.825594 \\
+Training & 0.658932 & 0.686247 & 0.941019 & 34.9715 & 0.827627 \\
+\bottomrule\noalign{}
+\end{longtable}
 \end{frame}
 
 \begin{frame}{Updated prediction}
 \phantomsection\label{updated-prediction}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_20_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_21_1.png}}~
+\end{frame}
+
+\begin{frame}{How is this model better?}
+\phantomsection\label{how-is-this-model-better}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
+\end{frame}
+
+\begin{frame}{Revisiting assumptions}
+\phantomsection\label{revisiting-assumptions}
+\begin{itemize}
+\tightlist
+\item
+  pseudo-absences
+\item
+  not just a statistical exercise
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Variable importance}
 \phantomsection\label{variable-importance}
+\begin{longtable}[]{@{}rr@{}}
+\toprule\noalign{}
+\textbf{BIO} & \textbf{Import.} \\
+\midrule\noalign{}
+\endhead
+11.0 & 0.342392 \\
+5.0 & 0.292015 \\
+10.0 & 0.254812 \\
+1.0 & 0.110781 \\
+\bottomrule\noalign{}
+\end{longtable}
 \end{frame}
 
 \section{But why?}\label{but-why-1}
@@ -395,22 +459,22 @@ how do we check this
 
 \begin{frame}{Example with temperature}
 \phantomsection\label{example-with-temperature}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_24_1.png}}~
 \end{frame}
 
 \begin{frame}{Example with two variables}
 \phantomsection\label{example-with-two-variables}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_23_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response plot}
 \phantomsection\label{spatialized-partial-response-plot}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_24_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_26_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response (binary outcome)}
 \phantomsection\label{spatialized-partial-response-binary-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_27_1.png}}~
 \end{frame}
 
 \begin{frame}{Inflated response curves}
@@ -433,7 +497,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Example}
 \phantomsection\label{example}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_26_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
 \end{frame}
 
 \begin{frame}{Limitations}
@@ -460,22 +524,32 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Response curves revisited}
 \phantomsection\label{response-curves-revisited}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
 \end{frame}
 
 \begin{frame}{On a map}
 \phantomsection\label{on-a-map}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
 \end{frame}
 
 \begin{frame}{Variable importance revisited}
 \phantomsection\label{variable-importance-revisited}
-with shapley
+\begin{longtable}[]{@{}rrr@{}}
+\toprule\noalign{}
+\textbf{BIO} & \textbf{Import.} & \textbf{Shap. imp.} \\
+\midrule\noalign{}
+\endhead
+5.0 & 0.292015 & 0.358287 \\
+11.0 & 0.342392 & 0.317696 \\
+1.0 & 0.110781 & 0.163154 \\
+10.0 & 0.254812 & 0.160862 \\
+\bottomrule\noalign{}
+\end{longtable}
 \end{frame}
 
 \begin{frame}{Most important predictor}
 \phantomsection\label{most-important-predictor}
-mosaic map
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
 \end{frame}
 
 \section{What if?}\label{what-if}

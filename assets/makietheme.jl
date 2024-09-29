@@ -3,8 +3,7 @@ CairoMakie.activate!(; type = "png")
 update_theme!(;
     backgroundcolor = :transparent,
     fontsize = 13,
-    figure_padding = 0,
-    Figure = (; backgroundcolor = :transparent, figure_padding = 0),
+    Figure = (; backgroundcolor = :transparent),
     Axis = (backgroundcolor = :transparent,),
     CairoMakie = (; px_per_unit = 3),
     fonts = Attributes(
