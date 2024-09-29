@@ -1,5 +1,6 @@
 using Weave
 
-@info "Compiling $(first(ARGS))"
+file = isempty(ARGS) ? "slides.Jmd" : first(ARGS)
 
-Weave.weave(first(ARGS); cache = :on, fig_ext = ".pdf")
+@info "Compiling $(file)"
+Weave.weave(file; cache = :on)

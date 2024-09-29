@@ -1,5 +1,7 @@
 using Weave
 
-@info "Compiling $(first(ARGS))"
 
-Weave.tangle(first(ARGS))
+file = isempty(ARGS) ? "slides.Jmd" : first(ARGS)
+
+@info "Compiling $(file)"
+Weave.tangle(file)

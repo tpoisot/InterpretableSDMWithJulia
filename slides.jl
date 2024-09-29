@@ -3,23 +3,9 @@ using SpeciesDistributionToolkit
 using CairoMakie
 using Statistics
 using PrettyTables
-set_theme!()
-CairoMakie.activate!(; type = "png")
-update_theme!(;
-    backgroundcolor = :transparent,
-    fontsize = 15,
-    Figure = (; backgroundcolor = :transparent),
-    Axis = (
-        backgroundcolor = :transparent,
-    ),
-    CairoMakie = (; px_per_unit = 3),
-    fonts = Attributes(
-        :bold => "Inter Medium",
-        :regular => "Inter",
-        :italic => "Inter Italic",
-        :bold_italic => "Inter Medium Italic",
-    )
-)
+using Random
+Random.seed!(420)
+include("assets/makietheme.jl")
 
 
 CHE = SpeciesDistributionToolkit.gadm("CHE");
@@ -51,7 +37,7 @@ while length(presences) < count(presences)
 end
 
 
-f = Figure(; size=(600, 280))
+f = Figure(; size=(800, 400))
 ax = Axis(f[1,1], aspect=DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
 scatter!(ax, mask(presences, CHE), color=:black)
@@ -70,7 +56,7 @@ background = pseudoabsencemask(DistanceToEvent, presencelayer)
 bgpoints = backgroundpoints(nodata(background, d -> d < 4), 2sum(presencelayer))
 
 
-f = Figure(; size=(600, 280))
+f = Figure(; size=(800, 400))
 ax = Axis(f[1,1], aspect=DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
 scatter!(ax, presencelayer; color = :black)
@@ -96,7 +82,18 @@ pretty_table(data; backend = Val(:markdown), header = hdr)
 
 folds = kfold(sdm);
 cv = crossvalidate(sdm, folds; threshold = false);
-mean(mcc.(cv.validation))
+
+
+hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
+tbl = []
+for null in [noskill, coinflip, constantpositive, constantnegative]
+    m = null(sdm)
+    push!(tbl, [null, mcc(m), ppv(m), npv(m), dor(m), accuracy(m)])
+end
+push!(tbl, ["Validation", mean(mcc.(cv.validation)), mean(ppv.(cv.validation)), mean(npv.(cv.validation)), mean(dor.(cv.validation)), mean(accuracy.(cv.validation))])
+push!(tbl, ["Training", mean(mcc.(cv.training)), mean(ppv.(cv.training)), mean(npv.(cv.training)), mean(dor.(cv.training)), mean(accuracy.(cv.training))])
+data = permutedims(hcat(tbl...))
+pretty_table(data; backend = Val(:markdown), header = hdr)
 
 
 train!(sdm; threshold=false)
@@ -104,7 +101,7 @@ prd = predict(sdm, predictors; threshold = false)
 current_range = predict(sdm, predictors)
 
 
-f = Figure(; size = (600, 280))
+f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
@@ -124,25 +121,31 @@ cv = [crossvalidate(sdm, folds; thr=thr) for thr in THR]
 bst = last(findmax([mean(mcc.(c.training)) for c in cv]))
 
 
-f= Figure(; size=(280, 280))
+f= Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, THR, [mean(mcc.(c.validation)) for c in cv], color=:black)
 lines!(ax, THR, [mean(mcc.(c.training)) for c in cv], color=:lightgrey, linestyle=:dash)
 scatter!(ax, [THR[bst]], [mean(mcc.(cv[bst].validation))], color=:black)
+xlims!(ax, 0., 1.)
+ylims!(ax, 0., 1.)
 current_figure()
 
 
-f= Figure(; size=(280, 280))
+f= Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, [mean(fpr.(c.validation)) for c in cv], [mean(tpr.(c.validation)) for c in cv], color=:black)
 scatter!(ax, [mean(fpr.(cv[bst].validation))], [mean(tpr.(cv[bst].validation))], color=:black)
+xlims!(ax, 0., 1.)
+ylims!(ax, 0., 1.)
 current_figure()
 
 
-f= Figure(; size=(280, 280))
+f= Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, [mean(ppv.(c.validation)) for c in cv], [mean(tpr.(c.validation)) for c in cv], color=:black)
 scatter!(ax, [mean(ppv.(cv[bst].validation))], [mean(tpr.(cv[bst].validation))], color=:black)
+xlims!(ax, 0., 1.)
+ylims!(ax, 0., 1.)
 current_figure()
 
 
@@ -156,7 +159,7 @@ prd = predict(sdm, predictors; threshold = false)
 current_range = predict(sdm, predictors)
 
 
-f = Figure(; size = (600, 280))
+f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
@@ -173,21 +176,21 @@ vimp ./ sum(vimp)
 
 
 x, y = partialresponse(sdm, 1; threshold=false)
-f = Figure(; size=(280, 280))
+f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, x, y)
 current_figure()
 
 
 x, y, z = partialresponse(sdm, 1, 10; threshold=false)
-f = Figure(; size=(280, 280))
+f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
 current_figure()
 
 
 partial_temp = partialresponse(sdm, predictors, 1; threshold=false)
-f = Figure(; size = (600, 280))
+f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
@@ -200,7 +203,7 @@ current_figure()
 
 
 partial_temp = partialresponse(sdm, predictors, 1; threshold=true)
-f = Figure(; size = (600, 280))
+f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
@@ -212,7 +215,7 @@ hidespines!(ax)
 current_figure()
 
 
-f = Figure(; size=(280, 280))
+f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 for i in 1:300
     lines!(partialresponse(sdm, 1; inflated=true, threshold=false)..., color=:lightgrey, alpha=0.5)
@@ -224,16 +227,16 @@ current_figure()
 explain(sdm, 1; threshold=false)
 
 
-f = Figure(; size=(280, 280))
+f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 scatter!(ax, features(sdm, 1), explain(sdm, 1; threshold=false), color=:black)
 current_figure()
 
 
 shapley_temp = explain(sdm, predictors, 1; threshold=false)
-f = Figure(; size = (600, 280))
+f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.1, 0.1))
+hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.2, 0.2))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
 scatter!(ax, mask(presences, CHE), color=:black, markersize=3)
 Colorbar(f[1, 2], hm)

@@ -12,7 +12,7 @@ layer =
         top = 48.0,
     )
 
-bg_pal = [colorant"#114f54", colorant"#1d8265", colorant"#efefef"]
+bg_pal = [colorant"#114f54", colorant"#1d8265", colorant"#fcfcfc"]
 
 f = Figure(; size = (1600, 1000), figure_padding = 0)
 ax = Axis(f[1, 1])

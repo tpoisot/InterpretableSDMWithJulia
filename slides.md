@@ -60,7 +60,7 @@ We will use data on observations of *Turdus torquatus* in Switzerland, downloade
 
 ## The observation data
 
-![](figures/slides_4_1.png){height=100%}\ 
+![](figures/slides_4_1.png)\ 
 
 
 
@@ -80,7 +80,7 @@ what are the assumptions we make
 
 ## The (inflated) observation data
 
-![](figures/slides_6_1.png){height=100%}\ 
+![](figures/slides_6_1.png)\ 
 
 
 
@@ -120,10 +120,10 @@ constant
 
 | **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
 |-----------------:|----------:|---------:|---------:|---------:|-------------:|
-| noskill          | 0.0       | 0.339825 | 0.660175 | 1.0      | 0.551312     |
-| coinflip         | -0.320351 | 0.339825 | 0.339825 | 0.264967 | 0.339825     |
-| constantpositive | 0.0       | 0.339825 | NaN      | NaN      | 0.339825     |
-| constantnegative | 0.0       | NaN      | 0.660175 | NaN      | 0.660175     |
+| noskill          | 0.0       | 0.338178 | 0.661822 | 1.0      | 0.552373     |
+| coinflip         | -0.323643 | 0.338178 | 0.338178 | 0.261102 | 0.338178     |
+| constantpositive | 0.0       | 0.338178 | NaN      | NaN      | 0.338178     |
+| constantnegative | 0.0       | NaN      | 0.661822 | NaN      | 0.661822     |
 
 
 
@@ -141,12 +141,12 @@ validation / training / testing
 
 | **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
 |-----------------:|----------:|---------:|---------:|---------:|-------------:|
-| noskill          | 0.0       | 0.339825 | 0.660175 | 1.0      | 0.551312     |
-| coinflip         | -0.320351 | 0.339825 | 0.339825 | 0.264967 | 0.339825     |
-| constantpositive | 0.0       | 0.339825 | NaN      | NaN      | 0.339825     |
-| constantnegative | 0.0       | NaN      | 0.660175 | NaN      | 0.660175     |
-| Validation       | 0.305111  | 0.594557 | 0.742387 | 4.5723   | 0.706929     |
-| Training         | 0.316304  | 0.60115  | 0.746074 | 4.4334   | 0.710267     |
+| noskill          | 0.0       | 0.338178 | 0.661822 | 1.0      | 0.552373     |
+| coinflip         | -0.323643 | 0.338178 | 0.338178 | 0.261102 | 0.338178     |
+| constantpositive | 0.0       | 0.338178 | NaN      | NaN      | 0.338178     |
+| constantnegative | 0.0       | NaN      | 0.661822 | NaN      | 0.661822     |
+| Validation       | 0.285042  | 0.573912 | 0.739042 | 3.97394  | 0.698661     |
+| Training         | 0.287722  | 0.57633  | 0.73963  | 3.869    | 0.699451     |
 
 
 
@@ -162,7 +162,7 @@ re-use the full dataset
 
 ## Initial prediction
 
-![](figures/slides_12_1.png){height=100%}\ 
+![](figures/slides_12_1.png)\ 
 
 
 
@@ -193,21 +193,21 @@ how do we check this
 
 ## Learning curve for the threshold
 
-![](figures/slides_15_1.png){height=100%}\ 
+![](figures/slides_15_1.png)\ 
 
 
 
 
 ## Receiver Operating Characteristic
 
-![](figures/slides_16_1.png){height=100%}\ 
+![](figures/slides_16_1.png)\ 
 
 
 
 
 ## Precision-Recall Curve
 
-![](figures/slides_17_1.png){height=100%}\ 
+![](figures/slides_17_1.png)\ 
 
 
 
@@ -220,7 +220,7 @@ how do we check this
 
 ## Updated prediction
 
-![](figures/slides_20_1.png){height=100%}\ 
+![](figures/slides_20_1.png)\ 
 
 
 
@@ -238,28 +238,28 @@ how do we check this
 
 ## Example with temperature
 
-![](figures/slides_22_1.png){height=100%}\ 
+![](figures/slides_22_1.png)\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_23_1.png){height=100%}\ 
+![](figures/slides_23_1.png)\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_24_1.png){height=100%}\ 
+![](figures/slides_24_1.png)\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_25_1.png){height=100%}\ 
+![](figures/slides_25_1.png)\ 
 
 
 
@@ -277,7 +277,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Example
 
-![](figures/slides_26_1.png){height=100%}\ 
+![](figures/slides_26_1.png)\ 
 
 
 
@@ -297,14 +297,14 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
-![](figures/slides_28_1.png){height=100%}\ 
+![](figures/slides_28_1.png)\ 
 
 
 
 
 ## On a map
 
-![](figures/slides_29_1.png){height=100%}\ 
+![](figures/slides_29_1.png)\ 
 
 
 

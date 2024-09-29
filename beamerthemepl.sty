@@ -21,6 +21,7 @@
 \DeclareOptionBeamer{noprogressbar}{\@useTitleProgressBarfalse}
 \DeclareOptionBeamer{unprotectframetitle}{\@protectFrameTitlefalse}
 \DeclareOptionBeamer{nooffset}{\setlength{\@pltheme@voffset}{0em}}
+\DeclareOptionBeamer{smalloffset}{\setlength{\@pltheme@voffset}{0.5em}}
 
 \DeclareOptionBeamer*{%
   \PackageWarning{beamerthemem}{Unknown option `\CurrentOption'}%
@@ -177,8 +178,8 @@
 
 % Let's change some options:
 \setvcoptions{
- segment distance=2,
- thickness=0.5ex
+ segment distance=0,
+ thickness=0.4ex
 }
 
 % Insert frame with section title at every section start
@@ -287,7 +288,7 @@
 }
 
 \pgfplotsset{
-  compat=1.12,
+  compat=1.18,
   scale only axis,
   tick align=outside,
   every axis/.append style={
