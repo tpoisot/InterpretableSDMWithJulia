@@ -334,8 +334,10 @@ end
 for i in axes(abct, 2)
     absl[abct[:,i]...] = true
 end
-rtree = SDM(MultivariateTransform{PCA}, DecisionTree, landcover, prsl, absl)
+tree = SDM(MultivariateTransform{PCA}, DecisionTree, landcover, prsl, absl)
+tree.classifier.maxnodes = 18
 
+train!(tree)
 
 forest = Bagging(rtree, 10)
 train!(forest)

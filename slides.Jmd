@@ -56,13 +56,16 @@ We have information about a species
 
 ## The problem in other words
 
-We have a series of observations $y \in \mathbb{B}$, and predictors variables $\mathbf{X} \in \mathbb{R}$
+We have a series of observations $y \in \mathbb{B}$, and predictors variables
+$\mathbf{X} \in \mathbb{R}$
 
-We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the distance between $\hat y$ and $y$ being *small*
+We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the
+distance between $\hat y$ and $y$ being *small*
 
 ## Setting up the data for our example
 
-The predictor data will come from CHELSA2 - we will start with the 19 BioClim variables
+The predictor data will come from CHELSA2 - we will start with the 19 BioClim
+variables
 
 ```julia
 CHE = SpeciesDistributionToolkit.gadm("CHE");
@@ -82,7 +85,8 @@ predictors = map(l -> convert(SDMLayer{Float32}, l), predictors);
 ```
 
 
-We will use data on observations of *Turdus torquatus* in Switzerland, downloaded from the copy of the eBird dataset on GBIF
+We will use data on observations of *Turdus torquatus* in Switzerland,
+downloaded from the copy of the eBird dataset on GBIF
 
 
 ```julia
@@ -114,7 +118,8 @@ current_figure()
 
 ## Problem!
 
-We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative values}
+We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative
+values}
 
 ## Solution!
 
@@ -130,6 +135,8 @@ end
 
 background = pseudoabsencemask(DistanceToEvent, presencelayer)
 bgpoints = backgroundpoints(nodata(background, d -> d < 4), 2sum(presencelayer))
+prsc = nodata(presencelayer, false)
+absc = nodata(bgpoints, false)
 ```
 
 ## The (inflated) observation data
@@ -246,8 +253,6 @@ current_figure()
 ## How is this model wrong?
 
 ```julia
-prsc = nodata(presencelayer, false)
-absc = nodata(bgpoints, false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
@@ -367,8 +372,6 @@ current_figure()
 ## How is this model better?
 
 ```julia
-prsc = nodata(presencelayer, false)
-absc = nodata(bgpoints, false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
@@ -556,7 +559,9 @@ what they are
 ## Setting up a new problem
 
 - land use
-- decision tree - shallow learner
+- decision tree - very easy to overfit
+- at most 18 nodes of depth at most 7
+- same process
 
 ```julia
 luprovider = RasterData(EarthEnv, LandCover)
@@ -582,9 +587,77 @@ end
 for i in axes(abct, 2)
     absl[abct[:,i]...] = true
 end
-rtree = SDM(MultivariateTransform{PCA}, DecisionTree, landcover, prsl, absl)
-rtree.classifier.maxnodes = 18
+tree = SDM(MultivariateTransform{PCA}, DecisionTree, landcover, prsl, absl)
+tree.classifier.maxnodes = 18
+variables!(tree, [1, 6, 10, 9, 2])
+treefolds = kfold(tree; k=15)
+train!(tree)
 ```
+
+## Variable importance
+
+```julia; results="raw"
+lu_var_imp = variableimportance(tree, treefolds; threshold=false)
+lu_var_imp ./= sum(lu_var_imp)
+hdr = ["Variable", "Relative importance"]
+tbl = []
+for i in eachindex(lu_var_imp)
+    push!(tbl, [layers(luprovider)[variables(tree)[i]], lu_var_imp[i]])
+end
+pretty_table(
+    permutedims(hcat(tbl...))[sortperm(lu_var_imp; rev=true), :];
+    backend = Val(:markdown), header = hdr)
+```
+
+## Visualizing the prediction
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, predict(tree, landcover; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(tree, landcover); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Visualizing the errors
+
+```julia
+current_range = predict(tree, landcover)
+prsc = nodata(prsl, false)
+absc = nodata(absl, false)
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+poly!(ax, CHE.geometry[1], color=:lightgrey)
+heatmap!(ax, current_range, colormap=[colorant"#fefefe", colorant"#d4d4d4"])
+scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(current_range, absc) .& absc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:hline)
+scatter!(ax, mask(!current_range, absc) .& absc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:hline)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Partial response (Shapley)
+
+```julia
+ft1 = features(tree, 1)
+sp1 = explain(tree, 1; threshold=false, samples=100)
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1]; xlabel=layers(luprovider)[variables(tree)[1]])
+scatter!(ax, ft1, sp1, color=:black)
+xlims!(ax, 0, 100)
+current_figure()
+```
+
+## Generating a counterfactual
+
+## Evaluating the counterfactuals
 
 ## The Rashomon effect
 
@@ -606,8 +679,57 @@ rtree.classifier.maxnodes = 18
 ## An example of bagging: rotation forest
 
 ```julia
-forest = Bagging(rtree, 10)
+forest = Bagging(tree, 128)
+for arbre in forest.models
+    variables!(arbre, unique(rand(variables(forest), length(variables(forest)))))
+end
 train!(forest)
+```
+
+## Prediction of the rotation forest
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, predict(forest, landcover; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(forest, landcover; consensus=majority); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Prediction of the rotation forest
+
+```julia
+current_range = predict(forest, landcover; consensus=majority)
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+poly!(ax, CHE.geometry[1], color=:lightgrey)
+heatmap!(ax, current_range, colormap=[colorant"#fefefe", colorant"#d4d4d4"])
+scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(current_range, absc) .& absc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:hline)
+scatter!(ax, mask(!current_range, absc) .& absc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:hline)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Uncertainty
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, predict(forest, landcover; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256, colorrange = (0, 1))
+contour!(ax, predict(forest, landcover; consensus=majority); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
 ```
 
 # Conclusions
