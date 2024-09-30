@@ -40,19 +40,23 @@ We have information about a species
 
 ## The problem in other words
 
-We have a series of observations $y \in \mathbb{B}$, and predictors variables $\mathbf{X} \in \mathbb{R}$
+We have a series of observations $y \in \mathbb{B}$, and predictors variables
+$\mathbf{X} \in \mathbb{R}$
 
-We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the distance between $\hat y$ and $y$ being *small*
+We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the
+distance between $\hat y$ and $y$ being *small*
 
 ## Setting up the data for our example
 
-The predictor data will come from CHELSA2 - we will start with the 19 BioClim variables
+The predictor data will come from CHELSA2 - we will start with the 19 BioClim
+variables
 
 
 
 
 
-We will use data on observations of *Turdus torquatus* in Switzerland, downloaded from the copy of the eBird dataset on GBIF
+We will use data on observations of *Turdus torquatus* in Switzerland,
+downloaded from the copy of the eBird dataset on GBIF
 
 
 
@@ -67,7 +71,8 @@ We will use data on observations of *Turdus torquatus* in Switzerland, downloade
 
 ## Problem!
 
-We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative values}
+We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative
+values}
 
 ## Solution!
 
@@ -370,6 +375,95 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 what they are
 
+## Setting up a new problem
+
+- land use
+- decision tree - very easy to overfit
+- at most 18 nodes of depth at most 7
+- same process
+
+
+
+
+## Variable importance
+
+| **Variable**                         | **Relative importance** |
+|-------------------------------------:|------------------------:|
+| Evergreen/Deciduous Needleleaf Trees | 0.580133                |
+| Herbaceous Vegetation                | 0.377976                |
+| Urban/Built-up                       | 0.0251986               |
+| Snow/Ice                             | 0.0166925               |
+| Evergreen Broadleaf Trees            | 0.0                     |
+
+
+
+
+## Visualizing the prediction
+
+![](figures/slides_36_1.png)\ 
+
+
+
+
+## Visualizing the errors
+
+![](figures/slides_37_1.png)\ 
+
+
+
+
+## Partial response (Shapley)
+
+![](figures/slides_38_1.png)\ 
+
+
+
+
+## Generating a counterfactual
+
+## Evaluating the counterfactuals
+
+## The Rashomon effect
+
+- different but equally likely alternatives
+- happens at all steps in the process
+
 # Ensemble models
+
+## Limits of a single model
+
+- a single model
+- different parts of data may have different signal
+- do we need all the variables all the time?
+- bias v. variance tradeoff
+- limit overfitting
+
+## Bootstrapping and aggregation
+
+## An example of bagging: rotation forest
+
+
+
+
+## Prediction of the rotation forest
+
+![](figures/slides_40_1.png)\ 
+
+
+
+
+## Prediction of the rotation forest
+
+![](figures/slides_41_1.png)\ 
+
+
+
+
+## Uncertainty
+
+![](figures/slides_42_1.png)\ 
+
+
+
 
 # Conclusions

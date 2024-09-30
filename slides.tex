@@ -200,7 +200,8 @@ Switzerland, downloaded from the copy of the eBird dataset on GBIF
 \begin{frame}{Problem!}
 \phantomsection\label{problem}
 We want \(\hat y \in \mathbb{B}\), and so far we are missing
-\alert{negative values}
+\alert{negative
+values}
 \end{frame}
 
 \begin{frame}{Solution!}
@@ -559,7 +560,112 @@ In practice: Monte-Carlo on a reasonable number of samples.
 what they are
 \end{frame}
 
+\begin{frame}{Setting up a new problem}
+\phantomsection\label{setting-up-a-new-problem}
+\begin{itemize}
+\tightlist
+\item
+  land use
+\item
+  decision tree - very easy to overfit
+\item
+  at most 18 nodes of depth at most 7
+\item
+  same process
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Variable importance}
+\phantomsection\label{variable-importance-1}
+\begin{longtable}[]{@{}rr@{}}
+\toprule\noalign{}
+\textbf{Variable} & \textbf{Relative importance} \\
+\midrule\noalign{}
+\endhead
+Evergreen/Deciduous Needleleaf Trees & 0.580133 \\
+Herbaceous Vegetation & 0.377976 \\
+Urban/Built-up & 0.0251986 \\
+Snow/Ice & 0.0166925 \\
+Evergreen Broadleaf Trees & 0.0 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
+\begin{frame}{Visualizing the prediction}
+\phantomsection\label{visualizing-the-prediction}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
+\end{frame}
+
+\begin{frame}{Visualizing the errors}
+\phantomsection\label{visualizing-the-errors}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_37_1.png}}~
+\end{frame}
+
+\begin{frame}{Partial response (Shapley)}
+\phantomsection\label{partial-response-shapley}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_38_1.png}}~
+\end{frame}
+
+\begin{frame}{Generating a counterfactual}
+\phantomsection\label{generating-a-counterfactual}
+\end{frame}
+
+\begin{frame}{Evaluating the counterfactuals}
+\phantomsection\label{evaluating-the-counterfactuals}
+\end{frame}
+
+\begin{frame}{The Rashomon effect}
+\phantomsection\label{the-rashomon-effect}
+\begin{itemize}
+\tightlist
+\item
+  different but equally likely alternatives
+\item
+  happens at all steps in the process
+\end{itemize}
+\end{frame}
+
 \section{Ensemble models}\label{ensemble-models}
+
+\begin{frame}{Limits of a single model}
+\phantomsection\label{limits-of-a-single-model}
+\begin{itemize}
+\tightlist
+\item
+  a single model
+\item
+  different parts of data may have different signal
+\item
+  do we need all the variables all the time?
+\item
+  bias v. variance tradeoff
+\item
+  limit overfitting
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bootstrapping and aggregation}
+\phantomsection\label{bootstrapping-and-aggregation}
+\end{frame}
+
+\begin{frame}{An example of bagging: rotation forest}
+\phantomsection\label{an-example-of-bagging-rotation-forest}
+\end{frame}
+
+\begin{frame}{Prediction of the rotation forest}
+\phantomsection\label{prediction-of-the-rotation-forest}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_40_1.png}}~
+\end{frame}
+
+\begin{frame}{Prediction of the rotation forest}
+\phantomsection\label{prediction-of-the-rotation-forest-1}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_41_1.png}}~
+\end{frame}
+
+\begin{frame}{Uncertainty}
+\phantomsection\label{uncertainty}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_42_1.png}}~
+\end{frame}
 
 \section{Conclusions}\label{conclusions}
 
