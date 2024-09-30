@@ -236,6 +236,12 @@ prd = predict(sdm, predictors; threshold = false)
 current_range = predict(sdm, predictors)
 ```
 
+## A note on data leakage
+
+## Data transformation using PCA
+
+## The model training pipeline
+
 ## Initial prediction
 
 ```julia
@@ -550,6 +556,10 @@ hidespines!(ax)
 current_figure()
 ```
 
+## Revisiting the data transformation
+
+all in a single model so we can ask effect of variable instead of effect of PC1 or whatever
+
 # What if?
 
 ## Intro to counterfactuals
@@ -623,6 +633,12 @@ hidespines!(ax)
 current_figure()
 ```
 
+## The Rashomon effect
+
+- different but equally likely alternatives
+- happens at all steps in the process
+- variable selected, threshold used, model type
+
 ## Visualizing the errors
 
 ```julia
@@ -659,10 +675,13 @@ current_figure()
 
 ## Evaluating the counterfactuals
 
-## The Rashomon effect
+## What is a good counterfactual
 
-- different but equally likely alternatives
-- happens at all steps in the process
+learning rate and loss function
+
+use on prediction score and not yes/no!
+
+## Algorithmic recourse
 
 # Ensemble models
 
@@ -731,5 +750,9 @@ hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
 ```
+
+## Heterogeneous ensembles
+
+## Setting up an heterogeneous ensemble
 
 # Conclusions
