@@ -628,6 +628,15 @@ current_figure()
 
 ## Generating a counterfactual
 
+```julia
+idx = rand(findall(!, predict(sdm)))
+cfs = [
+    counterfactual(sdm, instance(sdm, idx; strict=false), threshold(sdm)+0.1, 1.0; threshold=false)
+    for i in 1:10
+    ]
+permutedims(hcat(cfs...)[variables(sdm),:]) .- instance(tree, idx))
+```
+
 ## Evaluating the counterfactuals
 
 ## What is a good counterfactual
