@@ -252,12 +252,12 @@ constant
 \begin{frame}{Expectations}
 \phantomsection\label{expectations}
 \begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2466}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1507}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1918}}@{}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2368}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedleft
 \textbf{Model}
@@ -274,10 +274,10 @@ constant
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
-noskill & 0.0 & 0.338178 & 0.661822 & 1.0 & 0.552373 \\
-coinflip & -0.323643 & 0.338178 & 0.338178 & 0.261102 & 0.338178 \\
-constantpositive & 0.0 & 0.338178 & NaN & NaN & 0.338178 \\
-constantnegative & 0.0 & NaN & 0.661822 & NaN & 0.661822 \\
+noskill & -3.09497e-17 & 0.339373 & 0.660627 & 1.0 & 0.551602 \\
+coinflip & -0.321254 & 0.339373 & 0.339373 & 0.263902 & 0.339373 \\
+constantpositive & 0.0 & 0.339373 & NaN & NaN & 0.339373 \\
+constantnegative & 0.0 & NaN & 0.660627 & NaN & 0.660627 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -292,12 +292,12 @@ validation / training / testing
 \begin{frame}{Cross-validation results}
 \phantomsection\label{cross-validation-results}
 \begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2466}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1507}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1918}}@{}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2368}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedleft
 \textbf{Model}
@@ -314,12 +314,12 @@ validation / training / testing
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
-noskill & 0.0 & 0.338178 & 0.661822 & 1.0 & 0.552373 \\
-coinflip & -0.323643 & 0.338178 & 0.338178 & 0.261102 & 0.338178 \\
-constantpositive & 0.0 & 0.338178 & NaN & NaN & 0.338178 \\
-constantnegative & 0.0 & NaN & 0.661822 & NaN & 0.661822 \\
-Validation & 0.285042 & 0.573912 & 0.739042 & 3.97394 & 0.698661 \\
-Training & 0.287722 & 0.57633 & 0.73963 & 3.869 & 0.699451 \\
+noskill & -3.09497e-17 & 0.339373 & 0.660627 & 1.0 & 0.551602 \\
+coinflip & -0.321254 & 0.339373 & 0.339373 & 0.263902 & 0.339373 \\
+constantpositive & 0.0 & 0.339373 & NaN & NaN & 0.339373 \\
+constantnegative & 0.0 & NaN & 0.660627 & NaN & 0.660627 \\
+Validation & 0.384895 & 0.647967 & 0.768219 & 6.60144 & 0.736062 \\
+Training & 0.392684 & 0.652914 & 0.770902 & 6.33576 & 0.740233 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -329,6 +329,18 @@ Training & 0.287722 & 0.57633 & 0.73963 & 3.869 & 0.699451 \\
 train it!
 
 re-use the full dataset
+\end{frame}
+
+\begin{frame}{A note on data leakage}
+\phantomsection\label{a-note-on-data-leakage}
+\end{frame}
+
+\begin{frame}{Data transformation using PCA}
+\phantomsection\label{data-transformation-using-pca}
+\end{frame}
+
+\begin{frame}{The model training pipeline}
+\phantomsection\label{the-model-training-pipeline}
 \end{frame}
 
 \begin{frame}{Initial prediction}
@@ -379,12 +391,12 @@ how do we check this
 \begin{frame}{Revisiting the model performance}
 \phantomsection\label{revisiting-the-model-performance}
 \begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2466}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1507}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1370}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1918}}@{}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2368}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedleft
 \textbf{Model}
@@ -401,13 +413,13 @@ how do we check this
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
-noskill & 0.0 & 0.338178 & 0.661822 & 1.0 & 0.552373 \\
-coinflip & -0.323643 & 0.338178 & 0.338178 & 0.261102 & 0.338178 \\
-constantpositive & 0.0 & 0.338178 & NaN & NaN & 0.338178 \\
-constantnegative & 0.0 & NaN & 0.661822 & NaN & 0.661822 \\
-Previous & 0.285042 & 0.573912 & 0.739042 & 3.97394 & 0.698661 \\
-Validation & 0.65469 & 0.682064 & 0.940772 & 38.1561 & 0.825594 \\
-Training & 0.658932 & 0.686247 & 0.941019 & 34.9715 & 0.827627 \\
+noskill & -3.09497e-17 & 0.339373 & 0.660627 & 1.0 & 0.551602 \\
+coinflip & -0.321254 & 0.339373 & 0.339373 & 0.263902 & 0.339373 \\
+constantpositive & 0.0 & 0.339373 & NaN & NaN & 0.339373 \\
+constantnegative & 0.0 & NaN & 0.660627 & NaN & 0.660627 \\
+Previous & 0.384895 & 0.647967 & 0.768219 & 6.60144 & 0.736062 \\
+Validation & 0.744385 & 0.771569 & 0.947628 & 79.99 & 0.876604 \\
+Training & 0.73678 & 0.764253 & 0.947113 & 59.0436 & 0.873436 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -435,15 +447,16 @@ Training & 0.658932 & 0.686247 & 0.941019 & 34.9715 & 0.827627 \\
 
 \begin{frame}{Variable importance}
 \phantomsection\label{variable-importance}
-\begin{longtable}[]{@{}rr@{}}
+\begin{longtable}[]{@{}rrr@{}}
 \toprule\noalign{}
-\textbf{BIO} & \textbf{Import.} \\
+\textbf{Layer} & \textbf{Variable} & \textbf{Import.} \\
 \midrule\noalign{}
 \endhead
-11.0 & 0.342392 \\
-5.0 & 0.292015 \\
-10.0 & 0.254812 \\
-1.0 & 0.110781 \\
+1 & BIO1 & 0.59825 \\
+5 & BIO5 & 0.233834 \\
+8 & BIO8 & 0.104139 \\
+28 & Urban/Built-up & 0.0412146 \\
+29 & Snow/Ice & 0.0225633 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -535,15 +548,17 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Variable importance revisited}
 \phantomsection\label{variable-importance-revisited}
-\begin{longtable}[]{@{}rrr@{}}
+\begin{longtable}[]{@{}rrrr@{}}
 \toprule\noalign{}
-\textbf{BIO} & \textbf{Import.} & \textbf{Shap. imp.} \\
+\textbf{Layer} & \textbf{Variable} & \textbf{Import.} & \textbf{Shap.
+imp.} \\
 \midrule\noalign{}
 \endhead
-5.0 & 0.292015 & 0.358287 \\
-11.0 & 0.342392 & 0.317696 \\
-1.0 & 0.110781 & 0.163154 \\
-10.0 & 0.254812 & 0.160862 \\
+1 & BIO1 & 0.59825 & 0.415164 \\
+8 & BIO8 & 0.104139 & 0.261453 \\
+5 & BIO5 & 0.233834 & 0.137676 \\
+28 & Urban/Built-up & 0.0412146 & 0.125304 \\
+29 & Snow/Ice & 0.0225633 & 0.0604023 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -551,6 +566,12 @@ In practice: Monte-Carlo on a reasonable number of samples.
 \begin{frame}{Most important predictor}
 \phantomsection\label{most-important-predictor}
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
+\end{frame}
+
+\begin{frame}{Revisiting the data transformation}
+\phantomsection\label{revisiting-the-data-transformation}
+all in a single model so we can ask effect of variable instead of effect
+of PC1 or whatever
 \end{frame}
 
 \section{What if?}\label{what-if}
@@ -577,16 +598,16 @@ what they are
 
 \begin{frame}{Variable importance}
 \phantomsection\label{variable-importance-1}
-\begin{longtable}[]{@{}rr@{}}
+\begin{longtable}[]{@{}rrr@{}}
 \toprule\noalign{}
-\textbf{Variable} & \textbf{Relative importance} \\
+\textbf{Layer} & \textbf{Variable} & \textbf{Relative importance} \\
 \midrule\noalign{}
 \endhead
-Evergreen/Deciduous Needleleaf Trees & 0.580133 \\
-Herbaceous Vegetation & 0.377976 \\
-Urban/Built-up & 0.0251986 \\
-Snow/Ice & 0.0166925 \\
-Evergreen Broadleaf Trees & 0.0 \\
+1 & BIO1 & 0.637614 \\
+5 & BIO5 & 0.248376 \\
+8 & BIO8 & 0.0824429 \\
+28 & Urban/Built-up & 0.0190532 \\
+29 & Snow/Ice & 0.0125144 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -594,6 +615,19 @@ Evergreen Broadleaf Trees & 0.0 \\
 \begin{frame}{Visualizing the prediction}
 \phantomsection\label{visualizing-the-prediction}
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
+\end{frame}
+
+\begin{frame}{The Rashomon effect}
+\phantomsection\label{the-rashomon-effect}
+\begin{itemize}
+\tightlist
+\item
+  different but equally likely alternatives
+\item
+  happens at all steps in the process
+\item
+  variable selected, threshold used, model type
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Visualizing the errors}
@@ -614,15 +648,15 @@ Evergreen Broadleaf Trees & 0.0 \\
 \phantomsection\label{evaluating-the-counterfactuals}
 \end{frame}
 
-\begin{frame}{The Rashomon effect}
-\phantomsection\label{the-rashomon-effect}
-\begin{itemize}
-\tightlist
-\item
-  different but equally likely alternatives
-\item
-  happens at all steps in the process
-\end{itemize}
+\begin{frame}{What is a good counterfactual}
+\phantomsection\label{what-is-a-good-counterfactual}
+learning rate and loss function
+
+use on prediction score and not yes/no!
+\end{frame}
+
+\begin{frame}{Algorithmic recourse}
+\phantomsection\label{algorithmic-recourse}
 \end{frame}
 
 \section{Ensemble models}\label{ensemble-models}
@@ -654,17 +688,25 @@ Evergreen Broadleaf Trees & 0.0 \\
 
 \begin{frame}{Prediction of the rotation forest}
 \phantomsection\label{prediction-of-the-rotation-forest}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_40_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_41_1.png}}~
 \end{frame}
 
 \begin{frame}{Prediction of the rotation forest}
 \phantomsection\label{prediction-of-the-rotation-forest-1}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_41_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_42_1.png}}~
 \end{frame}
 
 \begin{frame}{Uncertainty}
 \phantomsection\label{uncertainty}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_42_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_43_1.png}}~
+\end{frame}
+
+\begin{frame}{Heterogeneous ensembles}
+\phantomsection\label{heterogeneous-ensembles}
+\end{frame}
+
+\begin{frame}{Setting up an heterogeneous ensemble}
+\phantomsection\label{setting-up-an-heterogeneous-ensemble}
 \end{frame}
 
 \section{Conclusions}\label{conclusions}

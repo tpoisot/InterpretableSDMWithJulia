@@ -54,10 +54,8 @@ variables
 
 
 
-
 We will use data on observations of *Turdus torquatus* in Switzerland,
 downloaded from the copy of the eBird dataset on GBIF
-
 
 
 
@@ -123,12 +121,12 @@ constant
 
 ## Expectations
 
-| **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
-|-----------------:|----------:|---------:|---------:|---------:|-------------:|
-| noskill          | 0.0       | 0.338178 | 0.661822 | 1.0      | 0.552373     |
-| coinflip         | -0.323643 | 0.338178 | 0.338178 | 0.261102 | 0.338178     |
-| constantpositive | 0.0       | 0.338178 | NaN      | NaN      | 0.338178     |
-| constantnegative | 0.0       | NaN      | 0.661822 | NaN      | 0.661822     |
+| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
+|-----------------:|-------------:|---------:|---------:|---------:|-------------:|
+| noskill          | -3.09497e-17 | 0.339373 | 0.660627 | 1.0      | 0.551602     |
+| coinflip         | -0.321254    | 0.339373 | 0.339373 | 0.263902 | 0.339373     |
+| constantpositive | 0.0          | 0.339373 | NaN      | NaN      | 0.339373     |
+| constantnegative | 0.0          | NaN      | 0.660627 | NaN      | 0.660627     |
 
 
 
@@ -144,14 +142,14 @@ validation / training / testing
 
 ## Cross-validation results
 
-| **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
-|-----------------:|----------:|---------:|---------:|---------:|-------------:|
-| noskill          | 0.0       | 0.338178 | 0.661822 | 1.0      | 0.552373     |
-| coinflip         | -0.323643 | 0.338178 | 0.338178 | 0.261102 | 0.338178     |
-| constantpositive | 0.0       | 0.338178 | NaN      | NaN      | 0.338178     |
-| constantnegative | 0.0       | NaN      | 0.661822 | NaN      | 0.661822     |
-| Validation       | 0.285042  | 0.573912 | 0.739042 | 3.97394  | 0.698661     |
-| Training         | 0.287722  | 0.57633  | 0.73963  | 3.869    | 0.699451     |
+| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
+|-----------------:|-------------:|---------:|---------:|---------:|-------------:|
+| noskill          | -3.09497e-17 | 0.339373 | 0.660627 | 1.0      | 0.551602     |
+| coinflip         | -0.321254    | 0.339373 | 0.339373 | 0.263902 | 0.339373     |
+| constantpositive | 0.0          | 0.339373 | NaN      | NaN      | 0.339373     |
+| constantnegative | 0.0          | NaN      | 0.660627 | NaN      | 0.660627     |
+| Validation       | 0.384895     | 0.647967 | 0.768219 | 6.60144  | 0.736062     |
+| Training         | 0.392684     | 0.652914 | 0.770902 | 6.33576  | 0.740233     |
 
 
 
@@ -164,6 +162,12 @@ re-use the full dataset
 
 
 
+
+## A note on data leakage
+
+## Data transformation using PCA
+
+## The model training pipeline
 
 ## Initial prediction
 
@@ -226,15 +230,15 @@ how do we check this
 
 ## Revisiting the model performance
 
-| **Model**        | **MCC**   | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
-|-----------------:|----------:|---------:|---------:|---------:|-------------:|
-| noskill          | 0.0       | 0.338178 | 0.661822 | 1.0      | 0.552373     |
-| coinflip         | -0.323643 | 0.338178 | 0.338178 | 0.261102 | 0.338178     |
-| constantpositive | 0.0       | 0.338178 | NaN      | NaN      | 0.338178     |
-| constantnegative | 0.0       | NaN      | 0.661822 | NaN      | 0.661822     |
-| Previous         | 0.285042  | 0.573912 | 0.739042 | 3.97394  | 0.698661     |
-| Validation       | 0.65469   | 0.682064 | 0.940772 | 38.1561  | 0.825594     |
-| Training         | 0.658932  | 0.686247 | 0.941019 | 34.9715  | 0.827627     |
+| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
+|-----------------:|-------------:|---------:|---------:|---------:|-------------:|
+| noskill          | -3.09497e-17 | 0.339373 | 0.660627 | 1.0      | 0.551602     |
+| coinflip         | -0.321254    | 0.339373 | 0.339373 | 0.263902 | 0.339373     |
+| constantpositive | 0.0          | 0.339373 | NaN      | NaN      | 0.339373     |
+| constantnegative | 0.0          | NaN      | 0.660627 | NaN      | 0.660627     |
+| Previous         | 0.384895     | 0.647967 | 0.768219 | 6.60144  | 0.736062     |
+| Validation       | 0.744385     | 0.771569 | 0.947628 | 79.99    | 0.876604     |
+| Training         | 0.73678      | 0.764253 | 0.947113 | 59.0436  | 0.873436     |
 
 
 
@@ -261,12 +265,13 @@ how do we check this
 
 ## Variable importance
 
-| **BIO** | **Import.** |
-|--------:|------------:|
-| 11.0    | 0.342392    |
-| 5.0     | 0.292015    |
-| 10.0    | 0.254812    |
-| 1.0     | 0.110781    |
+| **Layer** | **Variable**   | **Import.** |
+|----------:|---------------:|------------:|
+| 1         | BIO1           | 0.59825     |
+| 5         | BIO5           | 0.233834    |
+| 8         | BIO8           | 0.104139    |
+| 28        | Urban/Built-up | 0.0412146   |
+| 29        | Snow/Ice       | 0.0225633   |
 
 
 
@@ -352,12 +357,13 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Variable importance revisited
 
-| **BIO** | **Import.** | **Shap. imp.** |
-|--------:|------------:|---------------:|
-| 5.0     | 0.292015    | 0.358287       |
-| 11.0    | 0.342392    | 0.317696       |
-| 1.0     | 0.110781    | 0.163154       |
-| 10.0    | 0.254812    | 0.160862       |
+| **Layer** | **Variable**   | **Import.** | **Shap. imp.** |
+|----------:|---------------:|------------:|---------------:|
+| 1         | BIO1           | 0.59825     | 0.415164       |
+| 8         | BIO8           | 0.104139    | 0.261453       |
+| 5         | BIO5           | 0.233834    | 0.137676       |
+| 28        | Urban/Built-up | 0.0412146   | 0.125304       |
+| 29        | Snow/Ice       | 0.0225633   | 0.0604023      |
 
 
 
@@ -368,6 +374,10 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 
 
+
+## Revisiting the data transformation
+
+all in a single model so we can ask effect of variable instead of effect of PC1 or whatever
 
 # What if?
 
@@ -387,13 +397,13 @@ what they are
 
 ## Variable importance
 
-| **Variable**                         | **Relative importance** |
-|-------------------------------------:|------------------------:|
-| Evergreen/Deciduous Needleleaf Trees | 0.580133                |
-| Herbaceous Vegetation                | 0.377976                |
-| Urban/Built-up                       | 0.0251986               |
-| Snow/Ice                             | 0.0166925               |
-| Evergreen Broadleaf Trees            | 0.0                     |
+| **Layer** | **Variable**   | **Relative importance** |
+|----------:|---------------:|------------------------:|
+| 1         | BIO1           | 0.637614                |
+| 5         | BIO5           | 0.248376                |
+| 8         | BIO8           | 0.0824429               |
+| 28        | Urban/Built-up | 0.0190532               |
+| 29        | Snow/Ice       | 0.0125144               |
 
 
 
@@ -404,6 +414,12 @@ what they are
 
 
 
+
+## The Rashomon effect
+
+- different but equally likely alternatives
+- happens at all steps in the process
+- variable selected, threshold used, model type
 
 ## Visualizing the errors
 
@@ -421,12 +437,18 @@ what they are
 
 ## Generating a counterfactual
 
+
+
+
 ## Evaluating the counterfactuals
 
-## The Rashomon effect
+## What is a good counterfactual
 
-- different but equally likely alternatives
-- happens at all steps in the process
+learning rate and loss function
+
+use on prediction score and not yes/no!
+
+## Algorithmic recourse
 
 # Ensemble models
 
@@ -447,23 +469,27 @@ what they are
 
 ## Prediction of the rotation forest
 
-![](figures/slides_40_1.png)\ 
+![](figures/slides_41_1.png)\ 
 
 
 
 
 ## Prediction of the rotation forest
 
-![](figures/slides_41_1.png)\ 
+![](figures/slides_42_1.png)\ 
 
 
 
 
 ## Uncertainty
 
-![](figures/slides_42_1.png)\ 
+![](figures/slides_43_1.png)\ 
 
 
 
+
+## Heterogeneous ensembles
+
+## Setting up an heterogeneous ensemble
 
 # Conclusions
