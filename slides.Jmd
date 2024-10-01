@@ -72,7 +72,6 @@ variables
 CHE = SpeciesDistributionToolkit.gadm("CHE");
 layernames = readlines("layernames.csv")
 predictors = [SDMLayer("layers.tiff"; bandnumber=i) for i in 1:31]
-predictors = [mask(p, predictors[end]) for p in predictors]
 ```
 
 We will use data on observations of *Turdus torquatus* in Switzerland,
@@ -106,14 +105,8 @@ pseudo-absences
 what are the assumptions we make
 
 ```julia
-presencelayer = zeros(first(predictors), Bool)
-for i in axes(presences, 1)
-    presencelayer[presences[i,:]...] = true
-end
-background = pseudoabsencemask(DistanceToEvent, presencelayer)
-bgpoints = backgroundpoints(nodata(background, d -> d < 6), 2sum(presencelayer))
-prsc = nodata(presencelayer, false)
-absc = nodata(bgpoints, false)
+prsc = SDMLayer("occurrences.tiff"; bandnumber=1) .> 0
+absc = SDMLayer("occurrences.tiff"; bandnumber=2) .> 0
 ```
 
 ## The (inflated) observation data

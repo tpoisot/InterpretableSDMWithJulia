@@ -1,6 +1,7 @@
 using SpeciesDistributionToolkit
 using Random
 using DelimitedFiles
+Random.seed!(420)
 
 CHE = SpeciesDistributionToolkit.gadm("CHE")
 
@@ -25,6 +26,11 @@ landcover = itrp.(landcover)
 # Combine the layers
 L = [bioclim..., landcover...]
 L = [convert(SDMLayer{Float32}, l) for l in L]
+for l in L
+    l.x = L[1].x
+    l.y = L[1].y
+end
+L = [mask(l, L[end]) for l in L]
 SimpleSDMLayers.save("layers.tiff", L)
 
 # Get the data
@@ -40,6 +46,14 @@ while length(presences) < count(presences)
     occurrences!(presences)
 end
 
+# Get the pseudo-absences/presences
+presencelayer = zeros(first(L), Bool)
+for i in mask(presences, CHE)
+    presencelayer[i.longitude, i.latitude] = true
+end
+background = pseudoabsencemask(DistanceToEvent, presencelayer)
+bgpoints = backgroundpoints(nodata(background, d -> d < 6), 2sum(presencelayer))
+
 # Clip and save
 occ = mask(presences, CHE)
 DelimitedFiles.writedlm("presences.csv", hcat(longitudes.(occ), latitudes.(occ)))
@@ -47,3 +61,8 @@ DelimitedFiles.writedlm("presences.csv", hcat(longitudes.(occ), latitudes.(occ))
 # Names of the layers
 lnames = vcat(layers(RasterData(CHELSA2, BioClim)), layers(RasterData(EarthEnv, LandCover)))
 DelimitedFiles.writedlm("layernames.csv", lnames)
+
+# Get the layers
+prsc = nodata(presencelayer, false)
+absc = nodata(bgpoints, false)
+SimpleSDMLayers.save("occurrences.tiff", [convert(SDMLayer{Int8}, prsc), convert(SDMLayer{Int8}, absc)])
