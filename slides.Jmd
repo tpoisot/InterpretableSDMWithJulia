@@ -20,6 +20,7 @@ using CairoMakie
 using Statistics
 using PrettyTables
 using Random
+using DelimitedFiles
 Random.seed!(420)
 include("assets/makietheme.jl")
 ```
@@ -69,38 +70,16 @@ variables
 
 ```julia
 CHE = SpeciesDistributionToolkit.gadm("CHE");
-provider = RasterData(CHELSA2, BioClim)
-predictors = [
-    SDMLayer(
-        provider;
-        layer = x,
-        left = 0.0,
-        right = 20.0,
-        bottom = 35.0,
-        top = 55.0,
-    ) for x in 1:19
-];
-predictors = [trim(mask!(layer, CHE)) for layer in predictors];
-predictors = map(l -> convert(SDMLayer{Float32}, l), predictors);
+layernames = readlines("layernames.csv")
+predictors = [SDMLayer("layers.tiff"; bandnumber=i) for i in 1:31]
+predictors = [mask(p, predictors[end]) for p in predictors]
 ```
-
 
 We will use data on observations of *Turdus torquatus* in Switzerland,
 downloaded from the copy of the eBird dataset on GBIF
 
-
 ```julia
-ouzel = taxon("Turdus torquatus")
-presences = occurrences(
-    ouzel,
-    first(predictors),
-    "occurrenceStatus" => "PRESENT",
-    "limit" => 300,
-    "datasetKey" => "4fa7b334-ce0d-4e88-aaae-2e0c138d049e",
-)
-while length(presences) < count(presences)
-    occurrences!(presences)
-end
+presences = readdlm("presences.csv")
 ```
 
 ## The observation data
@@ -108,8 +87,7 @@ end
 ```julia
 f = Figure(; size=(800, 400))
 ax = Axis(f[1,1], aspect=DataAspect())
-poly!(ax, CHE.geometry[1], color=:lightgrey)
-scatter!(ax, mask(presences, CHE), color=:black)
+scatter!(ax, presences, color=:black)
 lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
@@ -129,12 +107,11 @@ what are the assumptions we make
 
 ```julia
 presencelayer = zeros(first(predictors), Bool)
-for occ in mask(presences, CHE)
-    presencelayer[occ.longitude, occ.latitude] = true
+for i in axes(presences, 1)
+    presencelayer[presences[i,:]...] = true
 end
-
 background = pseudoabsencemask(DistanceToEvent, presencelayer)
-bgpoints = backgroundpoints(nodata(background, d -> d < 4), 2sum(presencelayer))
+bgpoints = backgroundpoints(nodata(background, d -> d < 6), 2sum(presencelayer))
 prsc = nodata(presencelayer, false)
 absc = nodata(bgpoints, false)
 ```
@@ -144,9 +121,8 @@ absc = nodata(bgpoints, false)
 ```julia
 f = Figure(; size=(800, 400))
 ax = Axis(f[1,1], aspect=DataAspect())
-poly!(ax, CHE.geometry[1], color=:lightgrey)
-scatter!(ax, presencelayer; color = :black)
-scatter!(ax, bgpoints; color = :red, markersize = 4)
+scatter!(ax, prsc; color = :black)
+scatter!(ax, absc; color = :red, markersize = 4)
 lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
@@ -187,7 +163,7 @@ constant
 
 ## Expectations
 
-```julia; results="raw"
+```julia ; results="raw"
 hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
 tbl = []
 for null in [noskill, coinflip, constantpositive, constantnegative]
@@ -211,7 +187,7 @@ cv = crossvalidate(sdm, folds; threshold = false);
 
 ## Cross-validation results
 
-```julia; results="raw"
+```julia ; results="raw"
 hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
 tbl = []
 for null in [noskill, coinflip, constantpositive, constantnegative]
@@ -261,7 +237,6 @@ current_figure()
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-poly!(ax, CHE.geometry[1], color=:lightgrey)
 heatmap!(ax, current_range, colormap=[colorant"#fefefe", colorant"#d4d4d4"])
 scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
 scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
@@ -278,7 +253,7 @@ current_figure()
 variable selection
 
 ```julia
-forwardselection!(sdm, folds, [1])
+forwardselection!(sdm, folds)
 ```
 
 data transformation
@@ -307,7 +282,6 @@ bst = last(findmax([mean(mcc.(c.training)) for c in tcv]))
 f= Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, THR, [mean(mcc.(c.validation)) for c in tcv], color=:black)
-lines!(ax, THR, [mean(mcc.(c.training)) for c in tcv], color=:lightgrey, linestyle=:dash)
 scatter!(ax, [THR[bst]], [mean(mcc.(tcv[bst].validation))], color=:black)
 xlims!(ax, 0., 1.)
 ylims!(ax, 0., 1.)
@@ -380,8 +354,7 @@ current_figure()
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-poly!(ax, CHE.geometry[1], color=:lightgrey)
-heatmap!(ax, current_range, colormap=[colorant"#fefefe", colorant"#d4d4d4"])
+heatmap!(ax, current_range, colormap=[colorant"#fefefeff", colorant"#d4d4d4"])
 scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
 scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
 scatter!(ax, mask(current_range, absc) .& absc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:hline)
@@ -403,9 +376,9 @@ current_figure()
 var_imp = variableimportance(sdm, folds)
 var_imp ./= sum(var_imp)
 
-hdr = ["BIO", "Import."]
+hdr = ["Layer", "Variable", "Import."]
 pretty_table(
-    hcat(variables(sdm), var_imp)[sortperm(var_imp; rev=true),:];
+    hcat(variables(sdm), layernames[variables(sdm)], var_imp)[sortperm(var_imp; rev=true),:];
     backend = Val(:markdown), header = hdr)
 ```
 
@@ -418,7 +391,7 @@ pretty_table(
 ## Example with temperature
 
 ```julia
-x, y = partialresponse(sdm, 1; threshold=false)
+x, y = partialresponse(sdm, 24; threshold=false)
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, x, y)
@@ -428,9 +401,9 @@ current_figure()
 ## Example with two variables
 
 ```julia
-x, y, z = partialresponse(sdm, 1, 10; threshold=false)
+x, y, z = partialresponse(sdm, 1, 29; threshold=false)
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1])
+ax = Axis(f[1,1], xlabel=layernames[1], ylabel=layernames[29])
 heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
 current_figure()
 ```
@@ -481,7 +454,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 ```julia
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-for i in 1:300
+for i in 1:350
     lines!(ax, partialresponse(sdm, 1; inflated=true, threshold=false)..., color=:lightgrey, alpha=0.5)
 end
 lines!(ax, partialresponse(sdm, 1; inflated=false, threshold=false)..., color=:black)
@@ -521,7 +494,7 @@ current_figure()
 shapley_temp = explain(sdm, predictors, 1; threshold=false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.2, 0.2))
+hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.4, 0.4))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
 Colorbar(f[1, 2], hm)
 lines!(ax, CHE.geometry[1]; color = :black)
@@ -537,9 +510,9 @@ S = [explain(sdm, predictors, v; threshold=false) for v in variables(sdm)]
 shap_imp = map(x -> sum(abs.(x)), S)
 shap_imp ./= sum(shap_imp)
 most_imp = mosaic(x -> argmax(abs.(x)), S)
-hdr = ["BIO", "Import.", "Shap. imp."]
+hdr = ["Layer", "Variable", "Import.", "Shap. imp."]
 pretty_table(
-    hcat(variables(sdm), var_imp, shap_imp)[sortperm(shap_imp; rev=true),:];
+    hcat(variables(sdm), layernames[variables(sdm)], var_imp, shap_imp)[sortperm(shap_imp; rev=true),:];
     backend = Val(:markdown), header = hdr)
 ```
 
@@ -548,11 +521,19 @@ pretty_table(
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, most_imp; colormap = :glasbey_bw_n256)
+var_colors = cgrad(:diverging_rainbow_bgymr_45_85_c67_n256, length(variables(sdm)), categorical=true)
+hm = heatmap!(ax, most_imp; colormap = var_colors, colorrange=(1, length(variables(sdm))))
 contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
 lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
+Legend(
+    f[2, 1],
+    [PolyElement(; color = var_colors[i]) for i in 1:length(variables(sdm))],
+    layernames[variables(sdm)];
+    orientation = :horizontal,
+    nbanks = 1,
+)
 current_figure()
 ```
 
@@ -574,45 +555,22 @@ what they are
 - same process
 
 ```julia
-luprovider = RasterData(EarthEnv, LandCover)
-landcover = [
-    SDMLayer(
-        luprovider;
-        layer = x,
-        left = 0.0,
-        right = 20.0,
-        bottom = 35.0,
-        top = 55.0,
-    ) for x in 1:12
-];
-landcover = [trim(mask!(layer, CHE)) for layer in landcover];
-landcover = map(l -> convert(SDMLayer{Float32}, l), landcover);
-prsl = zeros(landcover[1], Bool)
-absl = zeros(landcover[1], Bool)
-prct = SimpleSDMLayers._centers(prsc)
-abct = SimpleSDMLayers._centers(absc)
-for i in axes(prct, 2)
-    prsl[prct[:,i]...] = true
-end
-for i in axes(abct, 2)
-    absl[abct[:,i]...] = true
-end
-tree = SDM(MultivariateTransform{PCA}, DecisionTree, landcover, prsl, absl)
-tree.classifier.maxnodes = 18
-variables!(tree, [1, 6, 10, 9, 2])
-treefolds = kfold(tree; k=15)
+tree = SDM(MultivariateTransform{PCA}, DecisionTree, predictors, presencelayer, bgpoints)
+maxnodes!(tree, 20)
+maxdepth!(tree, 6)
+variables!(tree, variables(sdm))
 train!(tree)
 ```
 
 ## Variable importance
 
 ```julia; results="raw"
-lu_var_imp = variableimportance(tree, treefolds; threshold=false)
+lu_var_imp = variableimportance(tree, folds; threshold=false)
 lu_var_imp ./= sum(lu_var_imp)
-hdr = ["Variable", "Relative importance"]
+hdr = ["Layer", "Variable", "Relative importance"]
 tbl = []
 for i in eachindex(lu_var_imp)
-    push!(tbl, [layers(luprovider)[variables(tree)[i]], lu_var_imp[i]])
+    push!(tbl, [variables(tree)[i], layernames[variables(tree)[i]], lu_var_imp[i]])
 end
 pretty_table(
     permutedims(hcat(tbl...))[sortperm(lu_var_imp; rev=true), :];
@@ -624,8 +582,8 @@ pretty_table(
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, predict(tree, landcover; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
-contour!(ax, predict(tree, landcover); color = :black, linewidth = 0.5)
+hm = heatmap!(ax, predict(tree, predictors; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(tree, predictors); color = :black, linewidth = 0.5)
 Colorbar(f[1, 2], hm)
 lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
@@ -642,9 +600,7 @@ current_figure()
 ## Visualizing the errors
 
 ```julia
-current_range = predict(tree, landcover)
-prsc = nodata(prsl, false)
-absc = nodata(absl, false)
+current_range = predict(tree, predictors)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
@@ -665,9 +621,8 @@ current_figure()
 ft1 = features(tree, 1)
 sp1 = explain(tree, 1; threshold=false, samples=100)
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1]; xlabel=layers(luprovider)[variables(tree)[1]])
+ax = Axis(f[1,1]; xlabel=layernames[variables(tree)[1]])
 scatter!(ax, ft1, sp1, color=:black)
-xlims!(ax, 0, 100)
 current_figure()
 ```
 
@@ -710,8 +665,8 @@ train!(forest)
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, predict(forest, landcover; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
-contour!(ax, predict(forest, landcover; consensus=majority); color = :black, linewidth = 0.5)
+hm = heatmap!(ax, predict(forest, predictors; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(forest, predictors; consensus=majority); color = :black, linewidth = 0.5)
 Colorbar(f[1, 2], hm)
 lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
@@ -722,7 +677,7 @@ current_figure()
 ## Prediction of the rotation forest
 
 ```julia
-current_range = predict(forest, landcover; consensus=majority)
+current_range = predict(forest, predictors; consensus=majority)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 poly!(ax, CHE.geometry[1], color=:lightgrey)
@@ -742,8 +697,8 @@ current_figure()
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, predict(forest, landcover; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256, colorrange = (0, 1))
-contour!(ax, predict(forest, landcover; consensus=majority); color = :black, linewidth = 0.5)
+hm = heatmap!(ax, predict(forest, predictors; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256, colorrange = (0, 1))
+contour!(ax, predict(forest, predictors; consensus=majority); color = :black, linewidth = 0.5)
 Colorbar(f[1, 2], hm)
 lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
