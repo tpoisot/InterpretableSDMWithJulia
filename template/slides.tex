@@ -167,29 +167,65 @@ We cannot ask people to \emph{trust} - we must \emph{convince} and
 \end{description}
 \end{frame}
 
+\begin{frame}{Learning/teaching goals}
+\phantomsection\label{learningteaching-goals}
+\begin{enumerate}
+\tightlist
+\item
+  Validation and training
+\item
+  Data leakage and data transformation
+\item
+  Overfitting and bagging
+\item
+  Partial responses and Shapley values
+\item
+  Counterfactuals
+\end{enumerate}
+\end{frame}
+
 \section{Problem statement}\label{problem-statement}
 
 \begin{frame}{The problem in ecological terms}
 \phantomsection\label{the-problem-in-ecological-terms}
-We have information about a species
+We have information about a species, taking the form of
+\((\text{lon}, \text{lat})\) for points where the species was observed
+
+Using this information, we can extract a suite of environmental
+variables for the locations where the species was observed
+
+We can do the same thing for locations where the species was not
+observed
+
+\alert{Where could we observed this species}?
 \end{frame}
 
-\begin{frame}{The problem in other words}
-\phantomsection\label{the-problem-in-other-words}
-We have a series of observations \(y \in \mathbb{B}\), and predictors
-variables \(\mathbf{X} \in \mathbb{R}\)
+\begin{frame}{The problem in ML terms}
+\phantomsection\label{the-problem-in-ml-terms}
+We have a series of labels \(\mathbf{y}_n \in \mathbb{B}\), and features
+\(\mathbf{X}_{m,n} \in \mathbb{R}\)
 
-We want to find an algorithm \(f(\mathbf{x}) = \hat y\) that results in
-the distance between \(\hat y\) and \(y\) being \emph{small}
+We want to find an algorithm \(f(\mathbf{x}_m) = \hat y\) that results
+in the distance between \(\hat y\) and \(y\) being \emph{small}
+
+An algorithm that does this job well is generalizable (we can apply it
+on data it has not been trained on) and makes credible predictions
 \end{frame}
 
 \begin{frame}{Setting up the data for our example}
 \phantomsection\label{setting-up-the-data-for-our-example}
-The predictor data will come from CHELSA2 - we will start with the 19
-BioClim variables
-
 We will use data on observations of \emph{Turdus torquatus} in
 Switzerland, downloaded from the copy of the eBird dataset on GBIF
+
+Two series of environmental layers
+
+\begin{enumerate}
+\tightlist
+\item
+  CHELSA2 BioClim variables (19)
+\item
+  EarthEnv land cover variables (12)
+\end{enumerate}
 \end{frame}
 
 \begin{frame}{The observation data}
@@ -218,13 +254,8 @@ what are the assumptions we make
 
 \section{Training the model}\label{training-the-model}
 
-\begin{frame}{The Naive Bayes Classifier}
-\phantomsection\label{the-naive-bayes-classifier}
-\[P(+|x) = \frac{P(+)}{P(x)}P(x|+)\]
-
-\[\hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)\]
-
-\[P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))\]
+\begin{frame}{A simple decision tree}
+\phantomsection\label{a-simple-decision-tree}
 \end{frame}
 
 \begin{frame}{Setup}
@@ -251,33 +282,20 @@ constant
 
 \begin{frame}{Expectations}
 \phantomsection\label{expectations}
-\begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2368}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}@{}}
+The null classifiers tell us what we need to beat in order to perform
+\alert{better than
+random}.
+
+\begin{longtable}[]{@{}rrrrrr@{}}
 \toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Model}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{MCC}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{PPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{NPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{DOR}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Accuracy}
-\end{minipage} \\
+\textbf{Model} & \textbf{MCC} & \textbf{PPV} & \textbf{NPV} &
+\textbf{DOR} & \textbf{Accuracy} \\
 \midrule\noalign{}
 \endhead
-noskill & -3.09497e-17 & 0.339373 & 0.660627 & 1.0 & 0.551602 \\
-coinflip & -0.321254 & 0.339373 & 0.339373 & 0.263902 & 0.339373 \\
-constantpositive & 0.0 & 0.339373 & NaN & NaN & 0.339373 \\
-constantnegative & 0.0 & NaN & 0.660627 & NaN & 0.660627 \\
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
++ & 0.00 & 0.34 & & & 0.34 \\
+- & 0.00 & & 0.66 & & 0.66 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -291,35 +309,18 @@ validation / training / testing
 
 \begin{frame}{Cross-validation results}
 \phantomsection\label{cross-validation-results}
-\begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2368}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}@{}}
+\begin{longtable}[]{@{}rrrrrr@{}}
 \toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Model}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{MCC}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{PPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{NPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{DOR}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Accuracy}
-\end{minipage} \\
+\textbf{Model} & \textbf{MCC} & \textbf{PPV} & \textbf{NPV} &
+\textbf{DOR} & \textbf{Accuracy} \\
 \midrule\noalign{}
 \endhead
-noskill & -3.09497e-17 & 0.339373 & 0.660627 & 1.0 & 0.551602 \\
-coinflip & -0.321254 & 0.339373 & 0.339373 & 0.263902 & 0.339373 \\
-constantpositive & 0.0 & 0.339373 & NaN & NaN & 0.339373 \\
-constantnegative & 0.0 & NaN & 0.660627 & NaN & 0.660627 \\
-Validation & 0.384895 & 0.647967 & 0.768219 & 6.60144 & 0.736062 \\
-Training & 0.392684 & 0.652914 & 0.770902 & 6.33576 & 0.740233 \\
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
++ & 0.00 & 0.34 & & & 0.34 \\
+- & 0.00 & & 0.66 & & 0.66 \\
+Validation & 0.63 & 0.74 & 0.89 & 25.41 & 0.83 \\
+Training & 0.66 & 0.76 & 0.90 & 33.66 & 0.84 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -329,14 +330,6 @@ Training & 0.392684 & 0.652914 & 0.770902 & 6.33576 & 0.740233 \\
 train it!
 
 re-use the full dataset
-\end{frame}
-
-\begin{frame}{A note on data leakage}
-\phantomsection\label{a-note-on-data-leakage}
-\end{frame}
-
-\begin{frame}{Data transformation using PCA}
-\phantomsection\label{data-transformation-using-pca}
 \end{frame}
 
 \begin{frame}{The model training pipeline}
@@ -362,6 +355,14 @@ data transformation
 hyper-parameters tuning
 
 will focus on the later (same process for the two above)
+\end{frame}
+
+\begin{frame}{Data leakage}
+\phantomsection\label{data-leakage}
+\end{frame}
+
+\begin{frame}{A note on PCA}
+\phantomsection\label{a-note-on-pca}
 \end{frame}
 
 \begin{frame}{Moving theshold classification}
@@ -390,36 +391,20 @@ how do we check this
 
 \begin{frame}{Revisiting the model performance}
 \phantomsection\label{revisiting-the-model-performance}
-\begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2368}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1316}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}@{}}
+\begin{longtable}[]{@{}rrrrrr@{}}
 \toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Model}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{MCC}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{PPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{NPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{DOR}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Accuracy}
-\end{minipage} \\
+\textbf{Model} & \textbf{MCC} & \textbf{PPV} & \textbf{NPV} &
+\textbf{DOR} & \textbf{Accuracy} \\
 \midrule\noalign{}
 \endhead
-noskill & -3.09497e-17 & 0.339373 & 0.660627 & 1.0 & 0.551602 \\
-coinflip & -0.321254 & 0.339373 & 0.339373 & 0.263902 & 0.339373 \\
-constantpositive & 0.0 & 0.339373 & NaN & NaN & 0.339373 \\
-constantnegative & 0.0 & NaN & 0.660627 & NaN & 0.660627 \\
-Previous & 0.384895 & 0.647967 & 0.768219 & 6.60144 & 0.736062 \\
-Validation & 0.744385 & 0.771569 & 0.947628 & 79.99 & 0.876604 \\
-Training & 0.73678 & 0.764253 & 0.947113 & 59.0436 & 0.873436 \\
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
++ & 0.00 & 0.34 & & & 0.34 \\
+- & 0.00 & & 0.66 & & 0.66 \\
+Validation & 0.63 & 0.74 & 0.89 & 25.41 & 0.83 \\
+Training & 0.66 & 0.76 & 0.90 & 33.66 & 0.84 \\
+Validation & 0.77 & 0.78 & 0.96 & 140.95 & 0.89 \\
+Training & 0.79 & 0.79 & 0.97 & 125.70 & 0.90 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -432,6 +417,49 @@ Training & 0.73678 & 0.764253 & 0.947113 & 59.0436 & 0.873436 \\
 \begin{frame}{How is this model better?}
 \phantomsection\label{how-is-this-model-better}
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
+\end{frame}
+
+\begin{frame}{But wait!}
+\phantomsection\label{but-wait}
+slide on overfitting
+\end{frame}
+
+\section{Ensemble models}\label{ensemble-models}
+
+\begin{frame}{Limits of a single model}
+\phantomsection\label{limits-of-a-single-model}
+\begin{itemize}
+\tightlist
+\item
+  a single model
+\item
+  different parts of data may have different signal
+\item
+  do we need all the variables all the time?
+\item
+  bias v. variance tradeoff
+\item
+  limit overfitting
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bootstrapping and aggregation}
+\phantomsection\label{bootstrapping-and-aggregation}
+\end{frame}
+
+\begin{frame}{Prediction of the rotation forest}
+\phantomsection\label{prediction-of-the-rotation-forest}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_24_1.png}}~
+\end{frame}
+
+\begin{frame}{Prediction of the rotation forest}
+\phantomsection\label{prediction-of-the-rotation-forest-1}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
+\end{frame}
+
+\begin{frame}{Uncertainty}
+\phantomsection\label{uncertainty}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_26_1.png}}~
 \end{frame}
 
 \begin{frame}{Revisiting assumptions}
@@ -452,11 +480,11 @@ Training & 0.73678 & 0.764253 & 0.947113 & 59.0436 & 0.873436 \\
 \textbf{Layer} & \textbf{Variable} & \textbf{Import.} \\
 \midrule\noalign{}
 \endhead
-1 & BIO1 & 0.59825 \\
-5 & BIO5 & 0.233834 \\
-8 & BIO8 & 0.104139 \\
-28 & Urban/Built-up & 0.0412146 \\
-29 & Snow/Ice & 0.0225633 \\
+6 & BIO6 & 0.805809 \\
+7 & BIO7 & 0.151936 \\
+23 & Mixed/Other Trees & 0.0225518 \\
+29 & Snow/Ice & 0.0192739 \\
+27 & Regularly Flooded Vegetation & 0.000429548 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -467,28 +495,32 @@ Training & 0.73678 & 0.764253 & 0.947113 & 59.0436 & 0.873436 \\
 \phantomsection\label{intro-explainable}
 \end{frame}
 
-\begin{frame}{An ecology tool: partial response curves}
-\phantomsection\label{an-ecology-tool-partial-response-curves}
+\begin{frame}{Partial response curves}
+\phantomsection\label{partial-response-curves}
+If we assume that all the variables except one take their average value,
+what is the prediction associated to the value that is unchanged?
+
+Equivalent to a mean-field approximation
 \end{frame}
 
 \begin{frame}{Example with temperature}
 \phantomsection\label{example-with-temperature}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_24_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
 \end{frame}
 
 \begin{frame}{Example with two variables}
 \phantomsection\label{example-with-two-variables}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response plot}
 \phantomsection\label{spatialized-partial-response-plot}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_26_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response (binary outcome)}
 \phantomsection\label{spatialized-partial-response-binary-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_27_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
 \end{frame}
 
 \begin{frame}{Inflated response curves}
@@ -511,7 +543,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Example}
 \phantomsection\label{example}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_32_1.png}}~
 \end{frame}
 
 \begin{frame}{Limitations}
@@ -538,34 +570,44 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Response curves revisited}
 \phantomsection\label{response-curves-revisited}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
 \end{frame}
 
 \begin{frame}{On a map}
 \phantomsection\label{on-a-map}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_35_1.png}}~
 \end{frame}
 
 \begin{frame}{Variable importance revisited}
 \phantomsection\label{variable-importance-revisited}
-\begin{longtable}[]{@{}rrrr@{}}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1571}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.4286}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1857}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2286}}@{}}
 \toprule\noalign{}
-\textbf{Layer} & \textbf{Variable} & \textbf{Import.} & \textbf{Shap.
-imp.} \\
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Layer}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Variable}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Import.}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Shap. imp.}
+\end{minipage} \\
 \midrule\noalign{}
 \endhead
-1 & BIO1 & 0.59825 & 0.415164 \\
-8 & BIO8 & 0.104139 & 0.261453 \\
-5 & BIO5 & 0.233834 & 0.137676 \\
-28 & Urban/Built-up & 0.0412146 & 0.125304 \\
-29 & Snow/Ice & 0.0225633 & 0.0604023 \\
+6 & BIO6 & 0.805809 & 0.796968 \\
+7 & BIO7 & 0.151936 & 0.143859 \\
+29 & Snow/Ice & 0.0192739 & 0.0296059 \\
+23 & Mixed/Other Trees & 0.0225518 & 0.0292317 \\
+27 & Regularly Flooded Vegetation & 0.000429548 & 0.000336003 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
 
 \begin{frame}{Most important predictor}
 \phantomsection\label{most-important-predictor}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_37_1.png}}~
 \end{frame}
 
 \begin{frame}{Revisiting the data transformation}
@@ -581,42 +623,6 @@ of PC1 or whatever
 what they are
 \end{frame}
 
-\begin{frame}{Setting up a new problem}
-\phantomsection\label{setting-up-a-new-problem}
-\begin{itemize}
-\tightlist
-\item
-  land use
-\item
-  decision tree - very easy to overfit
-\item
-  at most 18 nodes of depth at most 7
-\item
-  same process
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Variable importance}
-\phantomsection\label{variable-importance-1}
-\begin{longtable}[]{@{}rrr@{}}
-\toprule\noalign{}
-\textbf{Layer} & \textbf{Variable} & \textbf{Relative importance} \\
-\midrule\noalign{}
-\endhead
-1 & BIO1 & 0.637614 \\
-5 & BIO5 & 0.248376 \\
-8 & BIO8 & 0.0824429 \\
-28 & Urban/Built-up & 0.0190532 \\
-29 & Snow/Ice & 0.0125144 \\
-\bottomrule\noalign{}
-\end{longtable}
-\end{frame}
-
-\begin{frame}{Visualizing the prediction}
-\phantomsection\label{visualizing-the-prediction}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
-\end{frame}
-
 \begin{frame}{The Rashomon effect}
 \phantomsection\label{the-rashomon-effect}
 \begin{itemize}
@@ -628,16 +634,6 @@ what they are
 \item
   variable selected, threshold used, model type
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Visualizing the errors}
-\phantomsection\label{visualizing-the-errors}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_37_1.png}}~
-\end{frame}
-
-\begin{frame}{Partial response (Shapley)}
-\phantomsection\label{partial-response-shapley}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_38_1.png}}~
 \end{frame}
 
 \begin{frame}{Generating a counterfactual}
@@ -657,56 +653,6 @@ use on prediction score and not yes/no!
 
 \begin{frame}{Algorithmic recourse}
 \phantomsection\label{algorithmic-recourse}
-\end{frame}
-
-\section{Ensemble models}\label{ensemble-models}
-
-\begin{frame}{Limits of a single model}
-\phantomsection\label{limits-of-a-single-model}
-\begin{itemize}
-\tightlist
-\item
-  a single model
-\item
-  different parts of data may have different signal
-\item
-  do we need all the variables all the time?
-\item
-  bias v. variance tradeoff
-\item
-  limit overfitting
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Bootstrapping and aggregation}
-\phantomsection\label{bootstrapping-and-aggregation}
-\end{frame}
-
-\begin{frame}{An example of bagging: rotation forest}
-\phantomsection\label{an-example-of-bagging-rotation-forest}
-\end{frame}
-
-\begin{frame}{Prediction of the rotation forest}
-\phantomsection\label{prediction-of-the-rotation-forest}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_41_1.png}}~
-\end{frame}
-
-\begin{frame}{Prediction of the rotation forest}
-\phantomsection\label{prediction-of-the-rotation-forest-1}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_42_1.png}}~
-\end{frame}
-
-\begin{frame}{Uncertainty}
-\phantomsection\label{uncertainty}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_43_1.png}}~
-\end{frame}
-
-\begin{frame}{Heterogeneous ensembles}
-\phantomsection\label{heterogeneous-ensembles}
-\end{frame}
-
-\begin{frame}{Setting up an heterogeneous ensemble}
-\phantomsection\label{setting-up-an-heterogeneous-ensemble}
 \end{frame}
 
 \section{Conclusions}\label{conclusions}

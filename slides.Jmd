@@ -73,7 +73,7 @@ We can do the same thing for locations where the species was not observed
 
 ## The problem in ML terms
 
-We have a series of labels $\mahbf{y}_n \in \mathbb{B}$, and features
+We have a series of labels $\mathbf{y}_n \in \mathbb{B}$, and features
 $\mathbf{X}_{m,n} \in \mathbb{R}$
 
 We want to find an algorithm $f(\mathbf{x}_m) = \hat y$ that results in the

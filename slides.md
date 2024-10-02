@@ -32,30 +32,51 @@ subtitle: "An introduction using species distribution models"
 ... the focus on explainability?
 : We cannot ask people to *trust* - we must *convince* and *explain*
 
+## Learning/teaching goals
+
+1. Validation and training
+2. Data leakage and data transformation
+3. Overfitting and bagging
+4. Partial responses and Shapley values
+5. Counterfactuals
+
 # Problem statement
 
 ## The problem in ecological terms
 
-We have information about a species
+We have information about a species, taking the form of $(\text{lon}, \text{lat})$ for
+points where the species was observed
 
-## The problem in other words
+Using this information, we can extract a suite of environmental variables for the locations
+where the species was observed
 
-We have a series of observations $y \in \mathbb{B}$, and predictors variables
-$\mathbf{X} \in \mathbb{R}$
+We can do the same thing for locations where the species was not observed
 
-We want to find an algorithm $f(\mathbf{x}) = \hat y$ that results in the
+\alert{Where could we observed this species}?
+
+## The problem in ML terms
+
+We have a series of labels $\mathbf{y}_n \in \mathbb{B}$, and features
+$\mathbf{X}_{m,n} \in \mathbb{R}$
+
+We want to find an algorithm $f(\mathbf{x}_m) = \hat y$ that results in the
 distance between $\hat y$ and $y$ being *small*
+
+An algorithm that does this job well is generalizable (we can apply it on data it has not
+been trained on) and makes credible predictions
 
 ## Setting up the data for our example
 
-The predictor data will come from CHELSA2 - we will start with the 19 BioClim
-variables
-
-
-
-
 We will use data on observations of *Turdus torquatus* in Switzerland,
 downloaded from the copy of the eBird dataset on GBIF
+
+
+
+
+Two series of environmental layers
+
+1. CHELSA2 BioClim variables (19)
+2. EarthEnv land cover variables (12)
 
 
 
@@ -90,13 +111,7 @@ what are the assumptions we make
 
 # Training the model
 
-## The Naive Bayes Classifier
-
-$$P(+|x) = \frac{P(+)}{P(x)}P(x|+)$$
-
-$$\hat y = \text{argmax}_j \, P(\mathbf{c}_j)\prod_i P(\mathbf{x}_i|\mathbf{c}_j)$$
-
-$$P(x|+) = \text{pdf}(x, \mathcal{N}(\mu_+, \sigma_+))$$
+## A simple decision tree
 
 ## Setup
 
@@ -121,12 +136,15 @@ constant
 
 ## Expectations
 
-| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
-|-----------------:|-------------:|---------:|---------:|---------:|-------------:|
-| noskill          | -3.09497e-17 | 0.339373 | 0.660627 | 1.0      | 0.551602     |
-| coinflip         | -0.321254    | 0.339373 | 0.339373 | 0.263902 | 0.339373     |
-| constantpositive | 0.0          | 0.339373 | NaN      | NaN      | 0.339373     |
-| constantnegative | 0.0          | NaN      | 0.660627 | NaN      | 0.660627     |
+The null classifiers tell us what we need to beat in order to perform \alert{better than
+random}.
+
+| **Model** | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|----------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill  | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Coin flip | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
+| +         |  0.00   |  0.34   |         |         |  0.34        |
+| -         |  0.00   |         |  0.66   |         |  0.66        |
 
 
 
@@ -142,14 +160,14 @@ validation / training / testing
 
 ## Cross-validation results
 
-| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
-|-----------------:|-------------:|---------:|---------:|---------:|-------------:|
-| noskill          | -3.09497e-17 | 0.339373 | 0.660627 | 1.0      | 0.551602     |
-| coinflip         | -0.321254    | 0.339373 | 0.339373 | 0.263902 | 0.339373     |
-| constantpositive | 0.0          | 0.339373 | NaN      | NaN      | 0.339373     |
-| constantnegative | 0.0          | NaN      | 0.660627 | NaN      | 0.660627     |
-| Validation       | 0.384895     | 0.647967 | 0.768219 | 6.60144  | 0.736062     |
-| Training         | 0.392684     | 0.652914 | 0.770902 | 6.33576  | 0.740233     |
+| **Model**  | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|-----------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill   | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
+| +          |  0.00   |  0.34   |         |         |  0.34        |
+| -          |  0.00   |         |  0.66   |         |  0.66        |
+| Validation |  0.63   |  0.74   |  0.89   | 25.41   |  0.83        |
+| Training   |  0.66   |  0.76   |  0.90   | 33.66   |  0.84        |
 
 
 
@@ -162,10 +180,6 @@ re-use the full dataset
 
 
 
-
-## A note on data leakage
-
-## Data transformation using PCA
 
 ## The model training pipeline
 
@@ -195,6 +209,10 @@ data transformation
 hyper-parameters tuning
 
 will focus on the later (same process for the two above)
+
+## Data leakage
+
+## A note on PCA
 
 ## Moving theshold classification
 
@@ -230,15 +248,16 @@ how do we check this
 
 ## Revisiting the model performance
 
-| **Model**        | **MCC**      | **PPV**  | **NPV**  | **DOR**  | **Accuracy** |
-|-----------------:|-------------:|---------:|---------:|---------:|-------------:|
-| noskill          | -3.09497e-17 | 0.339373 | 0.660627 | 1.0      | 0.551602     |
-| coinflip         | -0.321254    | 0.339373 | 0.339373 | 0.263902 | 0.339373     |
-| constantpositive | 0.0          | 0.339373 | NaN      | NaN      | 0.339373     |
-| constantnegative | 0.0          | NaN      | 0.660627 | NaN      | 0.660627     |
-| Previous         | 0.384895     | 0.647967 | 0.768219 | 6.60144  | 0.736062     |
-| Validation       | 0.744385     | 0.771569 | 0.947628 | 79.99    | 0.876604     |
-| Training         | 0.73678      | 0.764253 | 0.947113 | 59.0436  | 0.873436     |
+| **Model**  | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|-----------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill   | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
+| +          |  0.00   |  0.34   |         |         |  0.34        |
+| -          |  0.00   |         |  0.66   |         |  0.66        |
+| Validation |  0.63   |  0.74   |  0.89   | 25.41   |  0.83        |
+| Training   |  0.66   |  0.76   |  0.90   | 33.66   |  0.84        |
+| Validation |  0.77   |  0.78   |  0.96   | 140.95  |  0.89        |
+| Training   |  0.79   |  0.79   |  0.97   | 125.70  |  0.90        |
 
 
 
@@ -258,6 +277,46 @@ how do we check this
 
 
 
+## But wait!
+
+slide on overfitting
+
+# Ensemble models
+
+## Limits of a single model
+
+- a single model
+- different parts of data may have different signal
+- do we need all the variables all the time?
+- bias v. variance tradeoff
+- limit overfitting
+
+## Bootstrapping and aggregation
+
+
+
+
+## Prediction of the rotation forest
+
+![](figures/slides_24_1.png)\ 
+
+
+
+
+## Prediction of the rotation forest
+
+![](figures/slides_25_1.png)\ 
+
+
+
+
+## Uncertainty
+
+![](figures/slides_26_1.png)\ 
+
+
+
+
 ## Revisiting assumptions
 
 - pseudo-absences
@@ -265,13 +324,13 @@ how do we check this
 
 ## Variable importance
 
-| **Layer** | **Variable**   | **Import.** |
-|----------:|---------------:|------------:|
-| 1         | BIO1           | 0.59825     |
-| 5         | BIO5           | 0.233834    |
-| 8         | BIO8           | 0.104139    |
-| 28        | Urban/Built-up | 0.0412146   |
-| 29        | Snow/Ice       | 0.0225633   |
+| **Layer** | **Variable**                 | **Import.** |
+|----------:|-----------------------------:|------------:|
+| 6         | BIO6                         | 0.805809    |
+| 7         | BIO7                         | 0.151936    |
+| 23        | Mixed/Other Trees            | 0.0225518   |
+| 29        | Snow/Ice                     | 0.0192739   |
+| 27        | Regularly Flooded Vegetation | 0.000429548 |
 
 
 
@@ -280,32 +339,36 @@ how do we check this
 
 ## Intro explainable
 
-## An ecology tool: partial response curves
+## Partial response curves
+
+If we assume that all the variables except one take their average value, what is the prediction associated to the value that is unchanged?
+
+Equivalent to a mean-field approximation
 
 ## Example with temperature
 
-![](figures/slides_24_1.png)\ 
+![](figures/slides_28_1.png)\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_25_1.png)\ 
+![](figures/slides_29_1.png)\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_26_1.png)\ 
+![](figures/slides_30_1.png)\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_27_1.png)\ 
+![](figures/slides_31_1.png)\ 
 
 
 
@@ -323,7 +386,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Example
 
-![](figures/slides_28_1.png)\ 
+![](figures/slides_32_1.png)\ 
 
 
 
@@ -343,34 +406,32 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
-![](figures/slides_30_1.png)\ 
-
 
 
 
 ## On a map
 
-![](figures/slides_31_1.png)\ 
+![](figures/slides_35_1.png)\ 
 
 
 
 
 ## Variable importance revisited
 
-| **Layer** | **Variable**   | **Import.** | **Shap. imp.** |
-|----------:|---------------:|------------:|---------------:|
-| 1         | BIO1           | 0.59825     | 0.415164       |
-| 8         | BIO8           | 0.104139    | 0.261453       |
-| 5         | BIO5           | 0.233834    | 0.137676       |
-| 28        | Urban/Built-up | 0.0412146   | 0.125304       |
-| 29        | Snow/Ice       | 0.0225633   | 0.0604023      |
+| **Layer** | **Variable**                 | **Import.** | **Shap. imp.** |
+|----------:|-----------------------------:|------------:|---------------:|
+| 6         | BIO6                         | 0.805809    | 0.796968       |
+| 7         | BIO7                         | 0.151936    | 0.143859       |
+| 29        | Snow/Ice                     | 0.0192739   | 0.0296059      |
+| 23        | Mixed/Other Trees            | 0.0225518   | 0.0292317      |
+| 27        | Regularly Flooded Vegetation | 0.000429548 | 0.000336003    |
 
 
 
 
 ## Most important predictor
 
-![](figures/slides_33_1.png)\ 
+![](figures/slides_37_1.png)\ 
 
 
 
@@ -385,55 +446,11 @@ all in a single model so we can ask effect of variable instead of effect of PC1 
 
 what they are
 
-## Setting up a new problem
-
-- land use
-- decision tree - very easy to overfit
-- at most 18 nodes of depth at most 7
-- same process
-
-
-
-
-## Variable importance
-
-| **Layer** | **Variable**   | **Relative importance** |
-|----------:|---------------:|------------------------:|
-| 1         | BIO1           | 0.637614                |
-| 5         | BIO5           | 0.248376                |
-| 8         | BIO8           | 0.0824429               |
-| 28        | Urban/Built-up | 0.0190532               |
-| 29        | Snow/Ice       | 0.0125144               |
-
-
-
-
-## Visualizing the prediction
-
-![](figures/slides_36_1.png)\ 
-
-
-
-
 ## The Rashomon effect
 
 - different but equally likely alternatives
 - happens at all steps in the process
 - variable selected, threshold used, model type
-
-## Visualizing the errors
-
-![](figures/slides_37_1.png)\ 
-
-
-
-
-## Partial response (Shapley)
-
-![](figures/slides_38_1.png)\ 
-
-
-
 
 ## Generating a counterfactual
 
@@ -449,47 +466,5 @@ learning rate and loss function
 use on prediction score and not yes/no!
 
 ## Algorithmic recourse
-
-# Ensemble models
-
-## Limits of a single model
-
-- a single model
-- different parts of data may have different signal
-- do we need all the variables all the time?
-- bias v. variance tradeoff
-- limit overfitting
-
-## Bootstrapping and aggregation
-
-## An example of bagging: rotation forest
-
-
-
-
-## Prediction of the rotation forest
-
-![](figures/slides_41_1.png)\ 
-
-
-
-
-## Prediction of the rotation forest
-
-![](figures/slides_42_1.png)\ 
-
-
-
-
-## Uncertainty
-
-![](figures/slides_43_1.png)\ 
-
-
-
-
-## Heterogeneous ensembles
-
-## Setting up an heterogeneous ensemble
 
 # Conclusions
