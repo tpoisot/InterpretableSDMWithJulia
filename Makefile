@@ -11,19 +11,20 @@ background.png: makebackground.jl
 .PHONY: clean install
 
 literate: $(wildcard $(FILE).jl)
-	@$(if $(wildcard $(FILE).jl),julia --project assets/literate.jl $<,echo "No jl file found")
+	@$(if $(wildcard $(FILE).jl),julia --project template/literate.jl $<,echo "No jl file found")
 
 tangle: $(wildcard $(FILE).Jmd)
-	@$(if $(wildcard $(FILE).Jmd),julia --project assets/tangle.jl $<,echo "No Jmd file found")
+	@$(if $(wildcard $(FILE).Jmd),julia --project template/tangle.jl $<,echo "No Jmd file found")
 
 weave: $(wildcard $(FILE).Jmd)
-	@$(if $(wildcard $(FILE).Jmd),julia --project assets/weave.jl $<,echo "No Jmd file found")
+	@$(if $(wildcard $(FILE).Jmd),julia --project template/weave.jl $<,echo "No Jmd file found")
 
-$(FILE).tex: $(FILE).md
+template/$(FILE).tex: $(FILE).md
 	pandoc $< -t beamer --slide-level 2 -o $@ --template ./template/pl.tex
 
-$(FILE).pdf: $(FILE).tex
-	xelatex --shell-escape $<
+$(FILE).pdf: template/$(FILE).tex
+	ln -fs figures template/figures
+	latexmk $<
 
 $(OUTPUT): $(FILE).pdf
 	cp $< $@

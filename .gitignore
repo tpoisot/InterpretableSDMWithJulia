@@ -38,6 +38,7 @@ docs/site/
 # environment.
 Manifest.toml
 
+_minted_slides/
 *.log
 *.nav
 *.snm
