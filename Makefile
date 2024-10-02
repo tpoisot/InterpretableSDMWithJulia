@@ -1,7 +1,4 @@
-TEXMFHOME=$(shell kpsewhich -var-value=TEXMFHOME)
-INSTALL_DIR=$(TEXMFHOME)/tex/latex/pltheme
 FILE=slides
-OUTPUT=$(FILE)_final.pdf
 JLC=julia --threads=auto --project
 
 all: $(OUTPUT)
@@ -25,15 +22,8 @@ template/$(FILE).tex: $(FILE).md
 
 $(FILE).pdf: template/$(FILE).tex
 	ln -fs figures template/figures
-	latexmk $<
-
-$(OUTPUT): $(FILE).pdf
-	cp $< $@
+	latexmk -g $<
 
 clean:
 	latexmk	-c
 	rm *.{vrb,nav,snm}
-
-install:
-	mkdir -p $(INSTALL_DIR)
-	cp *.sty $(INSTALL_DIR)

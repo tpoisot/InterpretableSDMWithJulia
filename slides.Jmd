@@ -21,7 +21,7 @@ using Statistics
 using PrettyTables
 using Random
 using DelimitedFiles
-Random.seed!(1234567890)
+Random.seed!(420)
 include("code/makietheme.jl")
 ```
 
@@ -155,7 +155,9 @@ sdm = SDM(MultivariateTransform{PCA}, DecisionTree, predictors, prsc, absc)
 
 ## Cross-validation
 
-Can we train the model
+Can we train the model?
+
+More specifically -- if we train the model, how well can we expect it to perform?
 
 assumes parallel universes with slightly less data
 
@@ -662,10 +664,10 @@ what they are
 ```julia
 idx = rand(findall(!, predict(sdm)))
 cfs = [
-    counterfactual(sdm, instance(sdm, idx; strict=false), threshold(sdm)+0.1, 1.0; threshold=false)
+    counterfactual(forest, instance(forest, idx; strict=false), threshold(forest.model)+0.1, 1.0; threshold=false, consensus=median)
     for i in 1:10
     ]
-permutedims(hcat(cfs...)[variables(sdm),:]) .- instance(tree, idx))
+heatmap(hcat(cfs...)[variables(forest),:])
 ```
 
 ## Evaluating the counterfactuals

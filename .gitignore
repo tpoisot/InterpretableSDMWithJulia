@@ -46,3 +46,4 @@ _minted_slides/
 *.toc
 *.out
 *.aux
+*.fdb_latexmk
