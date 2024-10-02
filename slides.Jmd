@@ -21,7 +21,7 @@ using Statistics
 using PrettyTables
 using Random
 using DelimitedFiles
-Random.seed!(420)
+Random.seed!(123321)
 include("code/makietheme.jl")
 ```
 
@@ -279,7 +279,7 @@ current_figure()
 variable selection
 
 ```julia
-forwardselection!(sdm, folds; verbose=true)
+forwardselection!(sdm, folds, [1]; verbose=true)
 ```
 
 data transformation
