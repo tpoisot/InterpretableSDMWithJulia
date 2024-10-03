@@ -287,7 +287,13 @@ how do we check this
 
 ## But wait!
 
-slide on overfitting
+Using depth of 7 and up to 20 nodes
+
+
+![](figures/slides_25_1.png)\ 
+
+
+
 
 # Ensemble models
 
@@ -313,29 +319,29 @@ slide on overfitting
 | Dec. tree (tr.)   |  0.66   |  0.78   |  0.88   | 28.70   |  0.85        |
 | Tuned tree (val.) |  0.77   |  0.79   |  0.95   | 113.44  |  0.89        |
 | Tuned tree (tr.)  |  0.80   |  0.81   |  0.96   | 114.37  |  0.90        |
-| Forest (val.)     |  0.77   |  0.80   |  0.95   | 109.11  |  0.89        |
-| Forest (tr.)      |  0.77   |  0.79   |  0.95   | 78.31   |  0.89        |
+| Forest (val.)     |  0.76   |  0.79   |  0.95   | 99.61   |  0.89        |
+| Forest (tr.)      |  0.77   |  0.79   |  0.95   | 75.04   |  0.89        |
 
 
 
 
 ## Prediction of the rotation forest
 
-![](figures/slides_26_1.png)\ 
+![](figures/slides_28_1.png)\ 
 
 
 
 
 ## Prediction of the rotation forest
 
-![](figures/slides_27_1.png)\ 
+![](figures/slides_29_1.png)\ 
 
 
 
 
 ## Uncertainty
 
-![](figures/slides_28_1.png)\ 
+![](figures/slides_30_1.png)\ 
 
 
 
@@ -349,11 +355,11 @@ slide on overfitting
 
 | **Layer** | **Variable** | **Import.** |
 |----------:|-------------:|------------:|
-| 1         | BIO1         | 0.857744    |
-| 8         | BIO8         | 0.110619    |
-| 29        | Snow/Ice     | 0.0196575   |
-| 24        | Shrubs       | 0.00951455  |
-| 3         | BIO3         | 0.00246503  |
+| 1         | BIO1         | 0.910314    |
+| 8         | BIO8         | 0.0462913   |
+| 29        | Snow/Ice     | 0.0209557   |
+| 24        | Shrubs       | 0.018254    |
+| 3         | BIO3         | 0.00418499  |
 
 
 
@@ -373,28 +379,28 @@ Equivalent to a mean-field approximation
 
 ## Example with temperature
 
-![](figures/slides_31_1.png)\ 
+![](figures/slides_33_1.png)\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_32_1.png)\ 
+![](figures/slides_34_1.png)\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_33_1.png)\ 
+![](figures/slides_35_1.png)\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_34_1.png)\ 
+![](figures/slides_36_1.png)\ 
 
 
 
@@ -413,7 +419,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 ## Example
 
 
-![](figures/slides_36_1.png)\ 
+![](figures/slides_38_1.png)\ 
 
 
 
@@ -433,14 +439,14 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
-![](figures/slides_38_1.png)\ 
+![](figures/slides_40_1.png)\ 
 
 
 
 
 ## On a map
 
-![](figures/slides_39_1.png)\ 
+![](figures/slides_41_1.png)\ 
 
 
 
@@ -449,18 +455,18 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 | **Layer** | **Variable** | **Import.** | **Shap. imp.** |
 |----------:|-------------:|------------:|---------------:|
-| 1         | BIO1         | 0.857744    | 0.783837       |
-| 8         | BIO8         | 0.110619    | 0.140305       |
-| 29        | Snow/Ice     | 0.0196575   | 0.0501887      |
-| 24        | Shrubs       | 0.00951455  | 0.0176572      |
-| 3         | BIO3         | 0.00246503  | 0.00801191     |
+| 1         | BIO1         | 0.910314    | 0.846334       |
+| 8         | BIO8         | 0.0462913   | 0.0736589      |
+| 29        | Snow/Ice     | 0.0209557   | 0.0500501      |
+| 24        | Shrubs       | 0.018254    | 0.0193429      |
+| 3         | BIO3         | 0.00418499  | 0.010614       |
 
 
 
 
 ## Most important predictor
 
-![](figures/slides_41_1.png)\ 
+![](figures/slides_43_1.png)\ 
 
 
 

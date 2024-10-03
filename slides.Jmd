@@ -423,14 +423,15 @@ Using depth of 7 and up to 20 nodes
 ```julia
 mv = Float64[]
 mt = Float64[]
-mn = 2:2:20
-maxdepth!(sdm, 7)
+mn = 2:2:30
+maxdepth!(sdm, 8)
 for maxn in mn
     maxnodes!(sdm, maxn)
     tcv = crossvalidate(sdm, folds)
     push!(mv, mean(mcc.(tcv.validation)))
     push!(mt, mean(mcc.(tcv.training)))
 end
+maxdepth!(sdm, 7)
 maxnodes!(sdm, 12)
 train!(sdm)
 ```
