@@ -418,7 +418,30 @@ current_figure()
 
 ## But wait!
 
-slide on overfitting
+Using depth of 7 and up to 20 nodes
+
+```julia
+mv = Float64[]
+mt = Float64[]
+mn = 2:2:20
+maxdepth!(sdm, 7)
+for maxn in mn
+    maxnodes!(sdm, maxn)
+    tcv = crossvalidate(sdm, folds)
+    push!(mv, mean(mcc.(tcv.validation)))
+    push!(mt, mean(mcc.(tcv.training)))
+end
+maxnodes!(sdm, 12)
+train!(sdm)
+```
+
+```julia
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1])
+scatterlines!(ax, mn, mv, color=:black)
+scatterlines!(ax, mn, mt, color=:red)
+current_figure()
+```
 
 # Ensemble models
 
@@ -433,7 +456,7 @@ slide on overfitting
 ## Bootstrapping and aggregation
 
 ```julia
-forest = Bagging(sdm, 128)
+forest = Bagging(sdm, 64)
 bagfeatures!(forest)
 train!(forest)
 ```
