@@ -21,7 +21,7 @@ using Statistics
 using PrettyTables
 using Random
 using DelimitedFiles
-Random.seed!(123321)
+Random.seed!(420)
 include("code/makietheme.jl")
 ```
 
@@ -32,30 +32,33 @@ include("code/makietheme.jl")
 3. How do we talk about how it makes predictions?
 4. How do we use it to guide actions?
 
-## The steps
-
-1. Get data about species occurrences
-2. Build a classifier and make it as good as we can
-3. Measure its performance
-4. Explain some predictions
-5. Generate counterfactual explanations
-6. Briefly discuss ensemble models
-
 ## But why...
 
-... think of SDM as a ML problem?
+... think of SDM as ML problems?
 : Because they are! We want to learn a predictive algorithm from data
 
 ... the focus on explainability?
 : We cannot ask people to *trust* - we must *convince* and *explain*
 
+## What we will *not* discuss
+
+1. Image recognition
+2. Sound recognition
+3. Generative AI
+
 ## Learning/teaching goals
 
-1. Validation and training
-2. Data leakage and data transformation
-3. Overfitting and bagging
-4. Partial responses and Shapley values
-5. Counterfactuals
+- ML basics
+    - cross-validation
+    - hyper-parameters tuning
+    - bagging and ensembles
+- Pitfalls
+    - data leakage
+    - overfitting
+- Explainable ML
+    - partial responses
+    - Shapley values
+- Counterfactuals
 
 # Problem statement
 
@@ -69,7 +72,7 @@ where the species was observed
 
 We can do the same thing for locations where the species was not observed
 
-\alert{Where could we observed this species}?
+\alert{Where could we observe this species}?
 
 ## The problem in ML terms
 
@@ -102,6 +105,8 @@ layernames = readlines("data/layernames.csv")
 predictors = [SDMLayer("data/layers.tiff"; bandnumber=i) for i in 1:31]
 ```
 
+Now is *not* the time to make assumptions about which are relevant!
+
 ## The observation data
 
 ```julia
@@ -114,16 +119,15 @@ hidespines!(ax)
 current_figure()
 ```
 
-## Problem!
+## Problem (and solution)
 
-We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative
+We want $\textbf{y} \in \mathbb{B}$, and so far we are missing \alert{negative
 values}
 
-## Solution!
+We generate \alert{pseudo}-absences with the following rules:
 
-pseudo-absences
-
-what are the assumptions we make
+1. Locations further away from a presence are more likely
+2. Locations less than 5km away from a presence are ruled out
 
 ```julia
 prsc = SDMLayer("data/occurrences.tiff"; bandnumber=1) .> 0
@@ -203,6 +207,9 @@ pretty_table(data;
 )
 ```
 
+In practice, the no-skill classifier is the most informative: what if we \alert{only} know
+the positive class prevalence?
+
 ## Cross-validation strategy
 
 k-fold
@@ -217,9 +224,10 @@ cv = crossvalidate(sdm, folds; threshold = false);
 ## Cross-validation results
 
 ```julia ; results="raw"
-push!(tbl, ["Validation", mean(mcc.(cv.validation)), mean(ppv.(cv.validation)), mean(npv.(cv.validation)), mean(dor.(cv.validation)), mean(accuracy.(cv.validation))])
-push!(tbl, ["Training", mean(mcc.(cv.training)), mean(ppv.(cv.training)), mean(npv.(cv.training)), mean(dor.(cv.training)), mean(accuracy.(cv.training))])
-data = permutedims(hcat(tbl...))
+nstbl = [tbl[1]]
+push!(nstbl, ["Dec. tree (val.)", mean(mcc.(cv.validation)), mean(ppv.(cv.validation)), mean(npv.(cv.validation)), mean(dor.(cv.validation)), mean(accuracy.(cv.validation))])
+push!(nstbl, ["Dec. tree (tr.)", mean(mcc.(cv.training)), mean(ppv.(cv.training)), mean(npv.(cv.training)), mean(dor.(cv.training)), mean(accuracy.(cv.training))])
+data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
     header = hdr,
@@ -279,7 +287,7 @@ current_figure()
 variable selection
 
 ```julia
-forwardselection!(sdm, folds, [1]; verbose=true)
+forwardselection!(sdm, folds; verbose=true)
 ```
 
 data transformation
@@ -487,6 +495,11 @@ pretty_table(
 
 ## Intro explainable
 
+```julia
+# Get the two most important variables
+r1, r2 = variables(forest)[sortperm(var_imp; rev=true)][1:2]
+```
+
 ## Partial response curves
 
 If we assume that all the variables except one take their average value, what is the prediction associated to the value that is unchanged?
@@ -496,7 +509,7 @@ Equivalent to a mean-field approximation
 ## Example with temperature
 
 ```julia
-x, y = partialresponse(forest, 1; threshold=false)
+x, y = partialresponse(forest, r1; threshold=false)
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, x, y)
@@ -506,17 +519,18 @@ current_figure()
 ## Example with two variables
 
 ```julia
-x, y, z = partialresponse(forest, 1, 24; threshold=false)
+x, y, z = partialresponse(forest, r1, r2; threshold=false)
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1], xlabel=layernames[1], ylabel=layernames[24])
-heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
+ax = Axis(f[1,1], xlabel=layernames[r1], ylabel=layernames[r2])
+hm = heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
+Colorbar(f[1,2], hm)
 current_figure()
 ```
 
 ## Spatialized partial response plot
 
 ```julia
-partial_temp = partialresponse(forest, predictors, 1; threshold=false)
+partial_temp = partialresponse(forest, predictors, r1; threshold=false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
@@ -531,7 +545,7 @@ current_figure()
 ## Spatialized partial response (binary outcome)
 
 ```julia
-partial_temp = partialresponse(forest, predictors, 1; threshold=true)
+partial_temp = partialresponse(forest, predictors, r1; threshold=true)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
@@ -557,14 +571,15 @@ In practice: Monte-Carlo on a reasonable number of samples.
 ## Example
 
 ```julia
+# TODO: update this so we do the real range/mean + non-inflated PRC
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-for i in 1:350
-    lines!(ax, partialresponse(forest, 1; inflated=true, threshold=false)..., color=:lightgrey, alpha=0.5)
+for i in 1:150
+    lines!(ax, partialresponse(forest, r1; inflated=true, threshold=false)..., color=:lightgrey, alpha=0.5)
 end
-lines!(ax, partialresponse(forest, 1; inflated=false, threshold=false)..., color=:black)
+lines!(ax, partialresponse(forest, r1; inflated=false, threshold=false)..., color=:black)
 ylims!(ax, 0., 1.)
-xlims!(ax, extrema(features(forest, 1))...)
+xlims!(ax, extrema(features(forest, r1))...)
 current_figure()
 ```
 
@@ -579,16 +594,16 @@ current_figure()
 ## Example
 
 ```julia
-explain(forest, 1; threshold=false)
+explain(forest, r1; threshold=false)
 ```
 
 ## Response curves revisited
 
 ```julia
 f = Figure(; size=(800, 400))
-expl_1 = explain(forest, 1; threshold=false)
+expl_1 = explain(forest, r1; threshold=false)
 ax = Axis(f[1,1])
-hexbin!(ax, features(forest, 1), expl_1, bins=60, colormap=:linear_bgyw_15_100_c68_n256)
+hexbin!(ax, features(forest, r1), expl_1, bins=60, colormap=:linear_bgyw_15_100_c68_n256)
 ax2 = Axis(f[1,2])
 hist!(ax2, expl_1, color=:lightgrey, strokecolor=:black, strokewidth=1)
 current_figure()
@@ -597,7 +612,7 @@ current_figure()
 ## On a map
 
 ```julia
-shapley_temp = explain(forest, predictors, 1; threshold=false)
+shapley_temp = explain(forest, predictors, r1; threshold=false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.4, 0.4))

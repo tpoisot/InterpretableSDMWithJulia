@@ -120,7 +120,9 @@ what are the assumptions we make
 
 ## Cross-validation
 
-Can we train the model
+Can we train the model?
+
+More specifically -- if we train the model, how well can we expect it to perform?
 
 assumes parallel universes with slightly less data
 
@@ -166,8 +168,8 @@ validation / training / testing
 | Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
 | +          |  0.00   |  0.34   |         |         |  0.34        |
 | -          |  0.00   |         |  0.66   |         |  0.66        |
-| Validation |  0.63   |  0.74   |  0.89   | 25.41   |  0.83        |
-| Training   |  0.66   |  0.76   |  0.90   | 33.66   |  0.84        |
+| Validation |  0.64   |  0.75   |  0.88   | 26.25   |  0.84        |
+| Training   |  0.66   |  0.76   |  0.89   | 27.87   |  0.84        |
 
 
 
@@ -254,10 +256,10 @@ how do we check this
 | Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
 | +          |  0.00   |  0.34   |         |         |  0.34        |
 | -          |  0.00   |         |  0.66   |         |  0.66        |
-| Validation |  0.63   |  0.74   |  0.89   | 25.41   |  0.83        |
-| Training   |  0.66   |  0.76   |  0.90   | 33.66   |  0.84        |
-| Validation |  0.77   |  0.78   |  0.96   | 140.95  |  0.89        |
-| Training   |  0.79   |  0.79   |  0.97   | 125.70  |  0.90        |
+| Validation |  0.64   |  0.75   |  0.88   | 26.25   |  0.84        |
+| Training   |  0.66   |  0.76   |  0.89   | 27.87   |  0.84        |
+| Validation |  0.78   |  0.84   |  0.93   | 102.65  |  0.90        |
+| Training   |  0.81   |  0.86   |  0.94   | 103.82  |  0.91        |
 
 
 
@@ -326,11 +328,12 @@ slide on overfitting
 
 | **Layer** | **Variable**                 | **Import.** |
 |----------:|-----------------------------:|------------:|
-| 6         | BIO6                         | 0.805809    |
-| 7         | BIO7                         | 0.151936    |
-| 23        | Mixed/Other Trees            | 0.0225518   |
-| 29        | Snow/Ice                     | 0.0192739   |
-| 27        | Regularly Flooded Vegetation | 0.000429548 |
+| 6         | BIO6                         | 0.63897     |
+| 8         | BIO8                         | 0.1683      |
+| 5         | BIO5                         | 0.123455    |
+| 15        | BIO15                        | 0.0437605   |
+| 2         | BIO2                         | 0.0252587   |
+| 27        | Regularly Flooded Vegetation | 0.00025701  |
 
 
 
@@ -338,6 +341,9 @@ slide on overfitting
 # But why?
 
 ## Intro explainable
+
+
+
 
 ## Partial response curves
 
@@ -347,28 +353,28 @@ Equivalent to a mean-field approximation
 
 ## Example with temperature
 
-![](figures/slides_28_1.png)\ 
+![](figures/slides_29_1.png)\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_29_1.png)\ 
+![](figures/slides_30_1.png)\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_30_1.png)\ 
+![](figures/slides_31_1.png)\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_31_1.png)\ 
+![](figures/slides_32_1.png)\ 
 
 
 
@@ -386,7 +392,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Example
 
-![](figures/slides_32_1.png)\ 
+![](figures/slides_33_1.png)\ 
 
 
 
@@ -406,12 +412,14 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
+![](figures/slides_35_1.png)\ 
+
 
 
 
 ## On a map
 
-![](figures/slides_35_1.png)\ 
+![](figures/slides_36_1.png)\ 
 
 
 
@@ -420,18 +428,19 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 | **Layer** | **Variable**                 | **Import.** | **Shap. imp.** |
 |----------:|-----------------------------:|------------:|---------------:|
-| 6         | BIO6                         | 0.805809    | 0.796968       |
-| 7         | BIO7                         | 0.151936    | 0.143859       |
-| 29        | Snow/Ice                     | 0.0192739   | 0.0296059      |
-| 23        | Mixed/Other Trees            | 0.0225518   | 0.0292317      |
-| 27        | Regularly Flooded Vegetation | 0.000429548 | 0.000336003    |
+| 6         | BIO6                         | 0.63897     | 0.474714       |
+| 8         | BIO8                         | 0.1683      | 0.244875       |
+| 5         | BIO5                         | 0.123455    | 0.145526       |
+| 15        | BIO15                        | 0.0437605   | 0.0720342      |
+| 2         | BIO2                         | 0.0252587   | 0.0627971      |
+| 27        | Regularly Flooded Vegetation | 0.00025701  | 5.34345e-5     |
 
 
 
 
 ## Most important predictor
 
-![](figures/slides_37_1.png)\ 
+![](figures/slides_38_1.png)\ 
 
 
 
@@ -453,6 +462,8 @@ what they are
 - variable selected, threshold used, model type
 
 ## Generating a counterfactual
+
+![](figures/slides_39_1.png)\ 
 
 
 
