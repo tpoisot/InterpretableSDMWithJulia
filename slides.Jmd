@@ -433,7 +433,7 @@ slide on overfitting
 ## Bootstrapping and aggregation
 
 ```julia
-forest = Bagging(sdm, 25)
+forest = Bagging(sdm, 128)
 bagfeatures!(forest)
 train!(forest)
 ```

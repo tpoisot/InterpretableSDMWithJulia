@@ -155,6 +155,9 @@ random}.
 
 
 
+In practice, the no-skill classifier is the most informative: what if we \alert{only} know
+the positive class prevalence?
+
 ## Cross-validation strategy
 
 k-fold
@@ -166,14 +169,11 @@ validation / training / testing
 
 ## Cross-validation results
 
-| **Model**  | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
-|-----------:|--------:|--------:|--------:|--------:|-------------:|
-| No skill   | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
-| Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
-| +          |  0.00   |  0.34   |         |         |  0.34        |
-| -          |  0.00   |         |  0.66   |         |  0.66        |
-| Validation |  0.62   |  0.76   |  0.87   | 23.25   |  0.83        |
-| Training   |  0.65   |  0.77   |  0.88   | 24.87   |  0.84        |
+| **Model**        | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|-----------------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill         | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Dec. tree (val.) |  0.64   |  0.77   |  0.87   | 26.59   |  0.84        |
+| Dec. tree (tr.)  |  0.66   |  0.78   |  0.88   | 28.70   |  0.85        |
 
 
 
@@ -220,6 +220,11 @@ will focus on the later (same process for the two above)
 
 ## A note on PCA
 
+![](figures/slides_15_1.png)\ 
+
+
+
+
 ## Moving theshold classification
 
 p plus > p minus means threshold is 0.5
@@ -233,37 +238,34 @@ how do we check this
 
 ## Learning curve for the threshold
 
-![](figures/slides_16_1.png)\ 
+![](figures/slides_17_1.png)\ 
 
 
 
 
 ## Receiver Operating Characteristic
 
-![](figures/slides_17_1.png)\ 
+![](figures/slides_18_1.png)\ 
 
 
 
 
 ## Precision-Recall Curve
 
-![](figures/slides_18_1.png)\ 
+![](figures/slides_19_1.png)\ 
 
 
 
 
 ## Revisiting the model performance
 
-| **Model**  | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
-|-----------:|--------:|--------:|--------:|--------:|-------------:|
-| No skill   | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
-| Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
-| +          |  0.00   |  0.34   |         |         |  0.34        |
-| -          |  0.00   |         |  0.66   |         |  0.66        |
-| Validation |  0.62   |  0.76   |  0.87   | 23.25   |  0.83        |
-| Training   |  0.65   |  0.77   |  0.88   | 24.87   |  0.84        |
-| Validation |  0.77   |  0.84   |  0.93   | 116.05  |  0.90        |
-| Training   |  0.79   |  0.85   |  0.94   | 95.70   |  0.91        |
+| **Model**         | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|------------------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill          | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Dec. tree (val.)  |  0.64   |  0.77   |  0.87   | 26.59   |  0.84        |
+| Dec. tree (tr.)   |  0.66   |  0.78   |  0.88   | 28.70   |  0.85        |
+| Tuned tree (val.) |  0.77   |  0.79   |  0.95   | 113.44  |  0.89        |
+| Tuned tree (tr.)  |  0.80   |  0.81   |  0.96   | 114.37  |  0.90        |
 
 
 
@@ -271,14 +273,14 @@ how do we check this
 ## Updated prediction
 
 
-![](figures/slides_21_1.png)\ 
+![](figures/slides_22_1.png)\ 
 
 
 
 
 ## How is this model better?
 
-![](figures/slides_22_1.png)\ 
+![](figures/slides_23_1.png)\ 
 
 
 
@@ -302,23 +304,38 @@ slide on overfitting
 
 
 
+## Is this worth it?
+
+| **Model**         | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|------------------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill          | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Dec. tree (val.)  |  0.64   |  0.77   |  0.87   | 26.59   |  0.84        |
+| Dec. tree (tr.)   |  0.66   |  0.78   |  0.88   | 28.70   |  0.85        |
+| Tuned tree (val.) |  0.77   |  0.79   |  0.95   | 113.44  |  0.89        |
+| Tuned tree (tr.)  |  0.80   |  0.81   |  0.96   | 114.37  |  0.90        |
+| Forest (val.)     |  0.76   |  0.79   |  0.95   | 93.47   |  0.89        |
+| Forest (tr.)      |  0.76   |  0.80   |  0.95   | 70.60   |  0.89        |
+
+
+
+
 ## Prediction of the rotation forest
 
-![](figures/slides_24_1.png)\ 
+![](figures/slides_26_1.png)\ 
 
 
 
 
 ## Prediction of the rotation forest
 
-![](figures/slides_25_1.png)\ 
+![](figures/slides_27_1.png)\ 
 
 
 
 
 ## Uncertainty
 
-![](figures/slides_26_1.png)\ 
+![](figures/slides_28_1.png)\ 
 
 
 
@@ -330,14 +347,13 @@ slide on overfitting
 
 ## Variable importance
 
-| **Layer** | **Variable**                 | **Import.** |
-|----------:|-----------------------------:|------------:|
-| 1         | BIO1                         | 0.790935    |
-| 10        | BIO10                        | 0.138616    |
-| 8         | BIO8                         | 0.0557785   |
-| 29        | Snow/Ice                     | 0.00755729  |
-| 24        | Shrubs                       | 0.00616345  |
-| 27        | Regularly Flooded Vegetation | 0.000949339 |
+| **Layer** | **Variable** | **Import.** |
+|----------:|-------------:|------------:|
+| 1         | BIO1         | 0.826496    |
+| 8         | BIO8         | 0.137103    |
+| 29        | Snow/Ice     | 0.0209848   |
+| 24        | Shrubs       | 0.00981907  |
+| 3         | BIO3         | 0.00559774  |
 
 
 
@@ -357,28 +373,28 @@ Equivalent to a mean-field approximation
 
 ## Example with temperature
 
-![](figures/slides_29_1.png)\ 
+![](figures/slides_31_1.png)\ 
 
 
 
 
 ## Example with two variables
 
-![](figures/slides_30_1.png)\ 
+![](figures/slides_32_1.png)\ 
 
 
 
 
 ## Spatialized partial response plot
 
-![](figures/slides_31_1.png)\ 
+![](figures/slides_33_1.png)\ 
 
 
 
 
 ## Spatialized partial response (binary outcome)
 
-![](figures/slides_32_1.png)\ 
+![](figures/slides_34_1.png)\ 
 
 
 
@@ -396,7 +412,8 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Example
 
-![](figures/slides_33_1.png)\ 
+
+![](figures/slides_36_1.png)\ 
 
 
 
@@ -416,35 +433,34 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 ## Response curves revisited
 
-![](figures/slides_35_1.png)\ 
+![](figures/slides_38_1.png)\ 
 
 
 
 
 ## On a map
 
-![](figures/slides_36_1.png)\ 
+![](figures/slides_39_1.png)\ 
 
 
 
 
 ## Variable importance revisited
 
-| **Layer** | **Variable**                 | **Import.** | **Shap. imp.** |
-|----------:|-----------------------------:|------------:|---------------:|
-| 1         | BIO1                         | 0.790935    | 0.576689       |
-| 10        | BIO10                        | 0.138616    | 0.253547       |
-| 8         | BIO8                         | 0.0557785   | 0.104797       |
-| 29        | Snow/Ice                     | 0.00755729  | 0.0460891      |
-| 24        | Shrubs                       | 0.00616345  | 0.017193       |
-| 27        | Regularly Flooded Vegetation | 0.000949339 | 0.00168559     |
+| **Layer** | **Variable** | **Import.** | **Shap. imp.** |
+|----------:|-------------:|------------:|---------------:|
+| 1         | BIO1         | 0.826496    | 0.588227       |
+| 8         | BIO8         | 0.137103    | 0.285221       |
+| 29        | Snow/Ice     | 0.0209848   | 0.0528098      |
+| 24        | Shrubs       | 0.00981907  | 0.0431225      |
+| 3         | BIO3         | 0.00559774  | 0.0306201      |
 
 
 
 
 ## Most important predictor
 
-![](figures/slides_38_1.png)\ 
+![](figures/slides_41_1.png)\ 
 
 
 
@@ -466,8 +482,6 @@ what they are
 - variable selected, threshold used, model type
 
 ## Generating a counterfactual
-
-![](figures/slides_39_1.png)\ 
 
 
 

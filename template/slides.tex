@@ -324,6 +324,9 @@ Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
 - & 0.00 & & 0.66 & & 0.66 \\
 \bottomrule\noalign{}
 \end{longtable}
+
+In practice, the no-skill classifier is the most informative: what if we
+\alert{only} know the positive class prevalence?
 \end{frame}
 
 \begin{frame}{Cross-validation strategy}
@@ -335,18 +338,32 @@ validation / training / testing
 
 \begin{frame}{Cross-validation results}
 \phantomsection\label{cross-validation-results}
-\begin{longtable}[]{@{}rrrrrr@{}}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2647}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2059}}@{}}
 \toprule\noalign{}
-\textbf{Model} & \textbf{MCC} & \textbf{PPV} & \textbf{NPV} &
-\textbf{DOR} & \textbf{Accuracy} \\
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
 \midrule\noalign{}
 \endhead
 No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
-Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
-+ & 0.00 & 0.34 & & & 0.34 \\
-- & 0.00 & & 0.66 & & 0.66 \\
-Validation & 0.62 & 0.76 & 0.87 & 23.25 & 0.83 \\
-Training & 0.65 & 0.77 & 0.88 & 24.87 & 0.84 \\
+Dec.~tree (val.) & 0.64 & 0.77 & 0.87 & 26.59 & 0.84 \\
+Dec.~tree (tr.) & 0.66 & 0.78 & 0.88 & 28.70 & 0.85 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -389,6 +406,7 @@ will focus on the later (same process for the two above)
 
 \begin{frame}{A note on PCA}
 \phantomsection\label{a-note-on-pca}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
 \end{frame}
 
 \begin{frame}{Moving theshold classification}
@@ -402,47 +420,61 @@ how do we check this
 
 \begin{frame}{Learning curve for the threshold}
 \phantomsection\label{learning-curve-for-the-threshold}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_16_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
 \end{frame}
 
 \begin{frame}{Receiver Operating Characteristic}
 \phantomsection\label{receiver-operating-characteristic}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_18_1.png}}~
 \end{frame}
 
 \begin{frame}{Precision-Recall Curve}
 \phantomsection\label{precision-recall-curve}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_18_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_19_1.png}}~
 \end{frame}
 
 \begin{frame}{Revisiting the model performance}
 \phantomsection\label{revisiting-the-model-performance}
-\begin{longtable}[]{@{}rrrrrr@{}}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2754}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2029}}@{}}
 \toprule\noalign{}
-\textbf{Model} & \textbf{MCC} & \textbf{PPV} & \textbf{NPV} &
-\textbf{DOR} & \textbf{Accuracy} \\
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
 \midrule\noalign{}
 \endhead
 No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
-Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
-+ & 0.00 & 0.34 & & & 0.34 \\
-- & 0.00 & & 0.66 & & 0.66 \\
-Validation & 0.62 & 0.76 & 0.87 & 23.25 & 0.83 \\
-Training & 0.65 & 0.77 & 0.88 & 24.87 & 0.84 \\
-Validation & 0.77 & 0.84 & 0.93 & 116.05 & 0.90 \\
-Training & 0.79 & 0.85 & 0.94 & 95.70 & 0.91 \\
+Dec.~tree (val.) & 0.64 & 0.77 & 0.87 & 26.59 & 0.84 \\
+Dec.~tree (tr.) & 0.66 & 0.78 & 0.88 & 28.70 & 0.85 \\
+Tuned tree (val.) & 0.77 & 0.79 & 0.95 & 113.44 & 0.89 \\
+Tuned tree (tr.) & 0.80 & 0.81 & 0.96 & 114.37 & 0.90 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
 
 \begin{frame}{Updated prediction}
 \phantomsection\label{updated-prediction}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_21_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
 \end{frame}
 
 \begin{frame}{How is this model better?}
 \phantomsection\label{how-is-this-model-better}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_23_1.png}}~
 \end{frame}
 
 \begin{frame}{But wait!}
@@ -473,19 +505,55 @@ slide on overfitting
 \phantomsection\label{bootstrapping-and-aggregation}
 \end{frame}
 
+\begin{frame}{Is this worth it?}
+\phantomsection\label{is-this-worth-it}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2754}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2029}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Dec.~tree (val.) & 0.64 & 0.77 & 0.87 & 26.59 & 0.84 \\
+Dec.~tree (tr.) & 0.66 & 0.78 & 0.88 & 28.70 & 0.85 \\
+Tuned tree (val.) & 0.77 & 0.79 & 0.95 & 113.44 & 0.89 \\
+Tuned tree (tr.) & 0.80 & 0.81 & 0.96 & 114.37 & 0.90 \\
+Forest (val.) & 0.76 & 0.79 & 0.95 & 93.47 & 0.89 \\
+Forest (tr.) & 0.76 & 0.80 & 0.95 & 70.60 & 0.89 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
 \begin{frame}{Prediction of the rotation forest}
 \phantomsection\label{prediction-of-the-rotation-forest}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_24_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_26_1.png}}~
 \end{frame}
 
 \begin{frame}{Prediction of the rotation forest}
 \phantomsection\label{prediction-of-the-rotation-forest-1}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_27_1.png}}~
 \end{frame}
 
 \begin{frame}{Uncertainty}
 \phantomsection\label{uncertainty}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_26_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
 \end{frame}
 
 \begin{frame}{Revisiting assumptions}
@@ -506,12 +574,11 @@ slide on overfitting
 \textbf{Layer} & \textbf{Variable} & \textbf{Import.} \\
 \midrule\noalign{}
 \endhead
-1 & BIO1 & 0.790935 \\
-10 & BIO10 & 0.138616 \\
-8 & BIO8 & 0.0557785 \\
-29 & Snow/Ice & 0.00755729 \\
-24 & Shrubs & 0.00616345 \\
-27 & Regularly Flooded Vegetation & 0.000949339 \\
+1 & BIO1 & 0.826496 \\
+8 & BIO8 & 0.137103 \\
+29 & Snow/Ice & 0.0209848 \\
+24 & Shrubs & 0.00981907 \\
+3 & BIO3 & 0.00559774 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -532,22 +599,22 @@ Equivalent to a mean-field approximation
 
 \begin{frame}{Example with temperature}
 \phantomsection\label{example-with-temperature}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
 \end{frame}
 
 \begin{frame}{Example with two variables}
 \phantomsection\label{example-with-two-variables}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_32_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response plot}
 \phantomsection\label{spatialized-partial-response-plot}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response (binary outcome)}
 \phantomsection\label{spatialized-partial-response-binary-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_32_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_34_1.png}}~
 \end{frame}
 
 \begin{frame}{Inflated response curves}
@@ -570,7 +637,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Example}
 \phantomsection\label{example}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
 \end{frame}
 
 \begin{frame}{Limitations}
@@ -597,46 +664,34 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Response curves revisited}
 \phantomsection\label{response-curves-revisited}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_35_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_38_1.png}}~
 \end{frame}
 
 \begin{frame}{On a map}
 \phantomsection\label{on-a-map}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_39_1.png}}~
 \end{frame}
 
 \begin{frame}{Variable importance revisited}
 \phantomsection\label{variable-importance-revisited}
-\begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1571}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.4286}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1857}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2286}}@{}}
+\begin{longtable}[]{@{}rrrr@{}}
 \toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Layer}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Variable}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Import.}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Shap. imp.}
-\end{minipage} \\
+\textbf{Layer} & \textbf{Variable} & \textbf{Import.} & \textbf{Shap.
+imp.} \\
 \midrule\noalign{}
 \endhead
-1 & BIO1 & 0.790935 & 0.576689 \\
-10 & BIO10 & 0.138616 & 0.253547 \\
-8 & BIO8 & 0.0557785 & 0.104797 \\
-29 & Snow/Ice & 0.00755729 & 0.0460891 \\
-24 & Shrubs & 0.00616345 & 0.017193 \\
-27 & Regularly Flooded Vegetation & 0.000949339 & 0.00168559 \\
+1 & BIO1 & 0.826496 & 0.588227 \\
+8 & BIO8 & 0.137103 & 0.285221 \\
+29 & Snow/Ice & 0.0209848 & 0.0528098 \\
+24 & Shrubs & 0.00981907 & 0.0431225 \\
+3 & BIO3 & 0.00559774 & 0.0306201 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
 
 \begin{frame}{Most important predictor}
 \phantomsection\label{most-important-predictor}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_38_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_41_1.png}}~
 \end{frame}
 
 \begin{frame}{Revisiting the data transformation}
@@ -667,7 +722,6 @@ what they are
 
 \begin{frame}{Generating a counterfactual}
 \phantomsection\label{generating-a-counterfactual}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_39_1.png}}~
 \end{frame}
 
 \begin{frame}{Evaluating the counterfactuals}
