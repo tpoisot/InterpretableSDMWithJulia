@@ -21,7 +21,7 @@ using Statistics
 using PrettyTables
 using Random
 using DelimitedFiles
-Random.seed!(420)
+Random.seed!(12345)
 include("code/makietheme.jl")
 ```
 
@@ -300,6 +300,16 @@ will focus on the later (same process for the two above)
 
 ## A note on PCA
 
+```julia
+pc = predict(sdm.transformer, features(sdm)[variables(sdm),:])
+f = Figure(; size=(800, 400))
+ax = Axis(f[1,1])
+sc = scatter!(ax, pc[1,:], pc[2,:], color=labels(sdm), colormap=[:grey, :black])
+ax = Axis(f[1,2])
+sc = scatter!(ax, pc[2,:], pc[3,:], color=labels(sdm), colormap=[:grey, :black])
+current_figure()
+```
+
 ## Moving theshold classification
 
 p plus > p minus means threshold is 0.5
@@ -357,9 +367,9 @@ current_figure()
 
 ```julia ; results="raw"
 cv2 = crossvalidate(sdm, folds; threshold = true)
-push!(tbl, ["Validation", mean(mcc.(cv2.validation)), mean(ppv.(cv2.validation)), mean(npv.(cv2.validation)), mean(dor.(cv2.validation)), mean(accuracy.(cv2.validation))])
-push!(tbl, ["Training", mean(mcc.(cv2.training)), mean(ppv.(cv2.training)), mean(npv.(cv2.training)), mean(dor.(cv2.training)), mean(accuracy.(cv2.training))])
-data = permutedims(hcat(tbl...))
+push!(nstbl, ["Tuned tree (val.)", mean(mcc.(cv2.validation)), mean(ppv.(cv2.validation)), mean(npv.(cv2.validation)), mean(dor.(cv2.validation)), mean(accuracy.(cv2.validation))])
+push!(nstbl, ["Tuned tree (tr.)", mean(mcc.(cv2.training)), mean(ppv.(cv2.training)), mean(npv.(cv2.training)), mean(dor.(cv2.training)), mean(accuracy.(cv2.training))])
+data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
     header = hdr,
@@ -428,6 +438,23 @@ bagfeatures!(forest)
 train!(forest)
 ```
 
+## Is this worth it?
+
+```julia ; results="raw"
+cv3 = crossvalidate(forest, folds; threshold = true)
+push!(nstbl, ["Forest (val.)", mean(mcc.(cv3.validation)), mean(ppv.(cv3.validation)), mean(npv.(cv3.validation)), mean(dor.(cv3.validation)), mean(accuracy.(cv3.validation))])
+push!(nstbl, ["Forest (tr.)", mean(mcc.(cv3.training)), mean(ppv.(cv3.training)), mean(npv.(cv3.training)), mean(dor.(cv3.training)), mean(accuracy.(cv3.training))])
+data = permutedims(hcat(nstbl...))
+pretty_table(data;
+    backend = Val(:markdown),
+    header = hdr,
+    formatters = (
+        ft_nan,
+        ft_printf("%5.2f", [2,3,4,5,6])
+    )
+)
+```
+
 ## Prediction of the rotation forest
 
 ```julia
@@ -465,7 +492,7 @@ current_figure()
 ```julia
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, predict(forest, predictors; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256, colorrange = (0, 1))
+hm = heatmap!(ax, predict(forest, predictors; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256)
 contour!(ax, predict(forest, predictors; consensus=majority); color = :black, linewidth = 0.5)
 Colorbar(f[1, 2], hm)
 lines!(ax, CHE.geometry[1]; color = :black)
@@ -571,13 +598,23 @@ In practice: Monte-Carlo on a reasonable number of samples.
 ## Example
 
 ```julia
-# TODO: update this so we do the real range/mean + non-inflated PRC
+x, y = partialresponse(forest, r1; inflated=false, threshold=false)
+M = zeros(eltype(y), (100, length(y)))
+for i in axes(M, 1)
+    M[i,:] .= partialresponse(forest, r1; inflated=true, threshold=false)[2]
+end
+prm = vec(mean(M; dims=1))
+prs = vec(mean(M; dims=1))
+prci = 1.96prs / size(M, 1)
+```
+
+```julia
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-for i in 1:150
-    lines!(ax, partialresponse(forest, r1; inflated=true, threshold=false)..., color=:lightgrey, alpha=0.5)
-end
-lines!(ax, partialresponse(forest, r1; inflated=false, threshold=false)..., color=:black)
+# series!(ax, x, M, solid_color=(:black, 0.2))
+band!(ax, x, prm .- prci, prm .+ prci, color=:lightgrey)
+lines!(ax, x, prm, color=:black)
+lines!(ax, x, y, color=:black, linestyle=:dash)
 ylims!(ax, 0., 1.)
 xlims!(ax, extrema(features(forest, r1))...)
 current_figure()
@@ -677,12 +714,14 @@ what they are
 ## Generating a counterfactual
 
 ```julia
-idx = rand(findall(!, predict(sdm)))
+idx = rand(findall(x -> threshold(forest.model)-0.1 <= x <= threshold(forest.model),
+predict(forest; threshold=false)))
 cfs = [
-    counterfactual(forest, instance(forest, idx; strict=false), threshold(forest.model)+0.1, 1.0; threshold=false, consensus=median)
-    for i in 1:10
+    counterfactual(forest, instance(forest, idx; strict=false), threshold(forest.model)+0.1, 800.0; threshold=false, consensus=median)
+    for i in 1:25
     ]
-heatmap(hcat(cfs...)[variables(forest),:])
+cft = unique(permutedims(hcat(cfs...)[variables(forest),:]); dims=1)
+append(instance(forest, idx), cft)
 ```
 
 ## Evaluating the counterfactuals

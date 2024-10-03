@@ -15,30 +15,33 @@ subtitle: "An introduction using species distribution models"
 3. How do we talk about how it makes predictions?
 4. How do we use it to guide actions?
 
-## The steps
-
-1. Get data about species occurrences
-2. Build a classifier and make it as good as we can
-3. Measure its performance
-4. Explain some predictions
-5. Generate counterfactual explanations
-6. Briefly discuss ensemble models
-
 ## But why...
 
-... think of SDM as a ML problem?
+... think of SDM as ML problems?
 : Because they are! We want to learn a predictive algorithm from data
 
 ... the focus on explainability?
 : We cannot ask people to *trust* - we must *convince* and *explain*
 
+## What we will *not* discuss
+
+1. Image recognition
+2. Sound recognition
+3. Generative AI
+
 ## Learning/teaching goals
 
-1. Validation and training
-2. Data leakage and data transformation
-3. Overfitting and bagging
-4. Partial responses and Shapley values
-5. Counterfactuals
+- ML basics
+    - cross-validation
+    - hyper-parameters tuning
+    - bagging and ensembles
+- Pitfalls
+    - data leakage
+    - overfitting
+- Explainable ML
+    - partial responses
+    - Shapley values
+- Counterfactuals
 
 # Problem statement
 
@@ -52,7 +55,7 @@ where the species was observed
 
 We can do the same thing for locations where the species was not observed
 
-\alert{Where could we observed this species}?
+\alert{Where could we observe this species}?
 
 ## The problem in ML terms
 
@@ -81,6 +84,8 @@ Two series of environmental layers
 
 
 
+Now is *not* the time to make assumptions about which are relevant!
+
 ## The observation data
 
 ![](figures/slides_4_1.png)\ 
@@ -88,16 +93,15 @@ Two series of environmental layers
 
 
 
-## Problem!
+## Problem (and solution)
 
-We want $\hat y \in \mathbb{B}$, and so far we are missing \alert{negative
+We want $\textbf{y} \in \mathbb{B}$, and so far we are missing \alert{negative
 values}
 
-## Solution!
+We generate \alert{pseudo}-absences with the following rules:
 
-pseudo-absences
-
-what are the assumptions we make
+1. Locations further away from a presence are more likely
+2. Locations less than 5km away from a presence are ruled out
 
 
 
@@ -168,8 +172,8 @@ validation / training / testing
 | Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
 | +          |  0.00   |  0.34   |         |         |  0.34        |
 | -          |  0.00   |         |  0.66   |         |  0.66        |
-| Validation |  0.64   |  0.75   |  0.88   | 26.25   |  0.84        |
-| Training   |  0.66   |  0.76   |  0.89   | 27.87   |  0.84        |
+| Validation |  0.62   |  0.76   |  0.87   | 23.25   |  0.83        |
+| Training   |  0.65   |  0.77   |  0.88   | 24.87   |  0.84        |
 
 
 
@@ -256,10 +260,10 @@ how do we check this
 | Coin flip  | -0.32   |  0.34   |  0.34   |  0.26   |  0.34        |
 | +          |  0.00   |  0.34   |         |         |  0.34        |
 | -          |  0.00   |         |  0.66   |         |  0.66        |
-| Validation |  0.64   |  0.75   |  0.88   | 26.25   |  0.84        |
-| Training   |  0.66   |  0.76   |  0.89   | 27.87   |  0.84        |
-| Validation |  0.78   |  0.84   |  0.93   | 102.65  |  0.90        |
-| Training   |  0.81   |  0.86   |  0.94   | 103.82  |  0.91        |
+| Validation |  0.62   |  0.76   |  0.87   | 23.25   |  0.83        |
+| Training   |  0.65   |  0.77   |  0.88   | 24.87   |  0.84        |
+| Validation |  0.77   |  0.84   |  0.93   | 116.05  |  0.90        |
+| Training   |  0.79   |  0.85   |  0.94   | 95.70   |  0.91        |
 
 
 
@@ -328,12 +332,12 @@ slide on overfitting
 
 | **Layer** | **Variable**                 | **Import.** |
 |----------:|-----------------------------:|------------:|
-| 6         | BIO6                         | 0.63897     |
-| 8         | BIO8                         | 0.1683      |
-| 5         | BIO5                         | 0.123455    |
-| 15        | BIO15                        | 0.0437605   |
-| 2         | BIO2                         | 0.0252587   |
-| 27        | Regularly Flooded Vegetation | 0.00025701  |
+| 1         | BIO1                         | 0.790935    |
+| 10        | BIO10                        | 0.138616    |
+| 8         | BIO8                         | 0.0557785   |
+| 29        | Snow/Ice                     | 0.00755729  |
+| 24        | Shrubs                       | 0.00616345  |
+| 27        | Regularly Flooded Vegetation | 0.000949339 |
 
 
 
@@ -428,12 +432,12 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 | **Layer** | **Variable**                 | **Import.** | **Shap. imp.** |
 |----------:|-----------------------------:|------------:|---------------:|
-| 6         | BIO6                         | 0.63897     | 0.474714       |
-| 8         | BIO8                         | 0.1683      | 0.244875       |
-| 5         | BIO5                         | 0.123455    | 0.145526       |
-| 15        | BIO15                        | 0.0437605   | 0.0720342      |
-| 2         | BIO2                         | 0.0252587   | 0.0627971      |
-| 27        | Regularly Flooded Vegetation | 0.00025701  | 5.34345e-5     |
+| 1         | BIO1                         | 0.790935    | 0.576689       |
+| 10        | BIO10                        | 0.138616    | 0.253547       |
+| 8         | BIO8                         | 0.0557785   | 0.104797       |
+| 29        | Snow/Ice                     | 0.00755729  | 0.0460891      |
+| 24        | Shrubs                       | 0.00616345  | 0.017193       |
+| 27        | Regularly Flooded Vegetation | 0.000949339 | 0.00168559     |
 
 
 

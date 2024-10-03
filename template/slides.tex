@@ -136,30 +136,11 @@
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{The steps}
-\phantomsection\label{the-steps}
-\begin{enumerate}
-\tightlist
-\item
-  Get data about species occurrences
-\item
-  Build a classifier and make it as good as we can
-\item
-  Measure its performance
-\item
-  Explain some predictions
-\item
-  Generate counterfactual explanations
-\item
-  Briefly discuss ensemble models
-\end{enumerate}
-\end{frame}
-
 \begin{frame}{But why\ldots{}}
 \phantomsection\label{but-why}
 \begin{description}
 \tightlist
-\item[\ldots{} think of SDM as a ML problem?]
+\item[\ldots{} think of SDM as ML problems?]
 Because they are! We want to learn a predictive algorithm from data
 \item[\ldots{} the focus on explainability?]
 We cannot ask people to \emph{trust} - we must \emph{convince} and
@@ -167,21 +148,58 @@ We cannot ask people to \emph{trust} - we must \emph{convince} and
 \end{description}
 \end{frame}
 
-\begin{frame}{Learning/teaching goals}
-\phantomsection\label{learningteaching-goals}
+\begin{frame}{What we will \emph{not} discuss}
+\phantomsection\label{what-we-will-not-discuss}
 \begin{enumerate}
 \tightlist
 \item
-  Validation and training
+  Image recognition
 \item
-  Data leakage and data transformation
+  Sound recognition
 \item
-  Overfitting and bagging
+  Generative AI
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Learning/teaching goals}
+\phantomsection\label{learningteaching-goals}
+\begin{itemize}
+\tightlist
 \item
-  Partial responses and Shapley values
+  ML basics
+
+  \begin{itemize}
+  \tightlist
+  \item
+    cross-validation
+  \item
+    hyper-parameters tuning
+  \item
+    bagging and ensembles
+  \end{itemize}
+\item
+  Pitfalls
+
+  \begin{itemize}
+  \tightlist
+  \item
+    data leakage
+  \item
+    overfitting
+  \end{itemize}
+\item
+  Explainable ML
+
+  \begin{itemize}
+  \tightlist
+  \item
+    partial responses
+  \item
+    Shapley values
+  \end{itemize}
 \item
   Counterfactuals
-\end{enumerate}
+\end{itemize}
 \end{frame}
 
 \section{Problem statement}\label{problem-statement}
@@ -197,7 +215,7 @@ variables for the locations where the species was observed
 We can do the same thing for locations where the species was not
 observed
 
-\alert{Where could we observed this species}?
+\alert{Where could we observe this species}?
 \end{frame}
 
 \begin{frame}{The problem in ML terms}
@@ -226,6 +244,8 @@ Two series of environmental layers
 \item
   EarthEnv land cover variables (12)
 \end{enumerate}
+
+Now is \emph{not} the time to make assumptions about which are relevant!
 \end{frame}
 
 \begin{frame}{The observation data}
@@ -233,18 +253,21 @@ Two series of environmental layers
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_4_1.png}}~
 \end{frame}
 
-\begin{frame}{Problem!}
-\phantomsection\label{problem}
-We want \(\hat y \in \mathbb{B}\), and so far we are missing
+\begin{frame}{Problem (and solution)}
+\phantomsection\label{problem-and-solution}
+We want \(\textbf{y} \in \mathbb{B}\), and so far we are missing
 \alert{negative
 values}
-\end{frame}
 
-\begin{frame}{Solution!}
-\phantomsection\label{solution}
-pseudo-absences
+We generate \alert{pseudo}-absences with the following rules:
 
-what are the assumptions we make
+\begin{enumerate}
+\tightlist
+\item
+  Locations further away from a presence are more likely
+\item
+  Locations less than 5km away from a presence are ruled out
+\end{enumerate}
 \end{frame}
 
 \begin{frame}{The (inflated) observation data}
@@ -264,7 +287,10 @@ what are the assumptions we make
 
 \begin{frame}{Cross-validation}
 \phantomsection\label{cross-validation}
-Can we train the model
+Can we train the model?
+
+More specifically -- if we train the model, how well can we expect it to
+perform?
 
 assumes parallel universes with slightly less data
 
@@ -319,8 +345,8 @@ No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
 Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
 + & 0.00 & 0.34 & & & 0.34 \\
 - & 0.00 & & 0.66 & & 0.66 \\
-Validation & 0.63 & 0.74 & 0.89 & 25.41 & 0.83 \\
-Training & 0.66 & 0.76 & 0.90 & 33.66 & 0.84 \\
+Validation & 0.62 & 0.76 & 0.87 & 23.25 & 0.83 \\
+Training & 0.65 & 0.77 & 0.88 & 24.87 & 0.84 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -401,10 +427,10 @@ No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
 Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
 + & 0.00 & 0.34 & & & 0.34 \\
 - & 0.00 & & 0.66 & & 0.66 \\
-Validation & 0.63 & 0.74 & 0.89 & 25.41 & 0.83 \\
-Training & 0.66 & 0.76 & 0.90 & 33.66 & 0.84 \\
-Validation & 0.77 & 0.78 & 0.96 & 140.95 & 0.89 \\
-Training & 0.79 & 0.79 & 0.97 & 125.70 & 0.90 \\
+Validation & 0.62 & 0.76 & 0.87 & 23.25 & 0.83 \\
+Training & 0.65 & 0.77 & 0.88 & 24.87 & 0.84 \\
+Validation & 0.77 & 0.84 & 0.93 & 116.05 & 0.90 \\
+Training & 0.79 & 0.85 & 0.94 & 95.70 & 0.91 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -480,11 +506,12 @@ slide on overfitting
 \textbf{Layer} & \textbf{Variable} & \textbf{Import.} \\
 \midrule\noalign{}
 \endhead
-6 & BIO6 & 0.805809 \\
-7 & BIO7 & 0.151936 \\
-23 & Mixed/Other Trees & 0.0225518 \\
-29 & Snow/Ice & 0.0192739 \\
-27 & Regularly Flooded Vegetation & 0.000429548 \\
+1 & BIO1 & 0.790935 \\
+10 & BIO10 & 0.138616 \\
+8 & BIO8 & 0.0557785 \\
+29 & Snow/Ice & 0.00755729 \\
+24 & Shrubs & 0.00616345 \\
+27 & Regularly Flooded Vegetation & 0.000949339 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -505,22 +532,22 @@ Equivalent to a mean-field approximation
 
 \begin{frame}{Example with temperature}
 \phantomsection\label{example-with-temperature}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
 \end{frame}
 
 \begin{frame}{Example with two variables}
 \phantomsection\label{example-with-two-variables}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response plot}
 \phantomsection\label{spatialized-partial-response-plot}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
 \end{frame}
 
 \begin{frame}{Spatialized partial response (binary outcome)}
 \phantomsection\label{spatialized-partial-response-binary-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_31_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_32_1.png}}~
 \end{frame}
 
 \begin{frame}{Inflated response curves}
@@ -543,7 +570,7 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Example}
 \phantomsection\label{example}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_32_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
 \end{frame}
 
 \begin{frame}{Limitations}
@@ -570,11 +597,12 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Response curves revisited}
 \phantomsection\label{response-curves-revisited}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_35_1.png}}~
 \end{frame}
 
 \begin{frame}{On a map}
 \phantomsection\label{on-a-map}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_35_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
 \end{frame}
 
 \begin{frame}{Variable importance revisited}
@@ -596,18 +624,19 @@ In practice: Monte-Carlo on a reasonable number of samples.
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
-6 & BIO6 & 0.805809 & 0.796968 \\
-7 & BIO7 & 0.151936 & 0.143859 \\
-29 & Snow/Ice & 0.0192739 & 0.0296059 \\
-23 & Mixed/Other Trees & 0.0225518 & 0.0292317 \\
-27 & Regularly Flooded Vegetation & 0.000429548 & 0.000336003 \\
+1 & BIO1 & 0.790935 & 0.576689 \\
+10 & BIO10 & 0.138616 & 0.253547 \\
+8 & BIO8 & 0.0557785 & 0.104797 \\
+29 & Snow/Ice & 0.00755729 & 0.0460891 \\
+24 & Shrubs & 0.00616345 & 0.017193 \\
+27 & Regularly Flooded Vegetation & 0.000949339 & 0.00168559 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
 
 \begin{frame}{Most important predictor}
 \phantomsection\label{most-important-predictor}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_37_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_38_1.png}}~
 \end{frame}
 
 \begin{frame}{Revisiting the data transformation}
@@ -638,6 +667,7 @@ what they are
 
 \begin{frame}{Generating a counterfactual}
 \phantomsection\label{generating-a-counterfactual}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_39_1.png}}~
 \end{frame}
 
 \begin{frame}{Evaluating the counterfactuals}
