@@ -47,3 +47,4 @@ _minted_slides/
 *.out
 *.aux
 *.fdb_latexmk
+*.fls
