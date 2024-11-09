@@ -154,7 +154,7 @@ current_figure()
 ## Setup
 
 ```julia
-sdm = SDM(MultivariateTransform{PCA}, DecisionTree, predictors, prsc, absc)
+sdm = SDM(RawData, DecisionTree, predictors, prsc, absc)
 ```
 
 ## Cross-validation
@@ -418,7 +418,7 @@ current_figure()
 
 ## But wait!
 
-Using depth of 7 and up to 20 nodes
+Using depth of 8 and up to 20 nodes
 
 ```julia
 mv = Float64[]
