@@ -30,7 +30,6 @@ include("code/makietheme.jl")
 1. How do we produce a model?
 2. How do we convey that it works?
 3. How do we talk about how it makes predictions?
-4. How do we use it to guide actions?
 
 ## But why...
 
@@ -58,7 +57,12 @@ include("code/makietheme.jl")
 - Explainable ML
     - partial responses
     - Shapley values
-- Counterfactuals
+
+## But wait!
+
+- a similar example fully worked out usually takes me 21 hours of class time
+- this is an overview
+- don't care about the output, care about the \alert{process}!
 
 # Problem statement
 
@@ -156,11 +160,13 @@ Decision trees *recursively* split observations by picking the best variable and
 
 Given enough depth, they can \alert{overfit} the training data (we'll get back to this).
 
-Decision trees are good at approximating non-linear relationships.
-
 ## Setup
 
 We need an \alert{initial} model to get started: what if we use *all the variables*?
+
+We shouldn't use all the variables.
+
+**But**! It is a good baseline. A good baseline is important.
 
 ```julia
 sdm = SDM(MultivariateTransform{PCA}, DecisionTree, predictors, prsc, absc)
@@ -172,22 +178,21 @@ Can we train the model?
 
 More specifically -- if we train the model, how well can we expect it to perform?
 
-assumes parallel universes with slightly less data
-
-is the model good?
+The way we answer this question is: in many parallel universes with slightly
+less data, is the model good?
 
 ## Null classifiers
 
-coin flip
+What if the model guessed based on chance only?
 
-no skill
+What is \alert{chance only}?
 
-constant
+50%, based on prevalence, or always the same answer
 
 ## Expectations
 
 The null classifiers tell us what we need to beat in order to perform \alert{better than
-random}.
+chance}.
 
 ```julia ; results="raw"
 hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
@@ -221,11 +226,8 @@ the positive class prevalence?
 
 ## Cross-validation strategy
 
-k-fold
-
-**For example**: ((1,2), (3)), ((1,3),(2)), ((2,3),(1))
-
-validation / training / testing
+- k-fold cross-validation
+- no testing data here
 
 ```julia
 folds = kfold(sdm);
@@ -251,17 +253,15 @@ pretty_table(data;
 
 ## What to do if the model is trainable?
 
-train it!
+We \alert{train it}!
 
-re-use the full dataset
+This training is done using the *full* dataset - there is no need to cross-validate, we know what to expect based on previous steps.
 
 ```julia
 train!(sdm; threshold=false)
 prd = predict(sdm, predictors; threshold = false)
 current_range = predict(sdm, predictors)
 ```
-
-## The model training pipeline
 
 ## Initial prediction
 
@@ -295,19 +295,13 @@ current_figure()
 
 ## Can we improve on this model?
 
-variable selection
-
 ```julia
 forwardselection!(sdm, folds; verbose=true)
 ```
 
-data transformation
-
-hyper-parameters tuning
-
-will focus on the later (same process for the two above)
-
-## Data leakage
+- \alert{variable selection}
+- data transformation (we use PCA here, but there are many other)
+- \alert{hyper-parameters tuning}
 
 ## A note on PCA
 
@@ -315,19 +309,17 @@ will focus on the later (same process for the two above)
 pc = predict(sdm.transformer, features(sdm)[variables(sdm),:])
 f = Figure(; size=(800, 400))
 ax = Axis(f[1,1])
-sc = scatter!(ax, pc[1,:], pc[2,:], color=labels(sdm), colormap=[:grey, :black])
+sc = scatter!(ax, features(sdm, 1), features(sdm, 12), color=labels(sdm), colormap=[:grey, :black])
 ax = Axis(f[1,2])
-sc = scatter!(ax, pc[2,:], pc[3,:], color=labels(sdm), colormap=[:grey, :black])
+sc = scatter!(ax, pc[1,:], pc[2,:], color=labels(sdm), colormap=[:grey, :black])
 current_figure()
 ```
 
 ## Moving threshold classification
 
-p plus > p minus means threshold is 0.5
-
-is it?
-
-how do we check this
+- $P(+) > P(-)$
+- This is the same thing as $P(+) > 0.5$
+- Is it, though?
 
 ```julia
 THR = LinRange(0.0, 1.0, 50)
@@ -352,7 +344,7 @@ current_figure()
 
 ```julia
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1])
+ax = Axis(f[1,1], xlabel="False positive rate", ylabel="True positive rate")
 lines!(ax, [fpr(c.validation) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
 lines!(ax, [mean(fpr.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
 scatter!(ax, [mean(fpr.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
@@ -365,7 +357,7 @@ current_figure()
 
 ```julia
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1])
+ax = Axis(f[1,1]; xlabel="Recall", ylabel="Precision")
 lines!(ax, [mean(ppv.(c.validation)) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
 lines!(ax, [mean(ppv.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
 scatter!(ax, [mean(ppv.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
@@ -429,7 +421,7 @@ current_figure()
 
 ## But wait!
 
-Using depth of 8 and up to 20 nodes
+Decision trees overfit: if we pick a maximum depth of 8 splits, how many nodes can we use?
 
 ```julia
 mv = Float64[]
@@ -449,7 +441,7 @@ train!(sdm)
 
 ```julia
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1]; xlabel="Max. nodes", ylabel="MCC")
+ax = Axis(f[1,1]; xlabel="Max. nodes after pruning", ylabel="MCC")
 scatterlines!(ax, mn, mv, color=:black, label="Validation")
 scatterlines!(ax, mn, mt, color=:red, label="Training")
 axislegend(ax, position=:rb)
@@ -460,13 +452,16 @@ current_figure()
 
 ## Limits of a single model
 
-- a single model
-- different parts of data may have different signal
+- it's a single model my dudes
+- different subsets of the training data may have different signal
 - do we need all the variables all the time?
 - bias v. variance tradeoff
-- limit overfitting
+- fewer variables make it harder to overfit
 
 ## Bootstrapping and aggregation
+
+- bootstrap the training \alert{instances} (32 samples for speed)
+- randomly sample $\lceil \sqrt{n} \rceil$ variables
 
 ```julia
 forest = Bagging(sdm, 32)
@@ -490,6 +485,10 @@ pretty_table(data;
     )
 )
 ```
+
+Short answer: no
+
+Long answer: maybe? Let's talk it through!
 
 ## Prediction of the rotation forest
 
@@ -539,14 +538,10 @@ current_figure()
 
 ## What, exactly, is bootstrap telling us?
 
-what if we had a little less data
+- what if we had a little less data (it's conceptually close to cross-validation!)
+- uncertainty about locations, not predictions
 
-locations, not predictions
-
-## Revisiting assumptions
-
-- pseudo-absences
-- not just a statistical exercise
+**Do we expect the model predictions to change at this location when we add more training data?**
 
 ## Variable importance
 
@@ -670,11 +665,9 @@ current_figure()
 
 ## Shapley
 
-## Example
-
-```julia
-explain(forest, r1; threshold=false)
-```
+- how much is the \alert{average prediction} modified by a specific variable having a specific value?
+- it's based on game theory (but it's not *actually* game theory)
+- many highly desirable properties!
 
 ## Response curves revisited
 
@@ -737,42 +730,10 @@ Legend(
 current_figure()
 ```
 
-## Revisiting the data transformation
+# Summary
 
-all in a single model so we can ask effect of variable instead of effect of PC1 or whatever
+## SDMs are (applied) machine learning
 
-# What if?
-
-## Intro to counterfactuals
-
-what they are
-
-## The Rashomon effect
-
-- different but equally likely alternatives
-- happens at all steps in the process
-- variable selected, threshold used, model type
-
-## Generating a counterfactual
-
-```julia
-idx = rand(findall(x -> threshold(forest.model)-0.2 <= x <= threshold(forest.model), predict(forest; threshold=false)))
-cfs = [
-    counterfactual(forest, instance(forest, idx; strict=false), threshold(forest.model)+0.2, 20000.0; threshold=false, consensus=median)
-    for i in 1:10
-    ]
-cft = unique(permutedims(hcat(cfs...)[variables(forest),:]); dims=1)
-append(instance(forest, idx), cft)
-```
-
-## Evaluating the counterfactuals
-
-## What is a good counterfactual
-
-learning rate and loss function
-
-use on prediction score and not yes/no!
-
-## Algorithmic recourse
-
-# Conclusions
+- models we can train
+- parameters can (should!) be tuned automatically
+- we can use tools from explainable ML to give more clarity

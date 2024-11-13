@@ -5,7 +5,7 @@ using Statistics
 using PrettyTables
 using Random
 using DelimitedFiles
-Random.seed!(1234567890)
+Random.seed!(12345)
 include("code/makietheme.jl")
 
 
@@ -73,9 +73,10 @@ folds = kfold(sdm);
 cv = crossvalidate(sdm, folds; threshold = false);
 
 
-push!(tbl, ["Validation", mean(mcc.(cv.validation)), mean(ppv.(cv.validation)), mean(npv.(cv.validation)), mean(dor.(cv.validation)), mean(accuracy.(cv.validation))])
-push!(tbl, ["Training", mean(mcc.(cv.training)), mean(ppv.(cv.training)), mean(npv.(cv.training)), mean(dor.(cv.training)), mean(accuracy.(cv.training))])
-data = permutedims(hcat(tbl...))
+nstbl = [tbl[1]]
+push!(nstbl, ["Dec. tree (val.)", mcc(cv.validation), ppv(cv.validation), npv(cv.validation), dor(cv.validation), accuracy(cv.validation)])
+push!(nstbl, ["Dec. tree (tr.)", mcc(cv.training), ppv(cv.training), npv(cv.training), dor(cv.training), accuracy(cv.training)])
+data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
     header = hdr,
@@ -118,24 +119,33 @@ current_figure()
 forwardselection!(sdm, folds; verbose=true)
 
 
+pc = predict(sdm.transformer, features(sdm)[variables(sdm),:])
+f = Figure(; size=(800, 400))
+ax = Axis(f[1,1])
+sc = scatter!(ax, features(sdm, 1), features(sdm, 12), color=labels(sdm), colormap=[:grey, :black])
+ax = Axis(f[1,2])
+sc = scatter!(ax, pc[1,:], pc[2,:], color=labels(sdm), colormap=[:grey, :black])
+current_figure()
+
+
 THR = LinRange(0.0, 1.0, 50)
 tcv = [crossvalidate(sdm, folds; thr=thr) for thr in THR]
-bst = last(findmax([mean(mcc.(c.training)) for c in tcv]))
+bst = last(findmax([mcc(c.training) for c in tcv]))
 
 
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-lines!(ax, THR, [mean(mcc.(c.validation)) for c in tcv], color=:black)
-lines!(ax, THR, [mean(mcc.(c.training)) for c in tcv], color=:grey)
-scatter!(ax, [THR[bst]], [mean(mcc.(tcv[bst].validation))], color=:black)
+lines!(ax, THR, [mcc(c.validation) for c in tcv], color=:black)
+lines!(ax, THR, [mcc(c.training) for c in tcv], color=:grey)
+scatter!(ax, [THR[bst]], [mcc(tcv[bst].validation)], color=:black)
 xlims!(ax, 0., 1.)
 ylims!(ax, 0., 1.)
 current_figure()
 
 
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1])
-lines!(ax, [mean(fpr.(c.validation)) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
+ax = Axis(f[1,1], xlabel="False positive rate", ylabel="True positive rate")
+lines!(ax, [fpr(c.validation) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
 lines!(ax, [mean(fpr.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
 scatter!(ax, [mean(fpr.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
 xlims!(ax, 0., 1.)
@@ -144,7 +154,7 @@ current_figure()
 
 
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1])
+ax = Axis(f[1,1]; xlabel="Recall", ylabel="Precision")
 lines!(ax, [mean(ppv.(c.validation)) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
 lines!(ax, [mean(ppv.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
 scatter!(ax, [mean(ppv.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
@@ -154,9 +164,9 @@ current_figure()
 
 
 cv2 = crossvalidate(sdm, folds; threshold = true)
-push!(tbl, ["Validation", mean(mcc.(cv2.validation)), mean(ppv.(cv2.validation)), mean(npv.(cv2.validation)), mean(dor.(cv2.validation)), mean(accuracy.(cv2.validation))])
-push!(tbl, ["Training", mean(mcc.(cv2.training)), mean(ppv.(cv2.training)), mean(npv.(cv2.training)), mean(dor.(cv2.training)), mean(accuracy.(cv2.training))])
-data = permutedims(hcat(tbl...))
+push!(nstbl, ["Tuned tree (val.)", mean(mcc.(cv2.validation)), mean(ppv.(cv2.validation)), mean(npv.(cv2.validation)), mean(dor.(cv2.validation)), mean(accuracy.(cv2.validation))])
+push!(nstbl, ["Tuned tree (tr.)", mean(mcc.(cv2.training)), mean(ppv.(cv2.training)), mean(npv.(cv2.training)), mean(dor.(cv2.training)), mean(accuracy.(cv2.training))])
+data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
     header = hdr,
@@ -196,9 +206,46 @@ hidespines!(ax)
 current_figure()
 
 
-forest = Bagging(sdm, 25)
+mv = Float64[]
+mt = Float64[]
+mn = 2:2:25
+maxdepth!(sdm, 8)
+for maxn in mn
+    maxnodes!(sdm, maxn)
+    tcv = crossvalidate(sdm, folds)
+    push!(mv, mean(mcc.(tcv.validation)))
+    push!(mt, mean(mcc.(tcv.training)))
+end
+maxdepth!(sdm, 7)
+maxnodes!(sdm, 12)
+train!(sdm)
+
+
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1]; xlabel="Max. nodes after pruning", ylabel="MCC")
+scatterlines!(ax, mn, mv, color=:black, label="Validation")
+scatterlines!(ax, mn, mt, color=:red, label="Training")
+axislegend(ax, position=:rb)
+current_figure()
+
+
+forest = Bagging(sdm, 32)
 bagfeatures!(forest)
 train!(forest)
+
+
+cv3 = crossvalidate(forest, folds; threshold = true)
+push!(nstbl, ["Forest (val.)", mean(mcc.(cv3.validation)), mean(ppv.(cv3.validation)), mean(npv.(cv3.validation)), mean(dor.(cv3.validation)), mean(accuracy.(cv3.validation))])
+push!(nstbl, ["Forest (tr.)", mean(mcc.(cv3.training)), mean(ppv.(cv3.training)), mean(npv.(cv3.training)), mean(dor.(cv3.training)), mean(accuracy.(cv3.training))])
+data = permutedims(hcat(nstbl...))
+pretty_table(data;
+    backend = Val(:markdown),
+    header = hdr,
+    formatters = (
+        ft_nan,
+        ft_printf("%5.2f", [2,3,4,5,6])
+    )
+)
 
 
 f = Figure(; size = (800, 400))
@@ -229,7 +276,7 @@ current_figure()
 
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
-hm = heatmap!(ax, predict(forest, predictors; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256, colorrange = (0, 1))
+hm = heatmap!(ax, predict(forest, predictors; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256)
 contour!(ax, predict(forest, predictors; consensus=majority); color = :black, linewidth = 0.5)
 Colorbar(f[1, 2], hm)
 lines!(ax, CHE.geometry[1]; color = :black)
@@ -247,21 +294,26 @@ pretty_table(
     backend = Val(:markdown), header = hdr)
 
 
-x, y = partialresponse(forest, 1; threshold=false)
+# Get the two most important variables
+r1, r2 = variables(forest)[sortperm(var_imp; rev=true)][1:2]
+
+
+x, y = partialresponse(forest, r1; threshold=false)
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
 lines!(ax, x, y)
 current_figure()
 
 
-x, y, z = partialresponse(forest, 1, 24; threshold=false)
+x, y, z = partialresponse(forest, r1, r2; threshold=false)
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1], xlabel=layernames[1], ylabel=layernames[24])
-heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
+ax = Axis(f[1,1], xlabel=layernames[r1], ylabel=layernames[r2])
+hm = heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
+Colorbar(f[1,2], hm)
 current_figure()
 
 
-partial_temp = partialresponse(forest, predictors, 1; threshold=false)
+partial_temp = partialresponse(forest, predictors, r1; threshold=false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
@@ -273,7 +325,7 @@ hidespines!(ax)
 current_figure()
 
 
-partial_temp = partialresponse(forest, predictors, 1; threshold=true)
+partial_temp = partialresponse(forest, predictors, r1; threshold=true)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
@@ -283,32 +335,39 @@ lines!(ax, CHE.geometry[1]; color = :black)
 hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
+
+
+x, y = partialresponse(forest, r1; inflated=false, threshold=false)
+M = zeros(eltype(y), (100, length(y)))
+for i in axes(M, 1)
+    M[i,:] .= partialresponse(forest, r1; inflated=true, threshold=false)[2]
+end
+prm = vec(mean(M; dims=1))
+prs = vec(std(M; dims=1))
+prci = 1.96prs / size(M, 1)
 
 
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-for i in 1:350
-    lines!(ax, partialresponse(forest, 1; inflated=true, threshold=false)..., color=:lightgrey, alpha=0.5)
-end
-lines!(ax, partialresponse(forest, 1; inflated=false, threshold=false)..., color=:black)
+# series!(ax, x, M, solid_color=(:black, 0.2))
+band!(ax, x, prm .- prci, prm .+ prci, color=:lightgrey)
+lines!(ax, x, prm, color=:black)
+lines!(ax, x, y, color=:black, linestyle=:dash)
 ylims!(ax, 0., 1.)
-xlims!(ax, extrema(features(forest, 1))...)
+xlims!(ax, extrema(features(forest, r1))...)
 current_figure()
-
-
-explain(forest, 1; threshold=false)
 
 
 f = Figure(; size=(800, 400))
-expl_1 = explain(forest, 1; threshold=false)
+expl_1 = explain(forest, r1; threshold=false)
 ax = Axis(f[1,1])
-hexbin!(ax, features(forest, 1), expl_1, bins=60, colormap=:linear_bgyw_15_100_c68_n256)
+hexbin!(ax, features(forest, r1), expl_1, bins=60, colormap=:linear_bgyw_15_100_c68_n256)
 ax2 = Axis(f[1,2])
 hist!(ax2, expl_1, color=:lightgrey, strokecolor=:black, strokewidth=1)
 current_figure()
 
 
-shapley_temp = explain(forest, predictors, 1; threshold=false)
+shapley_temp = explain(forest, predictors, r1; threshold=false)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.4, 0.4))
@@ -346,12 +405,4 @@ Legend(
     nbanks = 1,
 )
 current_figure()
-
-
-idx = rand(findall(!, predict(sdm)))
-cfs = [
-    counterfactual(sdm, instance(sdm, idx; strict=false), threshold(sdm)+0.1, 1.0; threshold=false)
-    for i in 1:10
-    ]
-permutedims(hcat(cfs...)[variables(sdm),:]) .- instance(tree, idx))
 
