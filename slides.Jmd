@@ -21,7 +21,7 @@ using Statistics
 using PrettyTables
 using Random
 using DelimitedFiles
-Random.seed!(12345)
+Random.seed!(1234567890)
 include("code/makietheme.jl")
 ```
 
