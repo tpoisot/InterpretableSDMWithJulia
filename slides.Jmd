@@ -127,7 +127,8 @@ values}
 We generate \alert{pseudo}-absences with the following rules:
 
 1. Locations further away from a presence are more likely
-2. Locations less than 5km away from a presence are ruled out
+2. Locations less than 6km away from a presence are ruled out
+3. Pseudo-absences are twice as common as presences
 
 ```julia
 prsc = SDMLayer("data/occurrences.tiff"; bandnumber=1) .> 0
@@ -151,10 +152,18 @@ current_figure()
 
 ## A simple decision tree
 
+Decision trees *recursively* split observations by picking the best variable and value.
+
+Given enough depth, they can \alert{overfit} the training data (we'll get back to this).
+
+Decision trees are good at approximating non-linear relationships.
+
 ## Setup
 
+We need an \alert{initial} model to get started: what if we use *all the variables*?
+
 ```julia
-sdm = SDM(RawData, DecisionTree, predictors, prsc, absc)
+sdm = SDM(MultivariateTransform{PCA}, DecisionTree, predictors, prsc, absc)
 ```
 
 ## Cross-validation
@@ -214,6 +223,8 @@ the positive class prevalence?
 
 k-fold
 
+**For example**: ((1,2), (3)), ((1,3),(2)), ((2,3),(1))
+
 validation / training / testing
 
 ```julia
@@ -225,8 +236,8 @@ cv = crossvalidate(sdm, folds; threshold = false);
 
 ```julia ; results="raw"
 nstbl = [tbl[1]]
-push!(nstbl, ["Dec. tree (val.)", mean(mcc.(cv.validation)), mean(ppv.(cv.validation)), mean(npv.(cv.validation)), mean(dor.(cv.validation)), mean(accuracy.(cv.validation))])
-push!(nstbl, ["Dec. tree (tr.)", mean(mcc.(cv.training)), mean(ppv.(cv.training)), mean(npv.(cv.training)), mean(dor.(cv.training)), mean(accuracy.(cv.training))])
+push!(nstbl, ["Dec. tree (val.)", mcc(cv.validation), ppv(cv.validation), npv(cv.validation), dor(cv.validation), accuracy(cv.validation)])
+push!(nstbl, ["Dec. tree (tr.)", mcc(cv.training), ppv(cv.training), npv(cv.training), dor(cv.training), accuracy(cv.training)])
 data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
@@ -310,7 +321,7 @@ sc = scatter!(ax, pc[2,:], pc[3,:], color=labels(sdm), colormap=[:grey, :black])
 current_figure()
 ```
 
-## Moving theshold classification
+## Moving threshold classification
 
 p plus > p minus means threshold is 0.5
 
@@ -321,7 +332,7 @@ how do we check this
 ```julia
 THR = LinRange(0.0, 1.0, 50)
 tcv = [crossvalidate(sdm, folds; thr=thr) for thr in THR]
-bst = last(findmax([mean(mcc.(c.training)) for c in tcv]))
+bst = last(findmax([mcc(c.training) for c in tcv]))
 ```
 
 ## Learning curve for the threshold
@@ -329,9 +340,9 @@ bst = last(findmax([mean(mcc.(c.training)) for c in tcv]))
 ```julia
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-lines!(ax, THR, [mean(mcc.(c.validation)) for c in tcv], color=:black)
-lines!(ax, THR, [mean(mcc.(c.training)) for c in tcv], color=:grey)
-scatter!(ax, [THR[bst]], [mean(mcc.(tcv[bst].validation))], color=:black)
+lines!(ax, THR, [mcc(c.validation) for c in tcv], color=:black)
+lines!(ax, THR, [mcc(c.training) for c in tcv], color=:grey)
+scatter!(ax, [THR[bst]], [mcc(tcv[bst].validation)], color=:black)
 xlims!(ax, 0., 1.)
 ylims!(ax, 0., 1.)
 current_figure()
@@ -342,7 +353,7 @@ current_figure()
 ```julia
 f = Figure(; size=(400, 400))
 ax = Axis(f[1,1])
-lines!(ax, [mean(fpr.(c.validation)) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
+lines!(ax, [fpr(c.validation) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
 lines!(ax, [mean(fpr.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
 scatter!(ax, [mean(fpr.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
 xlims!(ax, 0., 1.)
@@ -423,7 +434,7 @@ Using depth of 8 and up to 20 nodes
 ```julia
 mv = Float64[]
 mt = Float64[]
-mn = 2:2:30
+mn = 2:2:25
 maxdepth!(sdm, 8)
 for maxn in mn
     maxnodes!(sdm, maxn)
@@ -438,9 +449,10 @@ train!(sdm)
 
 ```julia
 f = Figure(; size=(400, 400))
-ax = Axis(f[1,1])
-scatterlines!(ax, mn, mv, color=:black)
-scatterlines!(ax, mn, mt, color=:red)
+ax = Axis(f[1,1]; xlabel="Max. nodes", ylabel="MCC")
+scatterlines!(ax, mn, mv, color=:black, label="Validation")
+scatterlines!(ax, mn, mt, color=:red, label="Training")
+axislegend(ax, position=:rb)
 current_figure()
 ```
 
@@ -457,7 +469,7 @@ current_figure()
 ## Bootstrapping and aggregation
 
 ```julia
-forest = Bagging(sdm, 64)
+forest = Bagging(sdm, 32)
 bagfeatures!(forest)
 train!(forest)
 ```
@@ -511,7 +523,7 @@ hidespines!(ax)
 current_figure()
 ```
 
-## Uncertainty
+## Variation between predictions
 
 ```julia
 f = Figure(; size = (800, 400))
@@ -524,6 +536,12 @@ hidedecorations!(ax)
 hidespines!(ax)
 current_figure()
 ```
+
+## What, exactly, is bootstrap telling us?
+
+what if we had a little less data
+
+locations, not predictions
 
 ## Revisiting assumptions
 
@@ -628,7 +646,7 @@ for i in axes(M, 1)
     M[i,:] .= partialresponse(forest, r1; inflated=true, threshold=false)[2]
 end
 prm = vec(mean(M; dims=1))
-prs = vec(mean(M; dims=1))
+prs = vec(std(M; dims=1))
 prci = 1.96prs / size(M, 1)
 ```
 
@@ -738,11 +756,10 @@ what they are
 ## Generating a counterfactual
 
 ```julia
-idx = rand(findall(x -> threshold(forest.model)-0.1 <= x <= threshold(forest.model),
-predict(forest; threshold=false)))
+idx = rand(findall(x -> threshold(forest.model)-0.2 <= x <= threshold(forest.model), predict(forest; threshold=false)))
 cfs = [
-    counterfactual(forest, instance(forest, idx; strict=false), threshold(forest.model)+0.1, 800.0; threshold=false, consensus=median)
-    for i in 1:25
+    counterfactual(forest, instance(forest, idx; strict=false), threshold(forest.model)+0.2, 20000.0; threshold=false, consensus=median)
+    for i in 1:10
     ]
 cft = unique(permutedims(hcat(cfs...)[variables(forest),:]); dims=1)
 append(instance(forest, idx), cft)
