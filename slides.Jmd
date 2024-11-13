@@ -169,7 +169,7 @@ We shouldn't use all the variables.
 **But**! It is a good baseline. A good baseline is important.
 
 ```julia
-sdm = SDM(MultivariateTransform{PCA}, DecisionTree, predictors, prsc, absc)
+sdm = SDM(ZScore, DecisionTree, predictors, prsc, absc)
 ```
 
 ## Cross-validation
