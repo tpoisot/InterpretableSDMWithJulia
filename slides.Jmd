@@ -369,7 +369,7 @@ current_figure()
 
 ```julia ; results="raw"
 cv2 = crossvalidate(sdm, folds; threshold = true)
-push!(nstbl, ["Tuned tree (val.)", mean(mcc.(cv2.validation)), mean(ppv.(cv2.validation)), mean(npv.(cv2.validation)), mean(dor.(cv2.validation)), mean(accuracy.(cv2.validation))])
+push!(nstbl, ["Tuned tree (val.)", mcc(cv2.validation), ppv(cv2.validation), npv(cv2.validation), dor(cv2.validation), accuracy(cv2.validation)])
 push!(nstbl, ["Tuned tree (tr.)", mean(mcc.(cv2.training)), mean(ppv.(cv2.training)), mean(npv.(cv2.training)), mean(dor.(cv2.training)), mean(accuracy.(cv2.training))])
 data = permutedims(hcat(nstbl...))
 pretty_table(data;
