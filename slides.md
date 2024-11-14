@@ -318,57 +318,15 @@ Decision trees overfit: if we pick a maximum depth of 8 splits, how many nodes c
 
 ## Is this worth it?
 
-Error: TaskFailedException
-
-    nested task error: MethodError: no method matching predict(::Nothing, ::Vector{Float32})
-    The function `predict` exists, but no method is defined for this combination of argument types.
-    
-    Closest candidates are:
-      predict(!Matched::SDeMo.BIOCLIM, ::Vector{T}) where T<:Number
-       @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/bioclim.jl:19
-      predict(!Matched::SDeMo.RawData, ::Any)
-       @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/transformers/univariate.jl:10
-      predict(!Matched::SDeMo.NaiveBayes, ::Vector{T}) where T<:Number
-       @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/naivebayes.jl:32
-      ...
-    
-    Stacktrace:
-      [1] predict(dn::SDeMo.DecisionNode, x::Vector{Float32}) (repeats 5 times)
-        @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:210
-      [2] predict
-        @ ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:202 [inlined]
-      [3] #43
-        @ ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:218 [inlined]
-      [4] _inner_mapslices!(R::Matrix{Float64}, indices::Base.Iterators.Drop{CartesianIndices{2, Tuple{Base.OneTo{Int64}, Base.OneTo{Int64}}}}, f::SDeMo.var"#43#44"{SDeMo.DecisionTree}, A::Matrix{Float32}, dim_mask::Tuple{Bool, Bool}, Aslice::Vector{Float32}, safe_for_reuse::Bool)
-        @ Base ./abstractarray.jl:3338
-      [5] mapslices(f::SDeMo.var"#43#44"{SDeMo.DecisionTree}, A::Matrix{Float32}; dims::Int64)
-        @ Base ./abstractarray.jl:3326
-      [6] predict(dt::SDeMo.DecisionTree, X::Matrix{Float32})
-        @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:218
-      [7] predict(sdm::SDeMo.SDM{Float32, Bool}, X::Matrix{Float32}; threshold::Bool)
-        @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/pipeline.jl:52
-      [8] predict
-        @ ~/.julia/packages/SDeMo/AuNGf/src/pipeline.jl:50 [inlined]
-      [9] (::SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}})(component::SDeMo.SDM{Float32, Bool})
-        @ SDeMo ./none:0
-     [10] iterate
-        @ ./generator.jl:48 [inlined]
-     [11] collect_to!(dest::Vector{Vector{Float64}}, itr::Base.Generator{Vector{SDeMo.SDM}, SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}}}, offs::Int64, st::Int64)
-        @ Base ./array.jl:838
-     [12] collect_to_with_first!(dest::Vector{Vector{Float64}}, v1::Vector{Float64}, itr::Base.Generator{Vector{SDeMo.SDM}, SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}}}, st::Int64)
-        @ Base ./array.jl:816
-     [13] collect(itr::Base.Generator{Vector{SDeMo.SDM}, SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}}})
-        @ Base ./array.jl:790
-     [14] predict(ensemble::SDeMo.Bagging, X::Matrix{Float32}; consensus::Function, kwargs::@Kwargs{threshold::Bool})
-        @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/ensembles/pipeline.jl:46
-     [15] macro expansion
-        @ ~/.julia/packages/SDeMo/AuNGf/src/crossvalidation/crossvalidation.jl:169 [inlined]
-     [16] (::SDeMo.var"#60#threadsfor_fun#106"{SDeMo.var"#60#threadsfor_fun#104#107"{@Kwargs{threshold::Bool}, SDeMo.Bagging, Vector{Any}, Vector{SDeMo.Bagging}, Vector{SDeMo.ConfusionMatrix}, Vector{SDeMo.ConfusionMatrix}, Base.OneTo{Int64}}})(tid::Int64; onethread::Bool)
-        @ SDeMo ./threadingconstructs.jl:252
-     [17] #60#threadsfor_fun
-        @ ./threadingconstructs.jl:219 [inlined]
-     [18] (::Base.Threads.var"#1#2"{SDeMo.var"#60#threadsfor_fun#106"{SDeMo.var"#60#threadsfor_fun#104#107"{@Kwargs{threshold::Bool}, SDeMo.Bagging, Vector{Any}, Vector{SDeMo.Bagging}, Vector{SDeMo.ConfusionMatrix}, Vector{SDeMo.ConfusionMatrix}, Base.OneTo{Int64}}}, Int64})()
-        @ Base.Threads ./threadingconstructs.jl:154
+| **Model**         | **MCC** | **PPV** | **NPV** | **DOR** | **Accuracy** |
+|------------------:|--------:|--------:|--------:|--------:|-------------:|
+| No skill          | -0.00   |  0.34   |  0.66   |  1.00   |  0.55        |
+| Dec. tree (val.)  |  0.80   |  0.83   |  0.96   | 210.06  |  0.91        |
+| Dec. tree (tr.)   |  0.84   |  0.86   |  0.97   | 202.00  |  0.93        |
+| Tuned tree (val.) |  0.83   |  0.85   |  0.96   | 198.33  |  0.92        |
+| Tuned tree (tr.)  |  0.84   |  0.85   |  0.97   | 174.94  |  0.92        |
+| Forest (val.)     |  0.77   |  0.79   |  0.96   | 111.07  |  0.89        |
+| Forest (tr.)      |  0.77   |  0.79   |  0.95   | 78.34   |  0.89        |
 
 
 
@@ -422,8 +380,6 @@ Long answer: maybe? Let's talk it through!
 
 
 # But why?
-
-## Intro explainable
 
 
 
@@ -511,14 +467,14 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 | **Layer** | **Variable**                      | **Import.** | **Shap. imp.** |
 |----------:|----------------------------------:|------------:|---------------:|
-| 10        | BIO10                             | 0.28209     | 0.311491       |
-| 5         | BIO5                              | 0.253606    | 0.253497       |
-| 6         | BIO6                              | 0.1741      | 0.216219       |
-| 26        | Cultivated and Managed Vegetation | 0.0793417   | 0.0629076      |
-| 13        | BIO13                             | 0.0832986   | 0.0628641      |
-| 12        | BIO12                             | 0.044542    | 0.0365544      |
-| 15        | BIO15                             | 0.0797567   | 0.0303014      |
-| 29        | Snow/Ice                          | 0.0032655   | 0.026165       |
+| 10        | BIO10                             | 0.28209     | 0.310325       |
+| 5         | BIO5                              | 0.253606    | 0.252689       |
+| 6         | BIO6                              | 0.1741      | 0.215058       |
+| 13        | BIO13                             | 0.0832986   | 0.0639503      |
+| 26        | Cultivated and Managed Vegetation | 0.0793417   | 0.0634541      |
+| 12        | BIO12                             | 0.044542    | 0.0370903      |
+| 15        | BIO15                             | 0.0797567   | 0.0315063      |
+| 29        | Snow/Ice                          | 0.0032655   | 0.025927       |
 
 
 
