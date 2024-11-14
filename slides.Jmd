@@ -429,9 +429,9 @@ mn = 2:2:25
 maxdepth!(sdm, 8)
 for maxn in mn
     maxnodes!(sdm, maxn)
-    tcv = crossvalidate(sdm, folds)
-    push!(mv, mean(mcc.(tcv.validation)))
-    push!(mt, mean(mcc.(tcv.training)))
+    ntcv = crossvalidate(sdm, folds)
+    push!(mv, mcc(ntcv.validation))
+    push!(mt, mcc(ntcv.training))
 end
 maxdepth!(sdm, 7)
 maxnodes!(sdm, 12)
