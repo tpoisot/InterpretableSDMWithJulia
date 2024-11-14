@@ -1,0 +1,776 @@
+\documentclass[12pt, smalloffset, compress, aspectratio=1610]{beamer}
+
+\usetheme{pl}
+
+\usepackage[copies]{contour}
+
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{minted}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},fontsize=\small}
+% Add ',fontsize=\small' for more characters per line
+\usepackage[framemethod=tikz]{mdframed}
+\definecolor{shadecolor}{HTML}{EEEEEE}
+\mdfsetup{
+  backgroundcolor=shadecolor,
+  linecolor=shadecolor,
+  innerleftmargin=5pt,
+  innerrightmargin=5pt,
+  leftmargin=-5pt,
+  rightmargin=-5pt,
+  roundcorner=3pt
+}
+\newenvironment{Shaded}{\begin{mdframed}}{\end{mdframed}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.26,0.66,0.93}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{\underline{{#1}}}}
+\newcommand{\DecValTok}[1]{\textcolor[HTML]{558B2F}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[HTML]{558B2F}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[HTML]{558B2F}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[HTML]{7E57C2}{{#1}}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\CommentTok}[1]{\textcolor[HTML]{546E7A}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[HTML]{BCAAA4}{\textit{{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[HTML]{BCAAA4}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[HTML]{26A69A}{\textbf{{#1}}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.26,0.66,0.93}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\BuiltInTok}[1]{\textcolor[HTML]{42A5F5}{{#1}}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{\textbf{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.74,0.68,0.62}{{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.00,0.40,1.00}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[HTML]{FF6E40}{\textbf{{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[HTML]{FF3D00}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[HTML]{DD2C00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{\textcolor[HTML]{212121}{{#1}}}
+
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{0.8\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\let\OldTexttt\texttt
+\renewcommand{\texttt}[1]{\OldTexttt{\color{codecolor}#1}}
+
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\makeatother
+
+\newcommand{\begincols}{\begin{columns}}
+\newcommand{\stopcols}{\end{columns}}
+\newcommand{\roundpicture}[2]{%
+\tikz\node[circle,
+          text=white,
+          minimum width=4cm,
+          minimum height=4cm,
+          path picture={
+              \node at (path picture bounding box.center){
+                  \includegraphics[width=4cm]{#1}
+              };
+          }]{#2};
+}
+\newcommand{\plain}[1]{%
+\begin{tikzpicture}[remember picture, overlay]
+    \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+        \pgfuseimage{titlebackground};%
+    };
+
+\node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \tikz {\draw [very nearly opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (12,10);}%
+            };
+            \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=1.5cm] {%
+                \Large
+                #1
+            };
+        \end{tikzpicture}
+}
+
+\title{Interpretable ML for biodiversity}
+\subtitle{An introduction using species distribution models}
+\date{\today}
+\author{Timothée Poisot}
+\institute{Université de Montréal}
+
+\newcommand{\theHtable}{\thetable}
+
+\begin{document}
+
+\begin{frame}{Main goals}
+\phantomsection\label{main-goals}
+\begin{enumerate}
+\tightlist
+\item
+  How do we produce a model?
+\item
+  How do we convey that it works?
+\item
+  How do we talk about how it makes predictions?
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{But why\ldots{}}
+\phantomsection\label{but-why}
+\begin{description}
+\tightlist
+\item[\ldots{} think of SDM as ML problems?]
+Because they are! We want to learn a predictive algorithm from data
+\item[\ldots{} the focus on explainability?]
+We cannot ask people to \emph{trust} - we must \emph{convince} and
+\emph{explain}
+\end{description}
+\end{frame}
+
+\begin{frame}{What we will \emph{not} discuss}
+\phantomsection\label{what-we-will-not-discuss}
+\begin{enumerate}
+\tightlist
+\item
+  Image recognition
+\item
+  Sound recognition
+\item
+  Generative AI
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Learning/teaching goals}
+\phantomsection\label{learningteaching-goals}
+\begin{itemize}
+\tightlist
+\item
+  ML basics
+
+  \begin{itemize}
+  \tightlist
+  \item
+    cross-validation
+  \item
+    hyper-parameters tuning
+  \item
+    bagging and ensembles
+  \end{itemize}
+\item
+  Pitfalls
+
+  \begin{itemize}
+  \tightlist
+  \item
+    data leakage
+  \item
+    overfitting
+  \end{itemize}
+\item
+  Explainable ML
+
+  \begin{itemize}
+  \tightlist
+  \item
+    partial responses
+  \item
+    Shapley values
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{But wait!}
+\phantomsection\label{but-wait}
+\begin{itemize}
+\tightlist
+\item
+  a similar example fully worked out usually takes me 21 hours of class
+  time
+\item
+  this is an overview
+\item
+  don't care about the output, care about the \alert{process}!
+\end{itemize}
+\end{frame}
+
+\section{Problem statement}\label{problem-statement}
+
+\begin{frame}{The problem in ecological terms}
+\phantomsection\label{the-problem-in-ecological-terms}
+We have information about a species, taking the form of
+\((\text{lon}, \text{lat})\) for points where the species was observed
+
+Using this information, we can extract a suite of environmental
+variables for the locations where the species was observed
+
+We can do the same thing for locations where the species was not
+observed
+
+\alert{Where could we observe this species}?
+\end{frame}
+
+\begin{frame}{The problem in ML terms}
+\phantomsection\label{the-problem-in-ml-terms}
+We have a series of labels \(\mathbf{y}_n \in \mathbb{B}\), and features
+\(\mathbf{X}_{m,n} \in \mathbb{R}\)
+
+We want to find an algorithm \(f(\mathbf{x}_m) = \hat y\) that results
+in the distance between \(\hat y\) and \(y\) being \emph{small}
+
+An algorithm that does this job well is generalizable (we can apply it
+on data it has not been trained on) and makes credible predictions
+\end{frame}
+
+\begin{frame}{Setting up the data for our example}
+\phantomsection\label{setting-up-the-data-for-our-example}
+We will use data on observations of \emph{Turdus torquatus} in
+Switzerland, downloaded from the copy of the eBird dataset on GBIF
+
+Two series of environmental layers
+
+\begin{enumerate}
+\tightlist
+\item
+  CHELSA2 BioClim variables (19)
+\item
+  EarthEnv land cover variables (12)
+\end{enumerate}
+
+Now is \emph{not} the time to make assumptions about which are relevant!
+\end{frame}
+
+\begin{frame}{The observation data}
+\phantomsection\label{the-observation-data}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_4_1.png}}~
+\end{frame}
+
+\begin{frame}{Problem (and solution)}
+\phantomsection\label{problem-and-solution}
+We want \(\textbf{y} \in \mathbb{B}\), and so far we are missing
+\alert{negative
+values}
+
+We generate \alert{pseudo}-absences with the following rules:
+
+\begin{enumerate}
+\tightlist
+\item
+  Locations further away from a presence are more likely
+\item
+  Locations less than 6km away from a presence are ruled out
+\item
+  Pseudo-absences are twice as common as presences
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{The (inflated) observation data}
+\phantomsection\label{the-inflated-observation-data}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_6_1.png}}~
+\end{frame}
+
+\section{Training the model}\label{training-the-model}
+
+\begin{frame}{A simple decision tree}
+\phantomsection\label{a-simple-decision-tree}
+Decision trees \emph{recursively} split observations by picking the best
+variable and value.
+
+Given enough depth, they can \alert{overfit} the training data (we'll
+get back to this).
+\end{frame}
+
+\begin{frame}{Setup}
+\phantomsection\label{setup}
+We need an \alert{initial} model to get started: what if we use
+\emph{all the variables}?
+
+We shouldn't use all the variables.
+
+\textbf{But}! It is a good baseline. A good baseline is important.
+\end{frame}
+
+\begin{frame}{Cross-validation}
+\phantomsection\label{cross-validation}
+Can we train the model?
+
+More specifically -- if we train the model, how well can we expect it to
+perform?
+
+The way we answer this question is: in many parallel universes with
+slightly less data, is the model good?
+\end{frame}
+
+\begin{frame}{Null classifiers}
+\phantomsection\label{null-classifiers}
+What if the model guessed based on chance only?
+
+What is \alert{chance only}?
+
+50\%, based on prevalence, or always the same answer
+\end{frame}
+
+\begin{frame}{Expectations}
+\phantomsection\label{expectations}
+The null classifiers tell us what we need to beat in order to perform
+\alert{better than
+chance}.
+
+\begin{longtable}[]{@{}rrrrrr@{}}
+\toprule\noalign{}
+\textbf{Model} & \textbf{MCC} & \textbf{PPV} & \textbf{NPV} &
+\textbf{DOR} & \textbf{Accuracy} \\
+\midrule\noalign{}
+\endhead
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Coin flip & -0.32 & 0.34 & 0.34 & 0.26 & 0.34 \\
++ & 0.00 & 0.34 & & & 0.34 \\
+- & 0.00 & & 0.66 & & 0.66 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+In practice, the no-skill classifier is the most informative: what if we
+\alert{only} know the positive class prevalence?
+\end{frame}
+
+\begin{frame}{Cross-validation strategy}
+\phantomsection\label{cross-validation-strategy}
+\begin{itemize}
+\tightlist
+\item
+  k-fold cross-validation
+\item
+  no testing data here
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Cross-validation results}
+\phantomsection\label{cross-validation-results}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2647}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1324}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2059}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Dec.~tree (val.) & 0.80 & 0.83 & 0.96 & 210.06 & 0.91 \\
+Dec.~tree (tr.) & 0.84 & 0.86 & 0.97 & 202.00 & 0.93 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
+\begin{frame}{What to do if the model is trainable?}
+\phantomsection\label{what-to-do-if-the-model-is-trainable}
+We \alert{train it}!
+
+This training is done using the \emph{full} dataset - there is no need
+to cross-validate, we know what to expect based on previous steps.
+\end{frame}
+
+\begin{frame}{Initial prediction}
+\phantomsection\label{initial-prediction}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_12_1.png}}~
+\end{frame}
+
+\begin{frame}{How is this model wrong?}
+\phantomsection\label{how-is-this-model-wrong}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_13_1.png}}~
+\end{frame}
+
+\begin{frame}{Can we improve on this model?}
+\phantomsection\label{can-we-improve-on-this-model}
+\begin{itemize}
+\tightlist
+\item
+  \alert{variable selection}
+\item
+  data transformation (we use PCA here, but there are many other)
+\item
+  \alert{hyper-parameters tuning}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A note on PCA}
+\phantomsection\label{a-note-on-pca}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
+\end{frame}
+
+\begin{frame}{Moving threshold classification}
+\phantomsection\label{moving-threshold-classification}
+\begin{itemize}
+\tightlist
+\item
+  \(P(+) > P(-)\)
+\item
+  This is the same thing as \(P(+) > 0.5\)
+\item
+  Is it, though?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Learning curve for the threshold}
+\phantomsection\label{learning-curve-for-the-threshold}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_17_1.png}}~
+\end{frame}
+
+\begin{frame}{Receiver Operating Characteristic}
+\phantomsection\label{receiver-operating-characteristic}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_18_1.png}}~
+\end{frame}
+
+\begin{frame}{Precision-Recall Curve}
+\phantomsection\label{precision-recall-curve}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_19_1.png}}~
+\end{frame}
+
+\begin{frame}{Revisiting the model performance}
+\phantomsection\label{revisiting-the-model-performance}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2754}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2029}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Dec.~tree (val.) & 0.80 & 0.83 & 0.96 & 210.06 & 0.91 \\
+Dec.~tree (tr.) & 0.84 & 0.86 & 0.97 & 202.00 & 0.93 \\
+Tuned tree (val.) & 0.83 & 0.85 & 0.96 & 198.33 & 0.92 \\
+Tuned tree (tr.) & 0.84 & 0.85 & 0.97 & 174.94 & 0.92 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
+\begin{frame}{Updated prediction}
+\phantomsection\label{updated-prediction}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_22_1.png}}~
+\end{frame}
+
+\begin{frame}{How is this model better?}
+\phantomsection\label{how-is-this-model-better}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_23_1.png}}~
+\end{frame}
+
+\begin{frame}{But wait!}
+\phantomsection\label{but-wait-1}
+Decision trees overfit: if we pick a maximum depth of 8 splits, how many
+nodes can we use?
+
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
+\end{frame}
+
+\section{Ensemble models}\label{ensemble-models}
+
+\begin{frame}{Limits of a single model}
+\phantomsection\label{limits-of-a-single-model}
+\begin{itemize}
+\tightlist
+\item
+  it's a single model my dudes
+\item
+  different subsets of the training data may have different signal
+\item
+  do we need all the variables all the time?
+\item
+  bias v. variance tradeoff
+\item
+  fewer variables make it harder to overfit
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bootstrapping and aggregation}
+\phantomsection\label{bootstrapping-and-aggregation}
+\begin{itemize}
+\tightlist
+\item
+  bootstrap the training \alert{instances} (32 samples for speed)
+\item
+  randomly sample \(\lceil \sqrt{n} \rceil\) variables
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Is this worth it?}
+\phantomsection\label{is-this-worth-it}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2754}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2029}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{MCC}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{PPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{NPV}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{DOR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Accuracy}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
+Dec.~tree (val.) & 0.80 & 0.83 & 0.96 & 210.06 & 0.91 \\
+Dec.~tree (tr.) & 0.84 & 0.86 & 0.97 & 202.00 & 0.93 \\
+Tuned tree (val.) & 0.83 & 0.85 & 0.96 & 198.33 & 0.92 \\
+Tuned tree (tr.) & 0.84 & 0.85 & 0.97 & 174.94 & 0.92 \\
+Forest (val.) & 0.77 & 0.79 & 0.96 & 111.07 & 0.89 \\
+Forest (tr.) & 0.77 & 0.79 & 0.95 & 78.34 & 0.89 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+Short answer: no
+
+Long answer: maybe? Let's talk it through!
+\end{frame}
+
+\begin{frame}{Prediction of the rotation forest}
+\phantomsection\label{prediction-of-the-rotation-forest}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_28_1.png}}~
+\end{frame}
+
+\begin{frame}{Prediction of the rotation forest}
+\phantomsection\label{prediction-of-the-rotation-forest-1}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
+\end{frame}
+
+\begin{frame}{Variation between predictions}
+\phantomsection\label{variation-between-predictions}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
+\end{frame}
+
+\begin{frame}{What, exactly, is bootstrap telling us?}
+\phantomsection\label{what-exactly-is-bootstrap-telling-us}
+\begin{itemize}
+\tightlist
+\item
+  what if we had a little less data (it's conceptually close to
+  cross-validation!)
+\item
+  uncertainty about locations, not predictions
+\end{itemize}
+
+\textbf{Do we expect the model predictions to change at this location
+when we add more training data?}
+\end{frame}
+
+\begin{frame}{Variable importance}
+\phantomsection\label{variable-importance}
+\begin{longtable}[]{@{}rrr@{}}
+\toprule\noalign{}
+\textbf{Layer} & \textbf{Variable} & \textbf{Import.} \\
+\midrule\noalign{}
+\endhead
+10 & BIO10 & 0.28209 \\
+5 & BIO5 & 0.253606 \\
+6 & BIO6 & 0.1741 \\
+13 & BIO13 & 0.0832986 \\
+15 & BIO15 & 0.0797567 \\
+26 & Cultivated and Managed Vegetation & 0.0793417 \\
+12 & BIO12 & 0.044542 \\
+29 & Snow/Ice & 0.0032655 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
+\section{But why?}\label{but-why-1}
+
+\begin{frame}{Partial response curves}
+\phantomsection\label{partial-response-curves}
+If we assume that all the variables except one take their average value,
+what is the prediction associated to the value that is unchanged?
+
+Equivalent to a mean-field approximation
+\end{frame}
+
+\begin{frame}{Example with temperature}
+\phantomsection\label{example-with-temperature}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_33_1.png}}~
+\end{frame}
+
+\begin{frame}{Example with two variables}
+\phantomsection\label{example-with-two-variables}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_34_1.png}}~
+\end{frame}
+
+\begin{frame}{Spatialized partial response plot}
+\phantomsection\label{spatialized-partial-response-plot}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_35_1.png}}~
+\end{frame}
+
+\begin{frame}{Spatialized partial response (binary outcome)}
+\phantomsection\label{spatialized-partial-response-binary-outcome}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_36_1.png}}~
+\end{frame}
+
+\begin{frame}{Inflated response curves}
+\phantomsection\label{inflated-response-curves}
+Averaging the variables is \alert{masking a lot of variability}!
+
+Alternative solution:
+
+\begin{enumerate}
+\tightlist
+\item
+  Generate a grid for all the variables
+\item
+  For all combinations in this grid, use it as the stand-in for the
+  variables to replace
+\end{enumerate}
+
+In practice: Monte-Carlo on a reasonable number of samples.
+\end{frame}
+
+\begin{frame}{Example}
+\phantomsection\label{example}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_38_1.png}}~
+\end{frame}
+
+\begin{frame}{Limitations}
+\phantomsection\label{limitations}
+\begin{itemize}
+\tightlist
+\item
+  partial responses can only generate model-level information
+\item
+  they break the structure of values for all predictors at the scale of
+  a single observation
+\item
+  their interpretation is unclear
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shapley}
+\phantomsection\label{shapley}
+\begin{itemize}
+\tightlist
+\item
+  how much is the \alert{average prediction} modified by a specific
+  variable having a specific value?
+\item
+  it's based on game theory (but it's not \emph{actually} game theory)
+\item
+  many highly desirable properties!
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Response curves revisited}
+\phantomsection\label{response-curves-revisited}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_39_1.png}}~
+\end{frame}
+
+\begin{frame}{On a map}
+\phantomsection\label{on-a-map}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_40_1.png}}~
+\end{frame}
+
+\begin{frame}{Variable importance revisited}
+\phantomsection\label{variable-importance-revisited}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1467}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.4667}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1733}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2133}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Layer}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Variable}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Import.}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Shap. imp.}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+10 & BIO10 & 0.28209 & 0.310325 \\
+5 & BIO5 & 0.253606 & 0.252689 \\
+6 & BIO6 & 0.1741 & 0.215058 \\
+13 & BIO13 & 0.0832986 & 0.0639503 \\
+26 & Cultivated and Managed Vegetation & 0.0793417 & 0.0634541 \\
+12 & BIO12 & 0.044542 & 0.0370903 \\
+15 & BIO15 & 0.0797567 & 0.0315063 \\
+29 & Snow/Ice & 0.0032655 & 0.025927 \\
+\bottomrule\noalign{}
+\end{longtable}
+\end{frame}
+
+\begin{frame}{Most important predictor}
+\phantomsection\label{most-important-predictor}
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_42_1.png}}~
+\end{frame}
+
+\section{Summary}\label{summary}
+
+\begin{frame}{SDMs are (applied) machine learning}
+\phantomsection\label{sdms-are-applied-machine-learning}
+\begin{itemize}
+\tightlist
+\item
+  models we can train
+\item
+  parameters can (should!) be tuned automatically
+\item
+  we can use tools from explainable ML to give more clarity
+\end{itemize}
+\end{frame}
+
+\end{document}

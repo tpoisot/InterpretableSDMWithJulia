@@ -1,0 +1,327 @@
+% Beamer mtheme
+%
+% Copyright 2014 Matthias Vogelgesang
+% Licensed under CC-BY-SA 4.0 International.
+%
+% The initial template comes from the HSRM beamer theme by Benjamin Weiss, which
+% you can find at https://github.com/hsrmbeamertheme/hsrmbeamertheme.
+%
+
+\ProvidesPackage{beamerthemepl}
+
+\newif\if@useTitleProgressBar
+\newif\if@protectFrameTitle
+
+\@useTitleProgressBarfalse
+\@protectFrameTitletrue
+
+\newlength{\@pltheme@voffset}
+\setlength{\@pltheme@voffset}{1.1em}
+
+\DeclareOptionBeamer{noprogressbar}{\@useTitleProgressBarfalse}
+\DeclareOptionBeamer{unprotectframetitle}{\@protectFrameTitlefalse}
+\DeclareOptionBeamer{nooffset}{\setlength{\@pltheme@voffset}{0em}}
+\DeclareOptionBeamer{smalloffset}{\setlength{\@pltheme@voffset}{0.5em}}
+
+\DeclareOptionBeamer*{%
+  \PackageWarning{beamerthemem}{Unknown option `\CurrentOption'}%
+}
+
+\ProcessOptionsBeamer
+
+\mode<presentation>
+
+\newcount\sobre@angcur
+\newcount\sobre@angtot \sobre@angtot360
+\newcount\sobre@framecnt
+\newcount\sobre@frametot
+
+\RequirePackage{etoolbox}
+\RequirePackage{tikz}
+\RequirePackage{xifthen}
+\RequirePackage{pgfplots}
+\RequirePackage{minted}
+\RequirePackage{graphicx}
+\RequirePackage[scale=2]{ccicons}
+\RequirePackage[absolute, overlay]{textpos}
+
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.misc}
+\usetikzlibrary{fadings}
+
+\usecolortheme{pl}
+\usefonttheme{pl}
+
+\newcommand{\reference}[1]{%
+  \begin{tikzpicture}[remember picture, overlay]%
+    \node[anchor=south west,] at (current page.south west) {\color{foregroundcolor}\tiny #1};%
+  \end{tikzpicture}%
+}
+
+\pgfdeclareimage[height=1.05\paperheight]{titlebackground}{background.png}
+\pgfdeclareimage[height=1.05\paperheight]{slidebackground}{slide-background.png}
+
+\def\maketitle{\ifbeamer@inframe\titlepage\else\frame[plain]{\titlepage}\fi}
+
+\def\titlepage{\usebeamertemplate{title page}}
+\setbeamertemplate{title page}
+{
+    \begin{tikzpicture}
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \pgfuseimage{titlebackground};%
+        };
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \tikz {\draw [very nearly opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (12,10);}%
+        };
+        \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=1.5cm] {%
+            %{\usebeamerfont{title}\contour[8]{white}{\inserttitle}\\[0.2cm]}
+            %{\usebeamerfont{subtitle}\insertsubtitle\\[0.9cm]}
+            %\vfill
+            %{\usebeamerfont{author}\insertauthor \hfil \usebeamerfont{institute}\insertinstitute\par}
+            %{\usebeamerfont{date}\insertdate}
+            lol
+        };
+    \end{tikzpicture}
+}
+
+\makeatletter
+
+%{{{ --- Commands ---------------------
+
+\newcommand{\insertsectionHEAD}{%
+  \expandafter\insertsectionHEADaux\insertsectionhead}
+  \newcommand{\insertsectionHEADaux}[3]{#3}
+
+%}}}
+%{{{ --- Itemize ----------------------
+
+\setlength{\leftmargini}{1em}
+
+% Actually one level should be enough but ...
+\setlength{\leftmarginii}{1em}
+\setlength{\leftmarginiii}{1em}
+
+\newcommand{\itemBullet}{$\cdot$}
+
+\setbeamertemplate{itemize item}{\itemBullet}
+\setbeamertemplate{itemize subitem}{\itemBullet}
+\setbeamertemplate{itemize subsubitem}{\itemBullet}
+\setlength{\parskip}{0.5em}
+
+%}}}
+
+
+\makeatletter
+\newif\ifbeamer%
+\pgfkeys{/visual counter/.cd,
+ thickness/.store in=\thickness,
+ thickness=0.4ex,
+ radius/.store in=\radius,
+ radius=1.2ex,
+ segment distance/.store in=\segdist,
+ segment distance=8,
+ color current frame/.store in=\colcurrframe,
+ color current frame=structurecolor!30,
+ color old frame/.store in=\cololdframe,
+ color old frame=structurecolor!50,
+ color next frame/.store in=\colnextframe,
+ color next frame=structurecolor!10,
+ current value/.store in=\currentv,
+ current value=1,
+ total value/.store in=\totalv,
+ total value=5,
+ beamer/.is if=beamer,
+ beamer/.default=false,
+ countdown/.code={
+    \begin{tikzpicture}[fill color/.style={}]
+    \ifbeamer
+     \pgfkeys{/visual counter/.cd,
+       current value=\insertframenumber,
+       total value=\inserttotalframenumber,
+     }
+    \fi
+    \def\current{\currentv}
+    \def\tot{\totalv}
+    \def\radiusout{\radius}
+    \def\radiusin{\radius-\thickness}
+
+    \foreach \s[] in {1,...,\tot}
+    {
+      \ifnum\s>\current%
+        \tikzset{fill color/.append style={\colnextframe}}%
+      \fi%
+      \ifnum\s=\current%
+        \tikzset{fill color/.append style={\colcurrframe}}%
+      \fi%
+      \ifnum\s<\current%
+        \tikzset{fill color/.append style={\cololdframe}}%
+      \fi%
+      \fill[fill color]
+        ({90-360/\tot * (\s - 1)-\segdist}:\radiusout) arc
+        ({90-360/\tot * (\s - 1)-\segdist}:{90-360/\tot * (\s)+\segdist}:\radiusout) --
+        ({90-360/\tot * (\s)+\segdist}:\radiusin) arc
+        ({90-360/\tot * (\s)+\segdist}:{90-360/\tot * (\s - 1)-\segdist}:\radiusin);
+    }
+    \end{tikzpicture}
+ }
+}
+
+\newcommand{\setvcoptions}[1]{
+\pgfkeys{/visual counter/.cd,#1}
+}
+\newcommand{\addvisualcounter}{%
+\tikz\node[/visual counter/.cd, beamer=true,countdown]{};
+}
+
+
+% Let's change some options:
+\setvcoptions{
+ segment distance=0,
+ thickness=0.4ex
+}
+
+% Insert frame with section title at every section start
+\AtBeginSection[]
+{
+  \begingroup
+    \setbeamercolor{background canvas}{parent=palette primary}
+    \begin{frame}[plain]
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \pgfuseimage{titlebackground};%
+            };
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \tikz {\draw [very nearly opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (12,10);}%
+            };
+            \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=1.5cm] {%
+                {\small\color{foregroundcolor!50!backgroundcolor}\MakeUppercase{\sffamily§ \thesection}}\\[0.2pt]\color{structurecolor}\Large\mdseries\insertsectionHEAD
+            };
+        \end{tikzpicture}
+    \end{frame}
+  \endgroup
+}
+
+% No maketitle!!!
+\AtBeginDocument{
+    \begingroup
+    \begin{frame}[plain]
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \pgfuseimage{titlebackground};%
+            };
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \tikz {\draw [nearly transparent, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (16,10);}%
+            };
+            \node at (current page.west) [anchor = west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=0.75cm] {%
+                {\usebeamerfont{title}\inserttitle}\\
+                {\usebeamerfont{subtitle}\insertsubtitle}
+            };
+            \node at (current page.south west) [anchor = south west, inner sep = 0cm, outer sep = 0cm, align=left, xshift=0.75cm, yshift=0.75cm] {%
+                {\usebeamerfont{author}\insertauthor \hskip 4em \usebeamerfont{institute}\insertinstitute}\\
+                {\usebeamerfont{date}\insertdate}
+            };
+        \end{tikzpicture}
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north east) [anchor = north east, inner sep = 0.1cm, outer sep = 0.1cm] {\tiny\ccby};%
+        \end{tikzpicture}
+    \end{frame}
+    \endgroup
+}
+
+% Insert frame at the end of the document
+\AtEndDocument
+{
+  \begingroup
+    \setbeamercolor{background canvas}{parent=palette primary}
+    \begin{frame}[plain]
+        \begin{tikzpicture}[remember picture, overlay]
+            \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+                \pgfuseimage{titlebackground};%
+            };
+        \end{tikzpicture}
+    \end{frame}
+  \endgroup
+}
+
+% Update the default background to show a thin slice of the background
+\setbeamertemplate{background}{
+    \begin{tikzpicture}
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \pgfuseimage{slidebackground};%
+        };
+        \node at (current page.north west) [anchor = north west, inner sep = 0pt, outer sep = 0pt] {%
+            \tikz {\draw [opaque, backgroundcolor, fill=backgroundcolor] (0,0) rectangle (15.5,10);}%
+        };
+    \end{tikzpicture}
+} 
+
+\setbeamertemplate{caption label separator}{: }
+\setbeamertemplate{caption}[numbered]
+
+
+\usenavigationsymbolstemplate{}
+\setbeamertemplate{footline}
+{%
+\vspace{\@pltheme@voffset}
+}
+
+\setbeamertemplate{footnote}
+{%
+  \parindent 0em\noindent%
+  \raggedright
+  \usebeamercolor{footnote}\hbox to 0.8em{\hfil\insertfootnotemark}\insertfootnotetext\par%
+}
+
+\setbeamertemplate{frametitle}{%
+\vspace{\@pltheme@voffset}%
+\if@protectFrameTitle%
+\usebeamerfont{frametitle}\protect\MakeUppercase{\insertframetitle}\\
+\else%
+\usebeamerfont{frametitle}\MakeUppercase{\insertframetitle}\\
+\fi%
+\begin{picture}(0,0)
+\put(-24.5, 7.5){\addvisualcounter}
+\end{picture}
+\vspace{\@pltheme@voffset}%
+}
+
+\pgfplotsset{
+  compat=1.18,
+  scale only axis,
+  tick align=outside,
+  every axis/.append style={
+    line width=0.2pt,
+    font=\normalsize\bfseries,
+    foregroundcolor,
+  },
+  xlabel style={
+     at={(ticklabel cs:0)},
+     anchor=north west,
+  },
+  ylabel style={
+     at={(ticklabel cs:0)},
+     anchor=south west,
+  },
+  tick label style={
+    font=\small\mdseries,
+    foregroundcolor,
+  },
+  major grid style={
+    dotted,
+    foregroundcolor!50!backgroundcolor
+  },
+  disable thousands separator/.style={
+    /pgf/number format/.cd,
+      1000 sep={}
+  }
+}
+
+\mode<all>
+
+\let\otp\titlepage
+\renewcommand{\titlepage}{\otp\addtocounter{framenumber}{-1}}
+\newcommand{\mreducelistspacing}{\vspace{-\topsep}}
+
+\linespread{1.15}

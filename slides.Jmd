@@ -1,0 +1,736 @@
+---
+title: Interpretable ML for biodiversity
+subtitle: An introduction using species distribution models
+author: Timothée Poisot
+institute: Université de Montréal
+date: \today
+weave_options:
+    doctype: pandoc
+    fig_ext: .png
+    fig_pos: p
+    echo: false
+    term: false
+    results: hidden
+---
+
+```julia
+using SpeciesDistributionToolkit
+using CairoMakie
+using Statistics
+using PrettyTables
+using Random
+using DelimitedFiles
+Random.seed!(1234567890)
+include("code/makietheme.jl")
+```
+
+## Main goals
+
+1. How do we produce a model?
+2. How do we convey that it works?
+3. How do we talk about how it makes predictions?
+
+## But why...
+
+... think of SDM as ML problems?
+: Because they are! We want to learn a predictive algorithm from data
+
+... the focus on explainability?
+: We cannot ask people to *trust* - we must *convince* and *explain*
+
+## What we will *not* discuss
+
+1. Image recognition
+2. Sound recognition
+3. Generative AI
+
+## Learning/teaching goals
+
+- ML basics
+    - cross-validation
+    - hyper-parameters tuning
+    - bagging and ensembles
+- Pitfalls
+    - data leakage
+    - overfitting
+- Explainable ML
+    - partial responses
+    - Shapley values
+
+## But wait!
+
+- a similar example fully worked out usually takes me 21 hours of class time
+- this is an overview
+- don't care about the output, care about the \alert{process}!
+
+# Problem statement
+
+## The problem in ecological terms
+
+We have information about a species, taking the form of $(\text{lon}, \text{lat})$ for
+points where the species was observed
+
+Using this information, we can extract a suite of environmental variables for the locations
+where the species was observed
+
+We can do the same thing for locations where the species was not observed
+
+\alert{Where could we observe this species}?
+
+## The problem in ML terms
+
+We have a series of labels $\mathbf{y}_n \in \mathbb{B}$, and features
+$\mathbf{X}_{m,n} \in \mathbb{R}$
+
+We want to find an algorithm $f(\mathbf{x}_m) = \hat y$ that results in the
+distance between $\hat y$ and $y$ being *small*
+
+An algorithm that does this job well is generalizable (we can apply it on data it has not
+been trained on) and makes credible predictions
+
+## Setting up the data for our example
+
+We will use data on observations of *Turdus torquatus* in Switzerland,
+downloaded from the copy of the eBird dataset on GBIF
+
+```julia
+presences = readdlm("data/presences.csv")
+```
+
+Two series of environmental layers
+
+1. CHELSA2 BioClim variables (19)
+2. EarthEnv land cover variables (12)
+
+```julia
+CHE = SpeciesDistributionToolkit.gadm("CHE");
+layernames = readlines("data/layernames.csv")
+predictors = [SDMLayer("data/layers.tiff"; bandnumber=i) for i in 1:31]
+```
+
+Now is *not* the time to make assumptions about which are relevant!
+
+## The observation data
+
+```julia
+f = Figure(; size=(800, 400))
+ax = Axis(f[1,1], aspect=DataAspect())
+scatter!(ax, presences, color=:black)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Problem (and solution)
+
+We want $\textbf{y} \in \mathbb{B}$, and so far we are missing \alert{negative
+values}
+
+We generate \alert{pseudo}-absences with the following rules:
+
+1. Locations further away from a presence are more likely
+2. Locations less than 6km away from a presence are ruled out
+3. Pseudo-absences are twice as common as presences
+
+```julia
+prsc = SDMLayer("data/occurrences.tiff"; bandnumber=1) .> 0
+absc = SDMLayer("data/occurrences.tiff"; bandnumber=2) .> 0
+```
+
+## The (inflated) observation data
+
+```julia
+f = Figure(; size=(800, 400))
+ax = Axis(f[1,1], aspect=DataAspect())
+scatter!(ax, prsc; color = :black)
+scatter!(ax, absc; color = :red, markersize = 4)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+# Training the model
+
+## A simple decision tree
+
+Decision trees *recursively* split observations by picking the best variable and value.
+
+Given enough depth, they can \alert{overfit} the training data (we'll get back to this).
+
+## Setup
+
+We need an \alert{initial} model to get started: what if we use *all the variables*?
+
+We shouldn't use all the variables.
+
+**But**! It is a good baseline. A good baseline is important.
+
+```julia
+sdm = SDM(ZScore, DecisionTree, predictors, prsc, absc)
+```
+
+## Cross-validation
+
+Can we train the model?
+
+More specifically -- if we train the model, how well can we expect it to perform?
+
+The way we answer this question is: in many parallel universes with slightly
+less data, is the model good?
+
+## Null classifiers
+
+What if the model guessed based on chance only?
+
+What is \alert{chance only}?
+
+50%, based on prevalence, or always the same answer
+
+## Expectations
+
+The null classifiers tell us what we need to beat in order to perform \alert{better than
+chance}.
+
+```julia ; results="raw"
+hdr = ["Model", "MCC", "PPV", "NPV", "DOR", "Accuracy"]
+nullpairs = ["No skill" => noskill, "Coin flip" => coinflip, "+" => constantpositive, "-" =>
+    constantnegative]
+tbl = []
+for null in nullpairs
+    m = null.second(sdm)
+    push!(tbl, [null.first, mcc(m), ppv(m), npv(m), dor(m), accuracy(m)])
+end
+data = permutedims(hcat(tbl...))
+function ft_nan(v,i,j)
+    if v isa String
+        return v
+    else
+        return isnan(v) ? " " : v
+    end
+end
+pretty_table(data;
+    backend = Val(:markdown),
+    header = hdr,
+    formatters = (
+        ft_nan,
+        ft_printf("%5.2f", [2,3,4,5,6])
+    )
+)
+```
+
+In practice, the no-skill classifier is the most informative: what if we \alert{only} know
+the positive class prevalence?
+
+## Cross-validation strategy
+
+- k-fold cross-validation
+- no testing data here
+
+```julia
+folds = kfold(sdm);
+cv = crossvalidate(sdm, folds; threshold = false);
+```
+
+## Cross-validation results
+
+```julia ; results="raw"
+nstbl = [tbl[1]]
+push!(nstbl, ["Dec. tree (val.)", mcc(cv.validation), ppv(cv.validation), npv(cv.validation), dor(cv.validation), accuracy(cv.validation)])
+push!(nstbl, ["Dec. tree (tr.)", mcc(cv.training), ppv(cv.training), npv(cv.training), dor(cv.training), accuracy(cv.training)])
+data = permutedims(hcat(nstbl...))
+pretty_table(data;
+    backend = Val(:markdown),
+    header = hdr,
+    formatters = (
+        ft_nan,
+        ft_printf("%5.2f", [2,3,4,5,6])
+    )
+)
+```
+
+## What to do if the model is trainable?
+
+We \alert{train it}!
+
+This training is done using the *full* dataset - there is no need to cross-validate, we know what to expect based on previous steps.
+
+```julia
+train!(sdm; threshold=false)
+prd = predict(sdm, predictors; threshold = false)
+current_range = predict(sdm, predictors)
+```
+
+## Initial prediction
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## How is this model wrong?
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+heatmap!(ax, current_range, colormap=[colorant"#fefefe", colorant"#d4d4d4"])
+scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(current_range, absc) .& absc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:hline)
+scatter!(ax, mask(!current_range, absc) .& absc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:hline)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Can we improve on this model?
+
+```julia
+forwardselection!(sdm, folds; verbose=true)
+```
+
+- \alert{variable selection}
+- data transformation (we use PCA here, but there are many other)
+- \alert{hyper-parameters tuning}
+
+## A note on PCA
+
+```julia
+pc = predict(sdm.transformer, features(sdm)[variables(sdm),:])
+f = Figure(; size=(800, 400))
+ax = Axis(f[1,1])
+sc = scatter!(ax, features(sdm, 1), features(sdm, 12), color=labels(sdm), colormap=[:grey, :black])
+ax = Axis(f[1,2])
+sc = scatter!(ax, pc[1,:], pc[2,:], color=labels(sdm), colormap=[:grey, :black])
+current_figure()
+```
+
+## Moving threshold classification
+
+- $P(+) > P(-)$
+- This is the same thing as $P(+) > 0.5$
+- Is it, though?
+
+```julia
+THR = LinRange(0.0, 1.0, 50)
+tcv = [crossvalidate(sdm, folds; thr=thr) for thr in THR]
+bst = last(findmax([mcc(c.training) for c in tcv]))
+```
+
+## Learning curve for the threshold
+
+```julia
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1])
+lines!(ax, THR, [mcc(c.validation) for c in tcv], color=:black)
+lines!(ax, THR, [mcc(c.training) for c in tcv], color=:grey)
+scatter!(ax, [THR[bst]], [mcc(tcv[bst].validation)], color=:black)
+xlims!(ax, 0., 1.)
+ylims!(ax, 0., 1.)
+current_figure()
+```
+
+## Receiver Operating Characteristic
+
+```julia
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1], xlabel="False positive rate", ylabel="True positive rate")
+lines!(ax, [fpr(c.validation) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
+lines!(ax, [mean(fpr.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
+scatter!(ax, [mean(fpr.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
+xlims!(ax, 0., 1.)
+ylims!(ax, 0., 1.)
+current_figure()
+```
+
+## Precision-Recall Curve
+
+```julia
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1]; xlabel="Recall", ylabel="Precision")
+lines!(ax, [mean(ppv.(c.validation)) for c in tcv], [mean(tpr.(c.validation)) for c in tcv], color=:black)
+lines!(ax, [mean(ppv.(c.training)) for c in tcv], [mean(tpr.(c.training)) for c in tcv], color=:grey)
+scatter!(ax, [mean(ppv.(tcv[bst].validation))], [mean(tpr.(tcv[bst].validation))], color=:black)
+xlims!(ax, 0., 1.)
+ylims!(ax, 0., 1.)
+current_figure()
+```
+
+## Revisiting the model performance
+
+```julia ; results="raw"
+cv2 = crossvalidate(sdm, folds; threshold = true)
+push!(nstbl, ["Tuned tree (val.)", mcc(cv2.validation), ppv(cv2.validation), npv(cv2.validation), dor(cv2.validation), accuracy(cv2.validation)])
+push!(nstbl, ["Tuned tree (tr.)", mcc(cv2.training), ppv(cv2.training), npv(cv2.training), dor(cv2.training), accuracy(cv2.training)])
+data = permutedims(hcat(nstbl...))
+pretty_table(data;
+    backend = Val(:markdown),
+    header = hdr,
+    formatters = (
+        ft_nan,
+        ft_printf("%5.2f", [2,3,4,5,6])
+    )
+)
+```
+
+## Updated prediction
+
+```julia
+train!(sdm)
+prd = predict(sdm, predictors; threshold = false)
+current_range = predict(sdm, predictors)
+```
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, prd; colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(sdm, predictors); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## How is this model better?
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+heatmap!(ax, current_range, colormap=[colorant"#fefefeff", colorant"#d4d4d4"])
+scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(current_range, absc) .& absc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:hline)
+scatter!(ax, mask(!current_range, absc) .& absc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:hline)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## But wait!
+
+Decision trees overfit: if we pick a maximum depth of 8 splits, how many nodes can we use?
+
+```julia
+mv = Float64[]
+mt = Float64[]
+mn = 2:2:25
+maxdepth!(sdm, 8)
+for maxn in mn
+    maxnodes!(sdm, maxn)
+    ntcv = crossvalidate(sdm, folds)
+    push!(mv, mcc(ntcv.validation))
+    push!(mt, mcc(ntcv.training))
+end
+maxdepth!(sdm, 7)
+maxnodes!(sdm, 12)
+train!(sdm)
+```
+
+```julia
+f = Figure(; size=(400, 300))
+ax = Axis(f[1,1]; xlabel="Max. nodes after pruning", ylabel="MCC")
+scatterlines!(ax, mn, mv, color=:black, label="Validation")
+scatterlines!(ax, mn, mt, color=:red, label="Training")
+axislegend(ax, position=:rb)
+current_figure()
+```
+
+# Ensemble models
+
+## Limits of a single model
+
+- it's a single model my dudes
+- different subsets of the training data may have different signal
+- do we need all the variables all the time?
+- bias v. variance tradeoff
+- fewer variables make it harder to overfit
+
+## Bootstrapping and aggregation
+
+- bootstrap the training \alert{instances} (32 samples for speed)
+- randomly sample $\lceil \sqrt{n} \rceil$ variables
+
+```julia
+forest = Bagging(sdm, 32)
+bagfeatures!(forest)
+train!(forest)
+```
+
+## Is this worth it?
+
+```julia ; results="raw"
+cv3 = crossvalidate(forest, folds; threshold = true)
+push!(nstbl, ["Forest (val.)", mcc(cv3.validation), ppv(cv3.validation), npv(cv3.validation), dor(cv3.validation), accuracy(cv3.validation)])
+push!(nstbl, ["Forest (tr.)", mcc(cv3.training), ppv(cv3.training), npv(cv3.training), dor(cv3.training), accuracy(cv3.training)])
+data = permutedims(hcat(nstbl...))
+pretty_table(data;
+    backend = Val(:markdown),
+    header = hdr,
+    formatters = (
+        ft_nan,
+        ft_printf("%5.2f", [2,3,4,5,6])
+    )
+)
+```
+
+Short answer: no
+
+Long answer: maybe? Let's talk it through!
+
+## Prediction of the rotation forest
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, predict(forest, predictors; threshold=false); colormap = :linear_worb_100_25_c53_n256, colorrange = (0, 1))
+contour!(ax, predict(forest, predictors; consensus=majority); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Prediction of the rotation forest
+
+```julia
+current_range = predict(forest, predictors; consensus=majority)
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+poly!(ax, CHE.geometry[1], color=:lightgrey)
+heatmap!(ax, current_range, colormap=[colorant"#fefefe", colorant"#d4d4d4"])
+scatter!(ax, mask(current_range, prsc) .& prsc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(!current_range, prsc) .& prsc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:rect)
+scatter!(ax, mask(current_range, absc) .& absc; markersize=8, strokecolor=:red, strokewidth=1, color=:transparent, marker=:hline)
+scatter!(ax, mask(!current_range, absc) .& absc; markersize=8, strokecolor=:black, strokewidth=1, color=:transparent, marker=:hline)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Variation between predictions
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, predict(forest, predictors; consensus=iqr, threshold=false); colormap = :linear_wyor_100_45_c55_n256)
+contour!(ax, predict(forest, predictors; consensus=majority); color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## What, exactly, is bootstrap telling us?
+
+- what if we had a little less data (it's conceptually close to cross-validation!)
+- uncertainty about locations, not predictions
+
+**Do we expect the model predictions to change at this location when we add more training data?**
+
+## Variable importance
+
+```julia ; results="raw"
+var_imp = variableimportance(forest, folds)
+var_imp ./= sum(var_imp)
+
+hdr = ["Layer", "Variable", "Import."]
+pretty_table(
+    hcat(variables(forest), layernames[variables(forest)], var_imp)[sortperm(var_imp; rev=true),:];
+    backend = Val(:markdown), header = hdr)
+```
+
+# But why?
+
+```julia
+# Get the two most important variables
+r1, r2 = variables(forest)[sortperm(var_imp; rev=true)][1:2]
+```
+
+## Partial response curves
+
+If we assume that all the variables except one take their average value, what is the prediction associated to the value that is unchanged?
+
+Equivalent to a mean-field approximation
+
+## Example with temperature
+
+```julia
+x, y = partialresponse(forest, r1; threshold=false)
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1])
+lines!(ax, x, y)
+current_figure()
+```
+
+## Example with two variables
+
+```julia
+x, y, z = partialresponse(forest, r1, r2; threshold=false)
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1], xlabel=layernames[r1], ylabel=layernames[r2])
+hm = heatmap!(ax, x, y, z, colormap=:linear_worb_100_25_c53_n256, colorrange=(0,1))
+Colorbar(f[1,2], hm)
+current_figure()
+```
+
+## Spatialized partial response plot
+
+```julia
+partial_temp = partialresponse(forest, predictors, r1; threshold=false)
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
+contour!(ax, current_range; color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Spatialized partial response (binary outcome)
+
+```julia
+partial_temp = partialresponse(forest, predictors, r1; threshold=true)
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, partial_temp; colormap = :linear_wcmr_100_45_c42_n256, colorrange = (0, 1))
+contour!(ax, current_range; color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Inflated response curves
+
+Averaging the variables is \alert{masking a lot of variability}!
+
+Alternative solution:
+
+1. Generate a grid for all the variables
+2. For all combinations in this grid, use it as the stand-in for the variables to replace
+
+In practice: Monte-Carlo on a reasonable number of samples.
+
+## Example
+
+```julia
+x, y = partialresponse(forest, r1; inflated=false, threshold=false)
+M = zeros(eltype(y), (100, length(y)))
+for i in axes(M, 1)
+    M[i,:] .= partialresponse(forest, r1; inflated=true, threshold=false)[2]
+end
+prm = vec(mean(M; dims=1))
+prs = vec(std(M; dims=1))
+prci = 1.96prs / size(M, 1)
+```
+
+```julia
+f = Figure(; size=(400, 400))
+ax = Axis(f[1,1])
+# series!(ax, x, M, solid_color=(:black, 0.2))
+band!(ax, x, prm .- prci, prm .+ prci, color=:lightgrey)
+lines!(ax, x, prm, color=:black)
+lines!(ax, x, y, color=:black, linestyle=:dash)
+ylims!(ax, 0., 1.)
+xlims!(ax, extrema(features(forest, r1))...)
+current_figure()
+```
+
+## Limitations
+
+- partial responses can only generate model-level information
+- they break the structure of values for all predictors at the scale of a single observation
+- their interpretation is unclear
+
+## Shapley
+
+- how much is the \alert{average prediction} modified by a specific variable having a specific value?
+- it's based on game theory (but it's not *actually* game theory)
+- many highly desirable properties!
+
+## Response curves revisited
+
+```julia
+f = Figure(; size=(800, 400))
+expl_1 = explain(forest, r1; threshold=false)
+ax = Axis(f[1,1])
+hexbin!(ax, features(forest, r1), expl_1, bins=60, colormap=:linear_bgyw_15_100_c68_n256)
+ax2 = Axis(f[1,2])
+hist!(ax2, expl_1, color=:lightgrey, strokecolor=:black, strokewidth=1)
+current_figure()
+```
+
+## On a map
+
+```julia
+shapley_temp = explain(forest, predictors, r1; threshold=false, samples=100)
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.4, 0.4))
+contour!(ax, current_range; color = :black, linewidth = 0.5)
+Colorbar(f[1, 2], hm)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+current_figure()
+```
+
+## Variable importance revisited
+
+```julia ; results="raw"
+S = [explain(forest, predictors, v; threshold=false, samples=50) for v in variables(forest)]
+shap_imp = map(x -> sum(abs.(x)), S)
+shap_imp ./= sum(shap_imp)
+most_imp = mosaic(x -> argmax(abs.(x)), S)
+hdr = ["Layer", "Variable", "Import.", "Shap. imp."]
+pretty_table(
+    hcat(variables(forest), layernames[variables(forest)], var_imp, shap_imp)[sortperm(shap_imp; rev=true),:];
+    backend = Val(:markdown), header = hdr)
+```
+
+## Most important predictor
+
+```julia
+f = Figure(; size = (800, 400))
+ax = Axis(f[1, 1]; aspect = DataAspect())
+var_colors = cgrad(:diverging_rainbow_bgymr_45_85_c67_n256, length(variables(forest)), categorical=true)
+hm = heatmap!(ax, most_imp; colormap = var_colors, colorrange=(1, length(variables(forest))))
+contour!(ax, current_range; color = :black, linewidth = 0.5)
+lines!(ax, CHE.geometry[1]; color = :black)
+hidedecorations!(ax)
+hidespines!(ax)
+Legend(
+    f[2, 1],
+    [PolyElement(; color = var_colors[i]) for i in 1:length(variables(forest))],
+    layernames[variables(forest)];
+    orientation = :horizontal,
+    nbanks = 1,
+)
+current_figure()
+```
+
+# Summary
+
+## SDMs are (applied) machine learning
+
+- models we can train
+- parameters can (should!) be tuned automatically
+- we can use tools from explainable ML to give more clarity
