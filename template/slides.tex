@@ -119,6 +119,8 @@
 \author{Timothée Poisot}
 \institute{Université de Montréal}
 
+\newcommand{\theHtable}{\thetable}
+
 \begin{document}
 
 \begin{frame}{Main goals}
@@ -131,8 +133,6 @@
   How do we convey that it works?
 \item
   How do we talk about how it makes predictions?
-\item
-  How do we use it to guide actions?
 \end{enumerate}
 \end{frame}
 
@@ -197,8 +197,20 @@ We cannot ask people to \emph{trust} - we must \emph{convince} and
   \item
     Shapley values
   \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{But wait!}
+\phantomsection\label{but-wait}
+\begin{itemize}
+\tightlist
 \item
-  Counterfactuals
+  a similar example fully worked out usually takes me 21 hours of class
+  time
+\item
+  this is an overview
+\item
+  don't care about the output, care about the \alert{process}!
 \end{itemize}
 \end{frame}
 
@@ -266,7 +278,9 @@ We generate \alert{pseudo}-absences with the following rules:
 \item
   Locations further away from a presence are more likely
 \item
-  Locations less than 5km away from a presence are ruled out
+  Locations less than 6km away from a presence are ruled out
+\item
+  Pseudo-absences are twice as common as presences
 \end{enumerate}
 \end{frame}
 
@@ -279,10 +293,21 @@ We generate \alert{pseudo}-absences with the following rules:
 
 \begin{frame}{A simple decision tree}
 \phantomsection\label{a-simple-decision-tree}
+Decision trees \emph{recursively} split observations by picking the best
+variable and value.
+
+Given enough depth, they can \alert{overfit} the training data (we'll
+get back to this).
 \end{frame}
 
 \begin{frame}{Setup}
 \phantomsection\label{setup}
+We need an \alert{initial} model to get started: what if we use
+\emph{all the variables}?
+
+We shouldn't use all the variables.
+
+\textbf{But}! It is a good baseline. A good baseline is important.
 \end{frame}
 
 \begin{frame}{Cross-validation}
@@ -292,25 +317,24 @@ Can we train the model?
 More specifically -- if we train the model, how well can we expect it to
 perform?
 
-assumes parallel universes with slightly less data
-
-is the model good?
+The way we answer this question is: in many parallel universes with
+slightly less data, is the model good?
 \end{frame}
 
 \begin{frame}{Null classifiers}
 \phantomsection\label{null-classifiers}
-coin flip
+What if the model guessed based on chance only?
 
-no skill
+What is \alert{chance only}?
 
-constant
+50\%, based on prevalence, or always the same answer
 \end{frame}
 
 \begin{frame}{Expectations}
 \phantomsection\label{expectations}
 The null classifiers tell us what we need to beat in order to perform
 \alert{better than
-random}.
+chance}.
 
 \begin{longtable}[]{@{}rrrrrr@{}}
 \toprule\noalign{}
@@ -331,9 +355,13 @@ In practice, the no-skill classifier is the most informative: what if we
 
 \begin{frame}{Cross-validation strategy}
 \phantomsection\label{cross-validation-strategy}
-k-fold
-
-validation / training / testing
+\begin{itemize}
+\tightlist
+\item
+  k-fold cross-validation
+\item
+  no testing data here
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Cross-validation results}
@@ -362,21 +390,18 @@ validation / training / testing
 \midrule\noalign{}
 \endhead
 No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
-Dec.~tree (val.) & 0.64 & 0.77 & 0.87 & 26.59 & 0.84 \\
-Dec.~tree (tr.) & 0.66 & 0.78 & 0.88 & 28.70 & 0.85 \\
+Dec.~tree (val.) & 0.80 & 0.83 & 0.96 & 210.06 & 0.91 \\
+Dec.~tree (tr.) & 0.84 & 0.86 & 0.97 & 202.00 & 0.93 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
 
 \begin{frame}{What to do if the model is trainable?}
 \phantomsection\label{what-to-do-if-the-model-is-trainable}
-train it!
+We \alert{train it}!
 
-re-use the full dataset
-\end{frame}
-
-\begin{frame}{The model training pipeline}
-\phantomsection\label{the-model-training-pipeline}
+This training is done using the \emph{full} dataset - there is no need
+to cross-validate, we know what to expect based on previous steps.
 \end{frame}
 
 \begin{frame}{Initial prediction}
@@ -391,17 +416,15 @@ re-use the full dataset
 
 \begin{frame}{Can we improve on this model?}
 \phantomsection\label{can-we-improve-on-this-model}
-variable selection
-
-data transformation
-
-hyper-parameters tuning
-
-will focus on the later (same process for the two above)
-\end{frame}
-
-\begin{frame}{Data leakage}
-\phantomsection\label{data-leakage}
+\begin{itemize}
+\tightlist
+\item
+  \alert{variable selection}
+\item
+  data transformation (we use PCA here, but there are many other)
+\item
+  \alert{hyper-parameters tuning}
+\end{itemize}
 \end{frame}
 
 \begin{frame}{A note on PCA}
@@ -409,13 +432,17 @@ will focus on the later (same process for the two above)
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_15_1.png}}~
 \end{frame}
 
-\begin{frame}{Moving theshold classification}
-\phantomsection\label{moving-theshold-classification}
-p plus \textgreater{} p minus means threshold is 0.5
-
-is it?
-
-how do we check this
+\begin{frame}{Moving threshold classification}
+\phantomsection\label{moving-threshold-classification}
+\begin{itemize}
+\tightlist
+\item
+  \(P(+) > P(-)\)
+\item
+  This is the same thing as \(P(+) > 0.5\)
+\item
+  Is it, though?
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Learning curve for the threshold}
@@ -459,10 +486,10 @@ how do we check this
 \midrule\noalign{}
 \endhead
 No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
-Dec.~tree (val.) & 0.64 & 0.77 & 0.87 & 26.59 & 0.84 \\
-Dec.~tree (tr.) & 0.66 & 0.78 & 0.88 & 28.70 & 0.85 \\
-Tuned tree (val.) & 0.77 & 0.79 & 0.95 & 113.44 & 0.89 \\
-Tuned tree (tr.) & 0.80 & 0.81 & 0.96 & 114.37 & 0.90 \\
+Dec.~tree (val.) & 0.80 & 0.83 & 0.96 & 210.06 & 0.91 \\
+Dec.~tree (tr.) & 0.84 & 0.86 & 0.97 & 202.00 & 0.93 \\
+Tuned tree (val.) & 0.83 & 0.85 & 0.96 & 198.33 & 0.92 \\
+Tuned tree (tr.) & 0.84 & 0.85 & 0.97 & 174.94 & 0.92 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -478,8 +505,9 @@ Tuned tree (tr.) & 0.80 & 0.81 & 0.96 & 114.37 & 0.90 \\
 \end{frame}
 
 \begin{frame}{But wait!}
-\phantomsection\label{but-wait}
-Using depth of 7 and up to 20 nodes
+\phantomsection\label{but-wait-1}
+Decision trees overfit: if we pick a maximum depth of 8 splits, how many
+nodes can we use?
 
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_25_1.png}}~
 \end{frame}
@@ -491,56 +519,88 @@ Using depth of 7 and up to 20 nodes
 \begin{itemize}
 \tightlist
 \item
-  a single model
+  it's a single model my dudes
 \item
-  different parts of data may have different signal
+  different subsets of the training data may have different signal
 \item
   do we need all the variables all the time?
 \item
   bias v. variance tradeoff
 \item
-  limit overfitting
+  fewer variables make it harder to overfit
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Bootstrapping and aggregation}
 \phantomsection\label{bootstrapping-and-aggregation}
+\begin{itemize}
+\tightlist
+\item
+  bootstrap the training \alert{instances} (32 samples for speed)
+\item
+  randomly sample \(\lceil \sqrt{n} \rceil\) variables
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Is this worth it?}
+\begin{frame}[fragile]{Is this worth it?}
 \phantomsection\label{is-this-worth-it}
-\begin{longtable}[]{@{}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2754}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2029}}@{}}
-\toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Model}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{MCC}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{PPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{NPV}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{DOR}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-\textbf{Accuracy}
-\end{minipage} \\
-\midrule\noalign{}
-\endhead
-No skill & -0.00 & 0.34 & 0.66 & 1.00 & 0.55 \\
-Dec.~tree (val.) & 0.64 & 0.77 & 0.87 & 26.59 & 0.84 \\
-Dec.~tree (tr.) & 0.66 & 0.78 & 0.88 & 28.70 & 0.85 \\
-Tuned tree (val.) & 0.77 & 0.79 & 0.95 & 113.44 & 0.89 \\
-Tuned tree (tr.) & 0.80 & 0.81 & 0.96 & 114.37 & 0.90 \\
-Forest (val.) & 0.76 & 0.79 & 0.95 & 103.14 & 0.89 \\
-Forest (tr.) & 0.77 & 0.79 & 0.95 & 73.86 & 0.89 \\
-\bottomrule\noalign{}
-\end{longtable}
+Error: TaskFailedException
+
+\begin{verbatim}
+nested task error: MethodError: no method matching predict(::Nothing, ::Vector{Float32})
+The function `predict` exists, but no method is defined for this combination of argument types.
+
+Closest candidates are:
+  predict(!Matched::SDeMo.BIOCLIM, ::Vector{T}) where T<:Number
+   @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/bioclim.jl:19
+  predict(!Matched::SDeMo.RawData, ::Any)
+   @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/transformers/univariate.jl:10
+  predict(!Matched::SDeMo.NaiveBayes, ::Vector{T}) where T<:Number
+   @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/naivebayes.jl:32
+  ...
+
+Stacktrace:
+  [1] predict(dn::SDeMo.DecisionNode, x::Vector{Float32}) (repeats 5 times)
+    @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:210
+  [2] predict
+    @ ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:202 [inlined]
+  [3] #43
+    @ ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:218 [inlined]
+  [4] _inner_mapslices!(R::Matrix{Float64}, indices::Base.Iterators.Drop{CartesianIndices{2, Tuple{Base.OneTo{Int64}, Base.OneTo{Int64}}}}, f::SDeMo.var"#43#44"{SDeMo.DecisionTree}, A::Matrix{Float32}, dim_mask::Tuple{Bool, Bool}, Aslice::Vector{Float32}, safe_for_reuse::Bool)
+    @ Base ./abstractarray.jl:3338
+  [5] mapslices(f::SDeMo.var"#43#44"{SDeMo.DecisionTree}, A::Matrix{Float32}; dims::Int64)
+    @ Base ./abstractarray.jl:3326
+  [6] predict(dt::SDeMo.DecisionTree, X::Matrix{Float32})
+    @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/classifiers/decisiontree.jl:218
+  [7] predict(sdm::SDeMo.SDM{Float32, Bool}, X::Matrix{Float32}; threshold::Bool)
+    @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/pipeline.jl:52
+  [8] predict
+    @ ~/.julia/packages/SDeMo/AuNGf/src/pipeline.jl:50 [inlined]
+  [9] (::SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}})(component::SDeMo.SDM{Float32, Bool})
+    @ SDeMo ./none:0
+ [10] iterate
+    @ ./generator.jl:48 [inlined]
+ [11] collect_to!(dest::Vector{Vector{Float64}}, itr::Base.Generator{Vector{SDeMo.SDM}, SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}}}, offs::Int64, st::Int64)
+    @ Base ./array.jl:838
+ [12] collect_to_with_first!(dest::Vector{Vector{Float64}}, v1::Vector{Float64}, itr::Base.Generator{Vector{SDeMo.SDM}, SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}}}, st::Int64)
+    @ Base ./array.jl:816
+ [13] collect(itr::Base.Generator{Vector{SDeMo.SDM}, SDeMo.var"#64#65"{@Kwargs{threshold::Bool}, Matrix{Float32}}})
+    @ Base ./array.jl:790
+ [14] predict(ensemble::SDeMo.Bagging, X::Matrix{Float32}; consensus::Function, kwargs::@Kwargs{threshold::Bool})
+    @ SDeMo ~/.julia/packages/SDeMo/AuNGf/src/ensembles/pipeline.jl:46
+ [15] macro expansion
+    @ ~/.julia/packages/SDeMo/AuNGf/src/crossvalidation/crossvalidation.jl:169 [inlined]
+ [16] (::SDeMo.var"#60#threadsfor_fun#106"{SDeMo.var"#60#threadsfor_fun#104#107"{@Kwargs{threshold::Bool}, SDeMo.Bagging, Vector{Any}, Vector{SDeMo.Bagging}, Vector{SDeMo.ConfusionMatrix}, Vector{SDeMo.ConfusionMatrix}, Base.OneTo{Int64}}})(tid::Int64; onethread::Bool)
+    @ SDeMo ./threadingconstructs.jl:252
+ [17] #60#threadsfor_fun
+    @ ./threadingconstructs.jl:219 [inlined]
+ [18] (::Base.Threads.var"#1#2"{SDeMo.var"#60#threadsfor_fun#106"{SDeMo.var"#60#threadsfor_fun#104#107"{@Kwargs{threshold::Bool}, SDeMo.Bagging, Vector{Any}, Vector{SDeMo.Bagging}, Vector{SDeMo.ConfusionMatrix}, Vector{SDeMo.ConfusionMatrix}, Base.OneTo{Int64}}}, Int64})()
+    @ Base.Threads ./threadingconstructs.jl:154
+\end{verbatim}
+
+Short answer: no
+
+Long answer: maybe? Let's talk it through!
 \end{frame}
 
 \begin{frame}{Prediction of the rotation forest}
@@ -553,20 +613,24 @@ Forest (tr.) & 0.77 & 0.79 & 0.95 & 73.86 & 0.89 \\
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_29_1.png}}~
 \end{frame}
 
-\begin{frame}{Uncertainty}
-\phantomsection\label{uncertainty}
+\begin{frame}{Variation between predictions}
+\phantomsection\label{variation-between-predictions}
 \pandocbounded{\includegraphics[keepaspectratio]{figures/slides_30_1.png}}~
 \end{frame}
 
-\begin{frame}{Revisiting assumptions}
-\phantomsection\label{revisiting-assumptions}
+\begin{frame}{What, exactly, is bootstrap telling us?}
+\phantomsection\label{what-exactly-is-bootstrap-telling-us}
 \begin{itemize}
 \tightlist
 \item
-  pseudo-absences
+  what if we had a little less data (it's conceptually close to
+  cross-validation!)
 \item
-  not just a statistical exercise
+  uncertainty about locations, not predictions
 \end{itemize}
+
+\textbf{Do we expect the model predictions to change at this location
+when we add more training data?}
 \end{frame}
 
 \begin{frame}{Variable importance}
@@ -576,11 +640,14 @@ Forest (tr.) & 0.77 & 0.79 & 0.95 & 73.86 & 0.89 \\
 \textbf{Layer} & \textbf{Variable} & \textbf{Import.} \\
 \midrule\noalign{}
 \endhead
-1 & BIO1 & 0.910314 \\
-8 & BIO8 & 0.0462913 \\
-29 & Snow/Ice & 0.0209557 \\
-24 & Shrubs & 0.018254 \\
-3 & BIO3 & 0.00418499 \\
+10 & BIO10 & 0.28209 \\
+5 & BIO5 & 0.253606 \\
+6 & BIO6 & 0.1741 \\
+13 & BIO13 & 0.0832986 \\
+15 & BIO15 & 0.0797567 \\
+26 & Cultivated and Managed Vegetation & 0.0793417 \\
+12 & BIO12 & 0.044542 \\
+29 & Snow/Ice & 0.0032655 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
@@ -658,89 +725,77 @@ In practice: Monte-Carlo on a reasonable number of samples.
 
 \begin{frame}{Shapley}
 \phantomsection\label{shapley}
-\end{frame}
-
-\begin{frame}{Example}
-\phantomsection\label{example-1}
+\begin{itemize}
+\tightlist
+\item
+  how much is the \alert{average prediction} modified by a specific
+  variable having a specific value?
+\item
+  it's based on game theory (but it's not \emph{actually} game theory)
+\item
+  many highly desirable properties!
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Response curves revisited}
 \phantomsection\label{response-curves-revisited}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_40_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_39_1.png}}~
 \end{frame}
 
 \begin{frame}{On a map}
 \phantomsection\label{on-a-map}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_41_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_40_1.png}}~
 \end{frame}
 
 \begin{frame}{Variable importance revisited}
 \phantomsection\label{variable-importance-revisited}
-\begin{longtable}[]{@{}rrrr@{}}
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1467}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.4667}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1733}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2133}}@{}}
 \toprule\noalign{}
-\textbf{Layer} & \textbf{Variable} & \textbf{Import.} & \textbf{Shap.
-imp.} \\
+\begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Layer}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Variable}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Import.}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\textbf{Shap. imp.}
+\end{minipage} \\
 \midrule\noalign{}
 \endhead
-1 & BIO1 & 0.910314 & 0.846428 \\
-8 & BIO8 & 0.0462913 & 0.0735605 \\
-29 & Snow/Ice & 0.0209557 & 0.0500842 \\
-24 & Shrubs & 0.018254 & 0.0193275 \\
-3 & BIO3 & 0.00418499 & 0.0105997 \\
+10 & BIO10 & 0.28209 & 0.311491 \\
+5 & BIO5 & 0.253606 & 0.253497 \\
+6 & BIO6 & 0.1741 & 0.216219 \\
+26 & Cultivated and Managed Vegetation & 0.0793417 & 0.0629076 \\
+13 & BIO13 & 0.0832986 & 0.0628641 \\
+12 & BIO12 & 0.044542 & 0.0365544 \\
+15 & BIO15 & 0.0797567 & 0.0303014 \\
+29 & Snow/Ice & 0.0032655 & 0.026165 \\
 \bottomrule\noalign{}
 \end{longtable}
 \end{frame}
 
 \begin{frame}{Most important predictor}
 \phantomsection\label{most-important-predictor}
-\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_43_1.png}}~
+\pandocbounded{\includegraphics[keepaspectratio]{figures/slides_42_1.png}}~
 \end{frame}
 
-\begin{frame}{Revisiting the data transformation}
-\phantomsection\label{revisiting-the-data-transformation}
-all in a single model so we can ask effect of variable instead of effect
-of PC1 or whatever
-\end{frame}
+\section{Summary}\label{summary}
 
-\section{What if?}\label{what-if}
-
-\begin{frame}{Intro to counterfactuals}
-\phantomsection\label{intro-to-counterfactuals}
-what they are
-\end{frame}
-
-\begin{frame}{The Rashomon effect}
-\phantomsection\label{the-rashomon-effect}
+\begin{frame}{SDMs are (applied) machine learning}
+\phantomsection\label{sdms-are-applied-machine-learning}
 \begin{itemize}
 \tightlist
 \item
-  different but equally likely alternatives
+  models we can train
 \item
-  happens at all steps in the process
+  parameters can (should!) be tuned automatically
 \item
-  variable selected, threshold used, model type
+  we can use tools from explainable ML to give more clarity
 \end{itemize}
 \end{frame}
-
-\begin{frame}{Generating a counterfactual}
-\phantomsection\label{generating-a-counterfactual}
-\end{frame}
-
-\begin{frame}{Evaluating the counterfactuals}
-\phantomsection\label{evaluating-the-counterfactuals}
-\end{frame}
-
-\begin{frame}{What is a good counterfactual}
-\phantomsection\label{what-is-a-good-counterfactual}
-learning rate and loss function
-
-use on prediction score and not yes/no!
-\end{frame}
-
-\begin{frame}{Algorithmic recourse}
-\phantomsection\label{algorithmic-recourse}
-\end{frame}
-
-\section{Conclusions}\label{conclusions}
 
 \end{document}
