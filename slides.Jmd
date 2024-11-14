@@ -439,7 +439,7 @@ train!(sdm)
 ```
 
 ```julia
-f = Figure(; size=(400, 400))
+f = Figure(; size=(300, 400))
 ax = Axis(f[1,1]; xlabel="Max. nodes after pruning", ylabel="MCC")
 scatterlines!(ax, mn, mv, color=:black, label="Validation")
 scatterlines!(ax, mn, mt, color=:red, label="Training")
@@ -555,8 +555,6 @@ pretty_table(
 ```
 
 # But why?
-
-## Intro explainable
 
 ```julia
 # Get the two most important variables
