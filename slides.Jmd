@@ -683,7 +683,7 @@ current_figure()
 ## On a map
 
 ```julia
-shapley_temp = explain(forest, predictors, r1; threshold=false)
+shapley_temp = explain(forest, predictors, r1; threshold=false, samples=100)
 f = Figure(; size = (800, 400))
 ax = Axis(f[1, 1]; aspect = DataAspect())
 hm = heatmap!(ax, shapley_temp; colormap = :diverging_bwg_20_95_c41_n256, colorrange = (-0.4, 0.4))
@@ -698,7 +698,7 @@ current_figure()
 ## Variable importance revisited
 
 ```julia ; results="raw"
-S = [explain(forest, predictors, v; threshold=false) for v in variables(forest)]
+S = [explain(forest, predictors, v; threshold=false, samples=50) for v in variables(forest)]
 shap_imp = map(x -> sum(abs.(x)), S)
 shap_imp ./= sum(shap_imp)
 most_imp = mosaic(x -> argmax(abs.(x)), S)
