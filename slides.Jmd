@@ -370,7 +370,7 @@ current_figure()
 ```julia ; results="raw"
 cv2 = crossvalidate(sdm, folds; threshold = true)
 push!(nstbl, ["Tuned tree (val.)", mcc(cv2.validation), ppv(cv2.validation), npv(cv2.validation), dor(cv2.validation), accuracy(cv2.validation)])
-push!(nstbl, ["Tuned tree (tr.)", mean(mcc.(cv2.training)), mean(ppv.(cv2.training)), mean(npv.(cv2.training)), mean(dor.(cv2.training)), mean(accuracy.(cv2.training))])
+push!(nstbl, ["Tuned tree (tr.)", mcc(cv2.training), ppv(cv2.training), npv(cv2.training), dor(cv2.training), accuracy(cv2.training)])
 data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
@@ -472,8 +472,8 @@ train!(forest)
 
 ```julia ; results="raw"
 cv3 = crossvalidate(forest, folds; threshold = true)
-push!(nstbl, ["Forest (val.)", mean(mcc.(cv3.validation)), mean(ppv.(cv3.validation)), mean(npv.(cv3.validation)), mean(dor.(cv3.validation)), mean(accuracy.(cv3.validation))])
-push!(nstbl, ["Forest (tr.)", mean(mcc.(cv3.training)), mean(ppv.(cv3.training)), mean(npv.(cv3.training)), mean(dor.(cv3.training)), mean(accuracy.(cv3.training))])
+push!(nstbl, ["Forest (val.)", mcc(cv3.validation), ppv(cv3.validation), npv(cv3.validation), dor(cv3.validation), accuracy(cv3.validation)])
+push!(nstbl, ["Forest (tr.)", mcc(cv3.training), ppv(cv3.training), npv(cv3.training), dor(cv3.training), accuracy(cv3.training)])
 data = permutedims(hcat(nstbl...))
 pretty_table(data;
     backend = Val(:markdown),
